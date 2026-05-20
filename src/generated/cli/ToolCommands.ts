@@ -1101,6 +1101,171 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_sandbox_sandboxTerminalSessionResizeContract_terminal_session_resize, Contract_4.sandboxTerminalSessionResizeContract.inputSchema);
+    const cmd_sandbox_sandboxNetworkExposeContract_network_expose = sandbox.command('network_expose').description(`Map a container port to the host or proxy.`);
+    cmd_sandbox_sandboxNetworkExposeContract_network_expose.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:network_expose...' + C.reset);
+            const res = await client.api.sandbox.network_expose(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxNetworkExposeContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxNetworkExposeContract_network_expose, Contract_4.sandboxNetworkExposeContract.inputSchema);
+    const cmd_sandbox_sandboxNetworkUnexposeContract_network_unexpose = sandbox.command('network_unexpose').description(`Remove a port mapping.`);
+    cmd_sandbox_sandboxNetworkUnexposeContract_network_unexpose.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:network_unexpose...' + C.reset);
+            const res = await client.api.sandbox.network_unexpose(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxNetworkUnexposeContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxNetworkUnexposeContract_network_unexpose, Contract_4.sandboxNetworkUnexposeContract.inputSchema);
+    const cmd_sandbox_sandboxNetworkListContract_network_list = sandbox.command('network_list').description(`List all active exposed ports.`);
+    cmd_sandbox_sandboxNetworkListContract_network_list.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:network_list...' + C.reset);
+            const res = await client.api.sandbox.network_list(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxNetworkListContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxNetworkListContract_network_list, Contract_4.sandboxNetworkListContract.inputSchema);
+    const cmd_sandbox_sandboxNetworkSetPolicyContract_network_set_policy = sandbox.command('network_set_policy').description(`Toggle external internet access for the sandbox.`);
+    cmd_sandbox_sandboxNetworkSetPolicyContract_network_set_policy.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:network_set_policy...' + C.reset);
+            const res = await client.api.sandbox.network_set_policy(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxNetworkSetPolicyContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxNetworkSetPolicyContract_network_set_policy, Contract_4.sandboxNetworkSetPolicyContract.inputSchema);
+    const cmd_sandbox_sandboxEnvSetContract_env_set = sandbox.command('env_set').description(`Set a generic environment variable.`);
+    cmd_sandbox_sandboxEnvSetContract_env_set.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:env_set...' + C.reset);
+            const res = await client.api.sandbox.env_set(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxEnvSetContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxEnvSetContract_env_set, Contract_4.sandboxEnvSetContract.inputSchema);
+    const cmd_sandbox_sandboxEnvSetSecretContract_env_set_secret = sandbox.command('env_set_secret').description(`Set a secret (hidden from logs/telemetry).`);
+    cmd_sandbox_sandboxEnvSetSecretContract_env_set_secret.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:env_set_secret...' + C.reset);
+            const res = await client.api.sandbox.env_set_secret(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxEnvSetSecretContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxEnvSetSecretContract_env_set_secret, Contract_4.sandboxEnvSetSecretContract.inputSchema);
+    const cmd_sandbox_sandboxEnvListContract_env_list = sandbox.command('env_list').description(`List all non-secret environment variables.`);
+    cmd_sandbox_sandboxEnvListContract_env_list.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:env_list...' + C.reset);
+            const res = await client.api.sandbox.env_list(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxEnvListContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxEnvListContract_env_list, Contract_4.sandboxEnvListContract.inputSchema);
+    const cmd_sandbox_sandboxResourceUpdateLimitsContract_resource_update_limits = sandbox.command('resource_update_limits').description(`Update constraints on the active sandbox.`);
+    cmd_sandbox_sandboxResourceUpdateLimitsContract_resource_update_limits.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:resource_update_limits...' + C.reset);
+            const res = await client.api.sandbox.resource_update_limits(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxResourceUpdateLimitsContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxResourceUpdateLimitsContract_resource_update_limits, Contract_4.sandboxResourceUpdateLimitsContract.inputSchema);
+    const cmd_sandbox_sandboxResourceGetStatsContract_resource_get_stats = sandbox.command('resource_get_stats').description(`Fetch current CPU/Memory usage metrics.`);
+    cmd_sandbox_sandboxResourceGetStatsContract_resource_get_stats.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:resource_get_stats...' + C.reset);
+            const res = await client.api.sandbox.resource_get_stats(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxResourceGetStatsContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxResourceGetStatsContract_resource_get_stats, Contract_4.sandboxResourceGetStatsContract.inputSchema);
+    const cmd_sandbox_sandboxStateCommitContract_state_commit = sandbox.command('state_commit').description(`Save current container state as a named image.`);
+    cmd_sandbox_sandboxStateCommitContract_state_commit.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:state_commit...' + C.reset);
+            const res = await client.api.sandbox.state_commit(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxStateCommitContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxStateCommitContract_state_commit, Contract_4.sandboxStateCommitContract.inputSchema);
+    const cmd_sandbox_sandboxStateCloneContract_state_clone = sandbox.command('state_clone').description(`Create a new sandbox from a saved snapshot.`);
+    cmd_sandbox_sandboxStateCloneContract_state_clone.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing sandbox:state_clone...' + C.reset);
+            const res = await client.api.sandbox.state_clone(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_4.sandboxStateCloneContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_sandbox_sandboxStateCloneContract_state_clone, Contract_4.sandboxStateCloneContract.inputSchema);
     const cmd_sandbox_sandboxCrud_create_create = sandbox.command('create').description(`CRUD create for sandbox (sandboxCrud)`);
     cmd_sandbox_sandboxCrud_create_create.action(async (o) => {
         try {

@@ -90,6 +90,7 @@ export const TerminalExecuteInputSchema = z.object({
     command: z.array(z.string()).describe("The command and arguments to execute (e.g. ['npm', 'test'])."),
     cwd: z.string().default('.').describe("Working directory relative to the sandbox root."),
     timeoutMs: z.number().default(30000).describe("Timeout in milliseconds."),
+    env: z.record(z.string(), z.string()).optional().describe("Process-specific environment variables.")
 });
 
 export type TerminalExecuteInput = z.infer<typeof TerminalExecuteInputSchema>;
@@ -98,6 +99,7 @@ export const TerminalSpawnInputSchema = z.object({
     name: z.string().describe("A display name for this background service."),
     command: z.array(z.string()).describe("The command and arguments to spawn."),
     cwd: z.string().default('.').describe("Working directory relative to the sandbox root."),
+    env: z.record(z.string(), z.string()).optional().describe("Process-specific environment variables.")
 });
 
 export type TerminalSpawnInput = z.infer<typeof TerminalSpawnInputSchema>;
@@ -162,3 +164,86 @@ export const SuccessOutputSchema = z.object({
 });
 
 export type SuccessOutput = z.infer<typeof SuccessOutputSchema>;
+
+// ─── Networking & Port Forwarding Schemas ───────────────────────────────────
+
+export const NetworkExposeInputSchema = z.object({
+    port: z.number().describe("The container port to expose/proxy"),
+    protocol: z.enum(['tcp', 'udp']).default('tcp').describe("The transport protocol")
+});
+export type NetworkExposeInput = z.infer<typeof NetworkExposeInputSchema>;
+
+export const NetworkExposeOutputSchema = z.object({
+    success: z.boolean().describe("Whether port exposure succeeded"),
+    mappedUrl: z.string().describe("The mapped host or proxy URL")
+});
+export type NetworkExposeOutput = z.infer<typeof NetworkExposeOutputSchema>;
+
+export const NetworkUnexposeInputSchema = z.object({
+    port: z.number().describe("The container port to stop exposing")
+});
+export type NetworkUnexposeInput = z.infer<typeof NetworkUnexposeInputSchema>;
+
+export const NetworkListOutputSchema = z.array(z.object({
+    port: z.number().describe("The internal container port"),
+    mappedUrl: z.string().describe("The external mapped host/proxy URL"),
+    protocol: z.string().describe("Protocol used")
+}));
+export type NetworkListOutput = z.infer<typeof NetworkListOutputSchema>;
+
+export const NetworkSetPolicyInputSchema = z.object({
+    allowInternet: z.boolean().describe("Whether to allow external internet connectivity inside the sandbox")
+});
+export type NetworkSetPolicyInput = z.infer<typeof NetworkSetPolicyInputSchema>;
+
+// ─── Environment & Secret Management Schemas ───────────────────────────────
+
+export const EnvSetInputSchema = z.object({
+    key: z.string().describe("The environment variable key"),
+    value: z.string().describe("The environment variable value")
+});
+export type EnvSetInput = z.infer<typeof EnvSetInputSchema>;
+
+export const EnvSetSecretInputSchema = z.object({
+    key: z.string().describe("The secret key"),
+    value: z.string().describe("The secret value")
+});
+export type EnvSetSecretInput = z.infer<typeof EnvSetSecretInputSchema>;
+
+export const EnvListOutputSchema = z.record(z.string(), z.string()).describe("A dictionary of generic environment variables");
+export type EnvListOutput = z.infer<typeof EnvListOutputSchema>;
+
+// ─── Resource Limits & Telemetry Schemas ───────────────────────────────────
+
+export const ResourceUpdateLimitsInputSchema = z.object({
+    cpuCores: z.number().optional().describe("Number of CPU cores allowed"),
+    memoryMb: z.number().optional().describe("Memory cap in Megabytes")
+});
+export type ResourceUpdateLimitsInput = z.infer<typeof ResourceUpdateLimitsInputSchema>;
+
+export const ResourceGetStatsOutputSchema = z.object({
+    cpuPercent: z.number().describe("Live container CPU usage percentage"),
+    memoryMb: z.number().describe("Live container memory usage in Megabytes"),
+    memoryLimitMb: z.number().describe("Total allocated memory capacity in Megabytes")
+});
+export type ResourceGetStatsOutput = z.infer<typeof ResourceGetStatsOutputSchema>;
+
+// ─── Snapshot & State Management Schemas ───────────────────────────────────
+
+export const StateCommitInputSchema = z.object({
+    snapshotName: z.string().describe("The snapshot/image name template to commit to")
+});
+export type StateCommitInput = z.infer<typeof StateCommitInputSchema>;
+
+export const StateCommitOutputSchema = z.object({
+    success: z.boolean(),
+    imageId: z.string().describe("The resulting unique image hash")
+});
+export type StateCommitOutput = z.infer<typeof StateCommitOutputSchema>;
+
+export const StateCloneInputSchema = z.object({
+    snapshotName: z.string().describe("The snapshot/image name template to clone from"),
+    newSandboxId: z.string().describe("The ID of the new cloned sandbox to provision")
+});
+export type StateCloneInput = z.infer<typeof StateCloneInputSchema>;
+

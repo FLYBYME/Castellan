@@ -23,7 +23,18 @@ import {
     sandboxTerminalSessionListContract,
     sandboxTerminalSessionWriteContract,
     sandboxTerminalSessionResizeContract,
-    sandboxPruneContract
+    sandboxPruneContract,
+    sandboxNetworkExposeContract,
+    sandboxNetworkUnexposeContract,
+    sandboxNetworkListContract,
+    sandboxNetworkSetPolicyContract,
+    sandboxEnvSetContract,
+    sandboxEnvSetSecretContract,
+    sandboxEnvListContract,
+    sandboxResourceUpdateLimitsContract,
+    sandboxResourceGetStatsContract,
+    sandboxStateCommitContract,
+    sandboxStateCloneContract
 } from './sandbox.contract.js';
 import {
     sandbox_set_active,
@@ -45,7 +56,18 @@ import {
     sandbox_terminal_session_resize,
     sandbox_prune,
     sandbox_create,
-    sandbox_delete
+    sandbox_delete,
+    sandbox_network_expose,
+    sandbox_network_unexpose,
+    sandbox_network_list,
+    sandbox_network_set_policy,
+    sandbox_env_set,
+    sandbox_env_set_secret,
+    sandbox_env_list,
+    sandbox_resource_update_limits,
+    sandbox_resource_get_stats,
+    sandbox_state_commit,
+    sandbox_state_clone
 } from './sandbox.tools.js';
 import { Sandbox as SandboxModel, SandboxSchema } from './sandbox.schema.js';
 import Docker from 'dockerode';
@@ -156,6 +178,25 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
         this.mountTool(sandboxTerminalSessionWriteContract, sandbox_terminal_session_write);
         this.mountTool(sandboxTerminalSessionResizeContract, sandbox_terminal_session_resize);
         this.mountTool(sandboxPruneContract, sandbox_prune);
+
+        // 5. Networking & Port Forwarding Tools
+        this.mountTool(sandboxNetworkExposeContract, sandbox_network_expose);
+        this.mountTool(sandboxNetworkUnexposeContract, sandbox_network_unexpose);
+        this.mountTool(sandboxNetworkListContract, sandbox_network_list);
+        this.mountTool(sandboxNetworkSetPolicyContract, sandbox_network_set_policy);
+
+        // 6. Environment & Secret Management Tools
+        this.mountTool(sandboxEnvSetContract, sandbox_env_set);
+        this.mountTool(sandboxEnvSetSecretContract, sandbox_env_set_secret);
+        this.mountTool(sandboxEnvListContract, sandbox_env_list);
+
+        // 7. Resource Limits & Telemetry Tools
+        this.mountTool(sandboxResourceUpdateLimitsContract, sandbox_resource_update_limits);
+        this.mountTool(sandboxResourceGetStatsContract, sandbox_resource_get_stats);
+
+        // 8. Snapshot & State Management Tools
+        this.mountTool(sandboxStateCommitContract, sandbox_state_commit);
+        this.mountTool(sandboxStateCloneContract, sandbox_state_clone);
     }
 
     // ─── ISandboxManager Implementation ──────────────────────────────────────
@@ -233,7 +274,7 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
         return initPromise;
     }
 
-    public async registerSandboxInMemory(item: SandboxModel): Promise<void> {
+    public async registerSandboxInMemory(item: SandboxModel & { id: string }): Promise<void> {
         const sandbox = new Sandbox(this.docker, this.fs, this.sandboxesRoot);
         await sandbox.initialize(item.image || 'node:18', item.hostPath!, 512, true, []);
         this.sandboxes.set(item.id, sandbox);

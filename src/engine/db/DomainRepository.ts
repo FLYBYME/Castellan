@@ -59,10 +59,18 @@ export class DomainRepository<T extends { id: string }> {
     /**
      * findOne: Returns a single document matching the query.
      */
-    public async findOne(query: StrictFilterQuery<T>): Promise<T | undefined> {
+    public async findOne(
+        query: StrictFilterQuery<T>,
+        options: { sort?: Record<string, 1 | -1> } = {}
+    ): Promise<T | undefined> {
         const mapped = this.mapQuery(query);
-        const doc = await this.collection.findOne(mapped as Filter<Document>);
-        return doc ? this.mapOutbound(doc) : undefined;
+        const cursor = this.collection.find(mapped as Filter<Document>);
+        if (options.sort) {
+            cursor.sort(options.sort);
+        }
+        cursor.limit(1);
+        const docs = await cursor.toArray();
+        return docs[0] ? this.mapOutbound(docs[0]) : undefined;
     }
 
     /**
@@ -176,14 +184,22 @@ export class DomainRepository<T extends { id: string }> {
 
         if (mapped['id']) {
             const idVal = mapped['id'];
-            if (typeof idVal === 'string' && ObjectId.isValid(idVal)) {
-                mapped['_id'] = new ObjectId(idVal);
+            if (typeof idVal === 'string') {
+                mapped['_id'] = ObjectId.isValid(idVal) ? new ObjectId(idVal) : new ObjectId('000000000000000000000000');
             } else if (this.isRecord(idVal)) {
                 const ops = idVal as Record<string, unknown>;
-                if (Array.isArray(ops['$in'])) ops['$in'] = (ops['$in'] as string[]).filter(v => ObjectId.isValid(v)).map(id => new ObjectId(id));
-                if (Array.isArray(ops['$nin'])) ops['$nin'] = (ops['$nin'] as string[]).filter(v => ObjectId.isValid(v)).map(id => new ObjectId(id));
-                if (typeof ops['$eq'] === 'string' && ObjectId.isValid(ops['$eq'])) ops['$eq'] = new ObjectId(ops['$eq']);
-                if (typeof ops['$ne'] === 'string' && ObjectId.isValid(ops['$ne'])) ops['$ne'] = new ObjectId(ops['$ne']);
+                if (Array.isArray(ops['$in'])) {
+                    ops['$in'] = (ops['$in'] as string[]).map(id => ObjectId.isValid(id) ? new ObjectId(id) : new ObjectId('000000000000000000000000'));
+                }
+                if (Array.isArray(ops['$nin'])) {
+                    ops['$nin'] = (ops['$nin'] as string[]).map(id => ObjectId.isValid(id) ? new ObjectId(id) : new ObjectId('000000000000000000000000'));
+                }
+                if (typeof ops['$eq'] === 'string') {
+                    ops['$eq'] = ObjectId.isValid(ops['$eq']) ? new ObjectId(ops['$eq']) : new ObjectId('000000000000000000000000');
+                }
+                if (typeof ops['$ne'] === 'string') {
+                    ops['$ne'] = ObjectId.isValid(ops['$ne']) ? new ObjectId(ops['$ne']) : new ObjectId('000000000000000000000000');
+                }
                 mapped['_id'] = ops;
             }
             delete mapped['id'];

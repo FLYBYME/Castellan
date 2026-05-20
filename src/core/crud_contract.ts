@@ -133,7 +133,7 @@ export function defineCrud<
     z.ZodType<ReplaceIn<z.output<TBase>, TIdField>, z.ZodTypeDef, ReplaceIn<z.input<TBase>, TIdField>>,
     z.ZodType<Prettify<IdOnlyIn<TIdField> & z.input<typeof CrudParamsSchema>>, z.ZodTypeDef, Prettify<IdOnlyIn<TIdField> & z.input<typeof CrudParamsSchema>>>,
     typeof CrudParamsSchema,
-    z.ZodObject<{ query: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>> }>,
+    typeof CrudParamsSchema,
     z.ZodType<Prettify<{ [K in TIdField]: string | string[] } & z.input<typeof CrudParamsSchema> & { mapping?: boolean, throwIfNotExist?: boolean, reorderResult?: boolean }>, z.ZodTypeDef, Prettify<{ [K in TIdField]: string | string[] } & z.input<typeof CrudParamsSchema> & { mapping?: boolean, throwIfNotExist?: boolean, reorderResult?: boolean }>>,
     z.ZodType<IdOnlyIn<TIdField>, z.ZodTypeDef, IdOnlyIn<TIdField>>
 > {
@@ -218,7 +218,7 @@ export function defineCrud<
     >;
 
     const FindInputSchema = CrudParamsSchema;
-    const FindOneInputSchema = z.object({ query: CrudParamsSchema.shape.query.optional() });
+    const FindOneInputSchema = CrudParamsSchema;
 
     const ResolveOutputSchema = z.union([z.array(outputSchema), z.record(z.string(), outputSchema)]);
 
@@ -347,7 +347,7 @@ export function defineCrud<
         z.ZodType<ReplaceIn<z.output<TBase>, TIdField>, z.ZodTypeDef, ReplaceIn<z.input<TBase>, TIdField>>,
         z.ZodType<Prettify<IdOnlyIn<TIdField> & z.input<typeof CrudParamsSchema>>, z.ZodTypeDef, Prettify<IdOnlyIn<TIdField> & z.input<typeof CrudParamsSchema>>>,
         typeof CrudParamsSchema,
-        z.ZodObject<{ query: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>> }>,
+        typeof CrudParamsSchema,
         z.ZodType<Prettify<{ [K in TIdField]: string | string[] } & z.input<typeof CrudParamsSchema> & { mapping?: boolean, throwIfNotExist?: boolean, reorderResult?: boolean }>, z.ZodTypeDef, Prettify<{ [K in TIdField]: string | string[] } & z.input<typeof CrudParamsSchema> & { mapping?: boolean, throwIfNotExist?: boolean, reorderResult?: boolean }>>,
         z.ZodType<IdOnlyIn<TIdField>, z.ZodTypeDef, IdOnlyIn<TIdField>>
     >;

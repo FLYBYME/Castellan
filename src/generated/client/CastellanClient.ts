@@ -210,6 +210,28 @@ export class CastellanClient extends BaseClient {
                 this.request<z.infer<typeof Contract_4.sandboxTerminalSessionWriteContract['outputSchema']>>('sandbox_terminal_session_write', args, Contract_4.sandboxTerminalSessionWriteContract.outputSchema),
             terminal_session_resize: (args: z.input<typeof Contract_4.sandboxTerminalSessionResizeContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxTerminalSessionResizeContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_4.sandboxTerminalSessionResizeContract['outputSchema']>>('sandbox_terminal_session_resize', args, Contract_4.sandboxTerminalSessionResizeContract.outputSchema),
+            network_expose: (args: z.input<typeof Contract_4.sandboxNetworkExposeContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxNetworkExposeContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxNetworkExposeContract['outputSchema']>>('sandbox_network_expose', args, Contract_4.sandboxNetworkExposeContract.outputSchema),
+            network_unexpose: (args: z.input<typeof Contract_4.sandboxNetworkUnexposeContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxNetworkUnexposeContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxNetworkUnexposeContract['outputSchema']>>('sandbox_network_unexpose', args, Contract_4.sandboxNetworkUnexposeContract.outputSchema),
+            network_list: (args: z.input<typeof Contract_4.sandboxNetworkListContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxNetworkListContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxNetworkListContract['outputSchema']>>('sandbox_network_list', args, Contract_4.sandboxNetworkListContract.outputSchema),
+            network_set_policy: (args: z.input<typeof Contract_4.sandboxNetworkSetPolicyContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxNetworkSetPolicyContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxNetworkSetPolicyContract['outputSchema']>>('sandbox_network_set_policy', args, Contract_4.sandboxNetworkSetPolicyContract.outputSchema),
+            env_set: (args: z.input<typeof Contract_4.sandboxEnvSetContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxEnvSetContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxEnvSetContract['outputSchema']>>('sandbox_env_set', args, Contract_4.sandboxEnvSetContract.outputSchema),
+            env_set_secret: (args: z.input<typeof Contract_4.sandboxEnvSetSecretContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxEnvSetSecretContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxEnvSetSecretContract['outputSchema']>>('sandbox_env_set_secret', args, Contract_4.sandboxEnvSetSecretContract.outputSchema),
+            env_list: (args: z.input<typeof Contract_4.sandboxEnvListContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxEnvListContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxEnvListContract['outputSchema']>>('sandbox_env_list', args, Contract_4.sandboxEnvListContract.outputSchema),
+            resource_update_limits: (args: z.input<typeof Contract_4.sandboxResourceUpdateLimitsContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxResourceUpdateLimitsContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxResourceUpdateLimitsContract['outputSchema']>>('sandbox_resource_update_limits', args, Contract_4.sandboxResourceUpdateLimitsContract.outputSchema),
+            resource_get_stats: (args: z.input<typeof Contract_4.sandboxResourceGetStatsContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxResourceGetStatsContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxResourceGetStatsContract['outputSchema']>>('sandbox_resource_get_stats', args, Contract_4.sandboxResourceGetStatsContract.outputSchema),
+            state_commit: (args: z.input<typeof Contract_4.sandboxStateCommitContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxStateCommitContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxStateCommitContract['outputSchema']>>('sandbox_state_commit', args, Contract_4.sandboxStateCommitContract.outputSchema),
+            state_clone: (args: z.input<typeof Contract_4.sandboxStateCloneContract['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxStateCloneContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_4.sandboxStateCloneContract['outputSchema']>>('sandbox_state_clone', args, Contract_4.sandboxStateCloneContract.outputSchema),
             create: (args: z.input<typeof Contract_4.sandboxCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxCrud['create']['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_4.sandboxCrud['create']['outputSchema']>>('sandbox_create', args, Contract_4.sandboxCrud['create'].outputSchema),
             find: (args: z.input<typeof Contract_4.sandboxCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.sandboxCrud['find']['outputSchema']>> => 

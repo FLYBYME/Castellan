@@ -250,16 +250,35 @@ export async function refresh_inventory(
             await ctx.api.ollama.update({ id: inst.id, status: 'online', lastSeen: new Date() });
 
             for (const m of resp.models) {
-                await ctx.api.models.create({
-                    instanceId: inst.id,
-                    name: m.name,
-                    size: m.size,
-                    digest: m.digest,
-                    format: m.details.format,
-                    family: m.details.family,
-                    parameterSize: m.details.parameter_size,
-                    quantizationLevel: m.details.quantization_level,
+                const existing = await ctx.api.models.find_one({
+                    query: {
+                        instanceId: inst.id,
+                        name: m.name
+                    }
                 });
+
+                if (existing) {
+                    await ctx.api.models.update({
+                        id: existing.id,
+                        size: m.size,
+                        digest: m.digest,
+                        format: m.details.format,
+                        family: m.details.family,
+                        parameterSize: m.details.parameter_size,
+                        quantizationLevel: m.details.quantization_level,
+                    });
+                } else {
+                    await ctx.api.models.create({
+                        instanceId: inst.id,
+                        name: m.name,
+                        size: m.size,
+                        digest: m.digest,
+                        format: m.details.format,
+                        family: m.details.family,
+                        parameterSize: m.details.parameter_size,
+                        quantizationLevel: m.details.quantization_level,
+                    });
+                }
             }
             updatedInstances++;
         } catch (err) {

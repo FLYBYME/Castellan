@@ -238,4 +238,49 @@ export interface ISandbox {
      * Gets logs for a specific background service.
      */
     getBackgroundServiceLogs(processId: string, tail?: number): Promise<string>;
+
+    /**
+     * Map a container port to the host or proxy.
+     */
+    exposePort(port: number, protocol?: 'tcp' | 'udp'): Promise<string>;
+
+    /**
+     * Stop exposing a container port.
+     */
+    unexposePort(port: number): Promise<boolean>;
+
+    /**
+     * List all active exposed ports.
+     */
+    listExposedPorts(): Promise<Array<{ port: number, mappedUrl: string, protocol: string }>>;
+
+    /**
+     * Toggle external internet access for this sandbox container.
+     */
+    setNetworkPolicy(allowInternet: boolean): Promise<boolean>;
+
+    /**
+     * Set a generic environment variable or secret.
+     */
+    setEnv(key: string, value: string, isSecret?: boolean): Promise<boolean>;
+
+    /**
+     * List all non-secret environment variables.
+     */
+    listEnv(): Promise<Record<string, string>>;
+
+    /**
+     * Update CPU and memory resource constraints on the running container.
+     */
+    updateResourceLimits(cpuCores?: number, memoryMb?: number): Promise<boolean>;
+
+    /**
+     * Fetch live container CPU and Memory metrics.
+     */
+    getResourceStats(): Promise<{ cpuPercent: number, memoryMb: number, memoryLimitMb: number }>;
+
+    /**
+     * Save the current container state as a local named Docker image.
+     */
+    commitState(snapshotName: string): Promise<string>;
 }

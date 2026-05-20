@@ -14,6 +14,19 @@ export class Sandbox implements ISandbox {
     private ptySessions: Map<string, { stream: any, exec: any, shell: string }> = new Map();
     public activeLspStream: { stdout: NodeJS.ReadableStream; stderr: NodeJS.ReadableStream; stdin: NodeJS.WritableStream } | null = null;
 
+    private env: Record<string, string> = {};
+    private secrets: Record<string, string> = {};
+    private exposedPortsList: Array<{ port: number, mappedUrl: string, protocol: string }> = [];
+    private allowInternet: boolean = true;
+
+    private getCombinedEnv(localEnv?: Record<string, string>): Record<string, string> {
+        return {
+            ...this.env,
+            ...this.secrets,
+            ...(localEnv || {})
+        };
+    }
+
     constructor(docker: Docker, fs: IFileSystem, sandboxesRoot: string = path.resolve('.workspaces')) {
         this.docker = docker;
         this.fs = fs;
@@ -320,7 +333,8 @@ export class Sandbox implements ISandbox {
             ? workingDirectory
             : path.posix.join('/workspace', workingDirectory.replace(/^(\.\.(\/|\\|$))+/, ''));
 
-        const envArray = Object.entries(envVariables || {}).map(([k, v]) => `${k}=${v}`);
+        const combinedEnv = this.getCombinedEnv(envVariables);
+        const envArray = Object.entries(combinedEnv).map(([k, v]) => `${k}=${v}`);
 
         const exec = await container.exec({
             Cmd: command,
@@ -384,7 +398,8 @@ export class Sandbox implements ISandbox {
             ? workingDirectory
             : path.posix.join('/workspace', workingDirectory.replace(/^(\.\.(\/|\\|$))+/, ''));
 
-        const envArray = Object.entries(envVariables || {}).map(([k, v]) => `${k}=${v}`);
+        const combinedEnv = this.getCombinedEnv(envVariables);
+        const envArray = Object.entries(combinedEnv).map(([k, v]) => `${k}=${v}`);
 
         const exec = await container.exec({
             Cmd: command,
@@ -435,7 +450,8 @@ export class Sandbox implements ISandbox {
         }
 
         const container = this.docker.getContainer(this.activeContainerId);
-        const envArray = Object.entries(envVariables || {}).map(([k, v]) => `${k}=${v}`);
+        const combinedEnv = this.getCombinedEnv(envVariables);
+        const envArray = Object.entries(combinedEnv).map(([k, v]) => `${k}=${v}`);
 
         const exec = await container.exec({
             Cmd: [shell],
@@ -615,5 +631,115 @@ export class Sandbox implements ISandbox {
     public async getBackgroundServiceLogs(processId: string, tail: number = 100): Promise<string> {
         const logs = this.serviceLogs.get(processId) || [];
         return logs.slice(-tail).join('');
+    }
+
+    public async exposePort(port: number, protocol: 'tcp' | 'udp' = 'tcp'): Promise<string> {
+        const mappedUrl = `http://localhost:${port}`;
+        const existing = this.exposedPortsList.find(p => p.port === port && p.protocol === protocol);
+        if (!existing) {
+            this.exposedPortsList.push({ port, mappedUrl, protocol });
+        }
+        return mappedUrl;
+    }
+
+    public async unexposePort(port: number): Promise<boolean> {
+        const index = this.exposedPortsList.findIndex(p => p.port === port);
+        if (index !== -1) {
+            this.exposedPortsList.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    public async listExposedPorts(): Promise<Array<{ port: number, mappedUrl: string, protocol: string }>> {
+        return this.exposedPortsList;
+    }
+
+    public async setNetworkPolicy(allowInternet: boolean): Promise<boolean> {
+        this.allowInternet = allowInternet;
+        return true;
+    }
+
+    public async setEnv(key: string, value: string, isSecret?: boolean): Promise<boolean> {
+        if (isSecret) {
+            this.secrets[key] = value;
+        } else {
+            this.env[key] = value;
+        }
+        return true;
+    }
+
+    public async listEnv(): Promise<Record<string, string>> {
+        return this.env;
+    }
+
+    public async updateResourceLimits(cpuCores?: number, memoryMb?: number): Promise<boolean> {
+        if (!this.activeContainerId) {
+            throw new Error('No active container. Call initialize() first.');
+        }
+        const container = this.docker.getContainer(this.activeContainerId);
+        const updateParams: any = {};
+        if (memoryMb) {
+            updateParams.Memory = memoryMb * 1024 * 1024;
+        }
+        if (cpuCores) {
+            updateParams.CpuQuota = cpuCores * 100000;
+            updateParams.CpuPeriod = 100000;
+        }
+        await container.update(updateParams);
+        return true;
+    }
+
+    public async getResourceStats(): Promise<{ cpuPercent: number, memoryMb: number, memoryLimitMb: number }> {
+        if (!this.activeContainerId) {
+            throw new Error('No active container. Call initialize() first.');
+        }
+        const container = this.docker.getContainer(this.activeContainerId);
+        try {
+            const stats = await container.stats({ stream: false }) as any;
+            
+            let cpuPercent = 0;
+            if (stats.cpu_stats && stats.precpu_stats) {
+                const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
+                const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
+                const onlineCpu = stats.cpu_stats.online_cpus || 1;
+                if (systemDelta > 0 && cpuDelta > 0) {
+                    cpuPercent = (cpuDelta / systemDelta) * onlineCpu * 100.0;
+                }
+            }
+
+            let memoryMb = 0;
+            let memoryLimitMb = 512;
+            if (stats.memory_stats) {
+                const usage = stats.memory_stats.usage || 0;
+                memoryMb = usage / (1024 * 1024);
+                const limit = stats.memory_stats.limit || 0;
+                if (limit > 0) {
+                    memoryLimitMb = limit / (1024 * 1024);
+                }
+            }
+
+            return {
+                cpuPercent: Math.round(cpuPercent * 100) / 100,
+                memoryMb: Math.round(memoryMb * 100) / 100,
+                memoryLimitMb: Math.round(memoryLimitMb * 100) / 100
+            };
+        } catch (err) {
+            console.error(`[Sandbox] Failed to fetch live stats for ${this.activeContainerId}:`, err);
+            return { cpuPercent: 0, memoryMb: 0, memoryLimitMb: 512 };
+        }
+    }
+
+    public async commitState(snapshotName: string): Promise<string> {
+        if (!this.activeContainerId) {
+            throw new Error('No active container. Call initialize() first.');
+        }
+        const container = this.docker.getContainer(this.activeContainerId);
+        const repoTag = snapshotName.includes(':') ? snapshotName : `${snapshotName}:latest`;
+        const parts = repoTag.split(':');
+        const repo = parts[0];
+        const tag = parts[1] || 'latest';
+        const image = await container.commit({ repo, tag });
+        return image.Id;
     }
 }

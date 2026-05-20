@@ -19,7 +19,20 @@ import {
     TerminalSessionListOutputSchema,
     TerminalSessionWriteInputSchema,
     TerminalSessionResizeInputSchema,
-    SuccessOutputSchema
+    SuccessOutputSchema,
+    NetworkExposeInputSchema,
+    NetworkExposeOutputSchema,
+    NetworkUnexposeInputSchema,
+    NetworkListOutputSchema,
+    NetworkSetPolicyInputSchema,
+    EnvSetInputSchema,
+    EnvSetSecretInputSchema,
+    EnvListOutputSchema,
+    ResourceUpdateLimitsInputSchema,
+    ResourceGetStatsOutputSchema,
+    StateCommitInputSchema,
+    StateCommitOutputSchema,
+    StateCloneInputSchema
 } from './sandbox.schema.js';
 
 /**
@@ -264,3 +277,133 @@ export const sandboxTerminalSessionResizeContract = defineContract({
     destructive: false,
     event: true
 });
+
+// ─── Networking & Port Forwarding Contracts ──────────────────────────────────
+
+export const sandboxNetworkExposeContract = defineContract({
+    domain: 'sandbox',
+    action: 'network_expose',
+    description: 'Map a container port to the host or proxy.',
+    inputSchema: NetworkExposeInputSchema,
+    outputSchema: NetworkExposeOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/network/expose' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxNetworkUnexposeContract = defineContract({
+    domain: 'sandbox',
+    action: 'network_unexpose',
+    description: 'Remove a port mapping.',
+    inputSchema: NetworkUnexposeInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/network/unexpose' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxNetworkListContract = defineContract({
+    domain: 'sandbox',
+    action: 'network_list',
+    description: 'List all active exposed ports.',
+    inputSchema: z.object({}),
+    outputSchema: NetworkListOutputSchema,
+    rest: { method: 'GET', path: '/sandbox/network/list' },
+    destructive: false,
+    event: true
+});
+
+export const sandboxNetworkSetPolicyContract = defineContract({
+    domain: 'sandbox',
+    action: 'network_set_policy',
+    description: 'Toggle external internet access for the sandbox.',
+    inputSchema: NetworkSetPolicyInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/network/policy' },
+    destructive: true,
+    event: true
+});
+
+// ─── Environment Variables Contracts ────────────────────────────────────────
+
+export const sandboxEnvSetContract = defineContract({
+    domain: 'sandbox',
+    action: 'env_set',
+    description: 'Set a generic environment variable.',
+    inputSchema: EnvSetInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/env' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxEnvSetSecretContract = defineContract({
+    domain: 'sandbox',
+    action: 'env_set_secret',
+    description: 'Set a secret (hidden from logs/telemetry).',
+    inputSchema: EnvSetSecretInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/env/secret' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxEnvListContract = defineContract({
+    domain: 'sandbox',
+    action: 'env_list',
+    description: 'List all non-secret environment variables.',
+    inputSchema: z.object({}),
+    outputSchema: EnvListOutputSchema,
+    rest: { method: 'GET', path: '/sandbox/env' },
+    destructive: false,
+    event: true
+});
+
+// ─── Resource Management & Telemetry Contracts ──────────────────────────────
+
+export const sandboxResourceUpdateLimitsContract = defineContract({
+    domain: 'sandbox',
+    action: 'resource_update_limits',
+    description: 'Update constraints on the active sandbox.',
+    inputSchema: ResourceUpdateLimitsInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/resources/limits' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxResourceGetStatsContract = defineContract({
+    domain: 'sandbox',
+    action: 'resource_get_stats',
+    description: 'Fetch current CPU/Memory usage metrics.',
+    inputSchema: z.object({}),
+    outputSchema: ResourceGetStatsOutputSchema,
+    rest: { method: 'GET', path: '/sandbox/resources/stats' },
+    destructive: false,
+    event: true
+});
+
+// ─── Snapshot & State Management Contracts ──────────────────────────────────
+
+export const sandboxStateCommitContract = defineContract({
+    domain: 'sandbox',
+    action: 'state_commit',
+    description: 'Save current container state as a named image.',
+    inputSchema: StateCommitInputSchema,
+    outputSchema: StateCommitOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/state/commit' },
+    destructive: true,
+    event: true
+});
+
+export const sandboxStateCloneContract = defineContract({
+    domain: 'sandbox',
+    action: 'state_clone',
+    description: 'Create a new sandbox from a saved snapshot.',
+    inputSchema: StateCloneInputSchema,
+    outputSchema: SuccessOutputSchema,
+    rest: { method: 'POST', path: '/sandbox/state/clone' },
+    destructive: true,
+    event: true
+});
+

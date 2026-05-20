@@ -96,14 +96,36 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
         const id = typeof input['id'] === 'string' ? input['id'] : '';
 
         switch (action) {
-            case 'find': return await repo.find(input);
-            case 'find_one': return await repo.findOne(input['query'] as Record<string, unknown> || {});
+            case 'find': {
+                const query = input['query'] as Record<string, unknown> || {};
+                const sortRaw = input['sort'];
+                const sort = (typeof sortRaw === 'string' || Array.isArray(sortRaw))
+                    ? parseSort(sortRaw)
+                    : undefined;
+                return await repo.find({
+                    query,
+                    limit: typeof input['limit'] === 'number' ? input['limit'] : undefined,
+                    offset: typeof input['offset'] === 'number' ? input['offset'] : undefined,
+                    sort
+                });
+            }
+            case 'find_one': {
+                const query = input['query'] as Record<string, unknown> || {};
+                const sortRaw = input['sort'];
+                const sort = (typeof sortRaw === 'string' || Array.isArray(sortRaw))
+                    ? parseSort(sortRaw)
+                    : undefined;
+                return await repo.findOne(query, { sort });
+            }
             case 'count': return await repo.count(input['query'] as Record<string, unknown> || {});
             case 'get': return await repo.get(id);
             case 'create':
                 return await repo.create(input as Omit<{ id: string }, 'id'>, context.correlationId);
             case 'update': return await repo.update(id, input, context.correlationId);
-            case 'delete': return await repo.delete(id, context.correlationId);
+            case 'delete': {
+                const result = await repo.delete(id, context.correlationId);
+                return { success: result };
+            }
             default: throw new Error(`Execution Error: Unsupported CRUD action "${action}"`);
         }
     }
@@ -119,4 +141,28 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
     private isRecord(obj: unknown): obj is Record<string, unknown> {
         return typeof obj === 'object' && obj !== null && !Array.isArray(obj);
     }
+}
+
+function parseSort(sort: string | string[]): Record<string, 1 | -1> {
+    const result: Record<string, 1 | -1> = {};
+    const parts = Array.isArray(sort) ? sort : [sort];
+    for (const part of parts) {
+        if (typeof part !== 'string') continue;
+        const subParts = part.split(',').map(s => s.trim()).filter(Boolean);
+        for (const item of subParts) {
+            if (item.startsWith('-')) {
+                result[item.slice(1)] = -1;
+            } else if (item.startsWith('+')) {
+                result[item.slice(1)] = 1;
+            } else if (item.includes(':')) {
+                const [field, dir] = item.split(':').map(s => s.trim());
+                if (field) {
+                    result[field] = dir?.toLowerCase() === 'desc' ? -1 : 1;
+                }
+            } else {
+                result[item] = 1;
+            }
+        }
+    }
+    return result;
 }

@@ -19,7 +19,18 @@ import {
     sandboxTerminalSessionWriteContract,
     sandboxTerminalSessionResizeContract,
     sandboxPruneContract,
-    sandboxCrud
+    sandboxCrud,
+    sandboxNetworkExposeContract,
+    sandboxNetworkUnexposeContract,
+    sandboxNetworkListContract,
+    sandboxNetworkSetPolicyContract,
+    sandboxEnvSetContract,
+    sandboxEnvSetSecretContract,
+    sandboxEnvListContract,
+    sandboxResourceUpdateLimitsContract,
+    sandboxResourceGetStatsContract,
+    sandboxStateCommitContract,
+    sandboxStateCloneContract
 } from './sandbox.contract.js';
 import { SandboxSchema, SettingSchema } from './sandbox.schema.js';
 import { SandboxSkill } from './sandbox.skill.js';
@@ -136,7 +147,7 @@ export async function sandbox_terminal_execute(
     ctx: ISkillContext
 ) {
     const sandbox = await getActiveSandbox(ctx);
-    return await sandbox.executeCommand(input.command, input.cwd, {}, input.timeoutMs);
+    return await sandbox.executeCommand(input.command, input.cwd, input.env || {}, input.timeoutMs);
 }
 
 export async function sandbox_terminal_spawn(
@@ -147,7 +158,7 @@ export async function sandbox_terminal_spawn(
     const processId = await sandbox.spawnBackgroundService(
         input.name, 
         input.command, 
-        {}, 
+        input.env || {}, 
         {},
         (type, data, exitCode) => {
             // Dispatch real-time chunks to the event stream
@@ -315,7 +326,7 @@ export async function sandbox_create(
         name: input.name,
         description: input.description || null,
         gitUrl,
-        image,
+        image: input.image || 'node:18',
         status: 'active',
         agentId: input.agentId || null,
         threadId: input.threadId || null
@@ -349,6 +360,135 @@ export async function sandbox_delete(
 
     // 2. Delete database record
     await ctx.api.sandbox.delete({ id: input.id });
+
+    return { success: true };
+}
+
+// ─── Networking & Port Forwarding Tool Handlers ─────────────────────────────
+
+export async function sandbox_network_expose(
+    input: z.infer<typeof sandboxNetworkExposeContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxNetworkExposeContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const mappedUrl = await sandbox.exposePort(input.port, input.protocol);
+    return { success: true, mappedUrl };
+}
+
+export async function sandbox_network_unexpose(
+    input: z.infer<typeof sandboxNetworkUnexposeContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxNetworkUnexposeContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const success = await sandbox.unexposePort(input.port);
+    return { success };
+}
+
+export async function sandbox_network_list(
+    input: z.infer<typeof sandboxNetworkListContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxNetworkListContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    return await sandbox.listExposedPorts();
+}
+
+export async function sandbox_network_set_policy(
+    input: z.infer<typeof sandboxNetworkSetPolicyContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxNetworkSetPolicyContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const success = await sandbox.setNetworkPolicy(input.allowInternet);
+    return { success };
+}
+
+// ─── Environment Variables Tool Handlers ─────────────────────────────────────
+
+export async function sandbox_env_set(
+    input: z.infer<typeof sandboxEnvSetContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxEnvSetContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const success = await sandbox.setEnv(input.key, input.value, false);
+    return { success };
+}
+
+export async function sandbox_env_set_secret(
+    input: z.infer<typeof sandboxEnvSetSecretContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxEnvSetSecretContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const success = await sandbox.setEnv(input.key, input.value, true);
+    return { success };
+}
+
+export async function sandbox_env_list(
+    input: z.infer<typeof sandboxEnvListContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxEnvListContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    return await sandbox.listEnv();
+}
+
+// ─── Resource Limits & Telemetry Tool Handlers ───────────────────────────────
+
+export async function sandbox_resource_update_limits(
+    input: z.infer<typeof sandboxResourceUpdateLimitsContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxResourceUpdateLimitsContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const success = await sandbox.updateResourceLimits(input.cpuCores, input.memoryMb);
+    return { success };
+}
+
+export async function sandbox_resource_get_stats(
+    input: z.infer<typeof sandboxResourceGetStatsContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxResourceGetStatsContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    return await sandbox.getResourceStats();
+}
+
+// ─── Snapshot & State Management Tool Handlers ───────────────────────────────
+
+export async function sandbox_state_commit(
+    input: z.infer<typeof sandboxStateCommitContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxStateCommitContract.outputSchema>> {
+    const sandbox = await getActiveSandbox(ctx);
+    const imageId = await sandbox.commitState(input.snapshotName);
+    return { success: true, imageId };
+}
+
+export async function sandbox_state_clone(
+    input: z.infer<typeof sandboxStateCloneContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxStateCloneContract.outputSchema>> {
+    const activeId = ctx.sandboxId;
+    if (!activeId) throw new Error("No active sandbox. Call sandbox_set_active first.");
+    const sourceSandbox = await SandboxSkill.instance.getSandbox(activeId, ctx);
+    
+    const imageId = await sourceSandbox.commitState(input.snapshotName);
+
+    const doc = await ctx.api.sandbox.find_one({ query: { id: activeId } });
+    if (!doc) throw new Error(`Source sandbox ${activeId} record not found.`);
+
+    const item = await ctx.api.sandbox.create({
+        name: `${doc.name} (Clone)`,
+        description: `Cloned from ${doc.name} with snapshot ${input.snapshotName}`,
+        gitUrl: doc.gitUrl,
+        image: imageId,
+        status: 'active',
+        agentId: doc.agentId || null,
+        threadId: doc.threadId || null
+    });
+
+    const hostPath = await SandboxSkill.instance.createSandbox(item.id, doc.gitUrl);
+    const updatedItem = await ctx.api.sandbox.update({
+        id: item.id,
+        hostPath
+    });
+
+    await SandboxSkill.instance.registerSandboxInMemory(updatedItem);
 
     return { success: true };
 }

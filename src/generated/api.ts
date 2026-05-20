@@ -172,6 +172,28 @@ declare module '../core/api.js' {
             readonly terminal_session_write: (args: z.input<typeof Contract_4.sandboxTerminalSessionWriteContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxTerminalSessionWriteContract['outputSchema']>>;
             /** Resize a PTY session window. */
             readonly terminal_session_resize: (args: z.input<typeof Contract_4.sandboxTerminalSessionResizeContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxTerminalSessionResizeContract['outputSchema']>>;
+            /** Map a container port to the host or proxy. */
+            readonly network_expose: (args: z.input<typeof Contract_4.sandboxNetworkExposeContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxNetworkExposeContract['outputSchema']>>;
+            /** Remove a port mapping. */
+            readonly network_unexpose: (args: z.input<typeof Contract_4.sandboxNetworkUnexposeContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxNetworkUnexposeContract['outputSchema']>>;
+            /** List all active exposed ports. */
+            readonly network_list: (args: z.input<typeof Contract_4.sandboxNetworkListContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxNetworkListContract['outputSchema']>>;
+            /** Toggle external internet access for the sandbox. */
+            readonly network_set_policy: (args: z.input<typeof Contract_4.sandboxNetworkSetPolicyContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxNetworkSetPolicyContract['outputSchema']>>;
+            /** Set a generic environment variable. */
+            readonly env_set: (args: z.input<typeof Contract_4.sandboxEnvSetContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxEnvSetContract['outputSchema']>>;
+            /** Set a secret (hidden from logs/telemetry). */
+            readonly env_set_secret: (args: z.input<typeof Contract_4.sandboxEnvSetSecretContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxEnvSetSecretContract['outputSchema']>>;
+            /** List all non-secret environment variables. */
+            readonly env_list: (args: z.input<typeof Contract_4.sandboxEnvListContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxEnvListContract['outputSchema']>>;
+            /** Update constraints on the active sandbox. */
+            readonly resource_update_limits: (args: z.input<typeof Contract_4.sandboxResourceUpdateLimitsContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxResourceUpdateLimitsContract['outputSchema']>>;
+            /** Fetch current CPU/Memory usage metrics. */
+            readonly resource_get_stats: (args: z.input<typeof Contract_4.sandboxResourceGetStatsContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxResourceGetStatsContract['outputSchema']>>;
+            /** Save current container state as a named image. */
+            readonly state_commit: (args: z.input<typeof Contract_4.sandboxStateCommitContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxStateCommitContract['outputSchema']>>;
+            /** Create a new sandbox from a saved snapshot. */
+            readonly state_clone: (args: z.input<typeof Contract_4.sandboxStateCloneContract['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxStateCloneContract['outputSchema']>>;
             /** CRUD create for sandbox (sandboxCrud) */
             readonly create: (args: z.input<typeof Contract_4.sandboxCrud['create']['inputSchema']>) => Promise<z.infer<typeof Contract_4.sandboxCrud['create']['outputSchema']>>;
             /** CRUD find for sandbox (sandboxCrud) */

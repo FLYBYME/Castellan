@@ -1,6 +1,8 @@
 # Castellan Engineering Standards
 
-**CRITICAL DIRECTIVE TO AI AGENT:** You are writing STRICT, advanced TypeScript. You are not writing JavaScript. If you cannot resolve a type natively without `any`, you must stop and declare a native TypeScript generic interface.
+**CRITICAL DIRECTIVE TO AI AGENT:**
+1. **AMBIGUITY & UNCERTAINTY**: YOU MUST ALWAYS ASK QUESTIONS IF YOU DO NOT KNOW SOMETHING OR IF YOU ARE UNSURE. ALWAYS ASK QUESTIONS BEFORE MAKING ASSUMPTIONS.
+2. **STRICT TS**: You are writing STRICT, advanced TypeScript. You are not writing JavaScript. If you cannot resolve a type natively without `any`, you must stop and declare a native TypeScript generic interface.
 
 ## 1. Type Sovereignty (STRICT ENFORCEMENT)
 * **THE `any` BAN**: NEVER use `any` or `as any`. This is a hard constraint. If you use `any`, the build will fail. Use `unknown` and validate at boundaries with Zod.
