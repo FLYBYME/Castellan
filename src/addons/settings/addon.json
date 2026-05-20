@@ -1,0 +1,19 @@
+{
+  "id": "settings",
+  "name": "Settings",
+  "version": "1.0.0",
+  "description": "System configuration and preferences.",
+  "publisher": "Castellan",
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "settings-view",
+        "location": "left-panel",
+        "icon": "fas fa-cog",
+        "title": "Settings",
+        "order": 100
+      }
+    ]
+  }
+}

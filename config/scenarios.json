@@ -1,0 +1,409 @@
+[
+  {
+    "id": "scenario_qa",
+    "trigger": "Create a sandbox container, clone the repository 'https://github.com/flybyme/apt_cache.git' into it, run the dependencies installation using 'npm i', run the unit tests via 'npm run test', and since the tests fail, create a Kanban task to record the failure.",
+    "criteria": [
+      "The agent executed terminal command 'npm i' to install dependencies.",
+      "The agent executed terminal command 'npm run test' to run unit tests.",
+      "The agent created a Kanban task in the workspace because the tests failed."
+    ]
+  },
+  {
+    "id": "scenario_cron_weather",
+    "trigger": "Identify a reliable weather API (or simulate search discovery), and register a scheduled cron job named 'weather_report' structured to run hourly (0 * * * *) that fetches the weather report for Toronto.",
+    "criteria": [
+      "The agent queried a weather API or executed search discovery to find weather details.",
+      "The agent successfully scheduled or registered a cron job to automate this process.",
+      "The scheduled cron job is structured to run hourly."
+    ]
+  },
+  {
+    "id": "scenario_git_branch_audit",
+    "trigger": "Perform a read-only safety audit of the workspace: list all remote branches from the repository, inspect the content of 'package.json' to verify the project name, and record a journal entry documenting whether the project is ready for branch merging.",
+    "criteria": [
+      "The agent retrieved branch or git status information without mutating code.",
+      "The agent read or inspected the 'package.json' file.",
+      "The agent recorded a journal note summarizing the project merge readiness."
+    ]
+  },
+  {
+    "id": "scenario_kanban_triage",
+    "trigger": "Triage the active workspace: list all pending tasks, locate any task related to 'bug' or 'fix', move that task to the active state, and create a compliance journal observation summarizing the action taken.",
+    "criteria": [
+      "The agent retrieved tasks from the Kanban board.",
+      "The agent transitioned or updated the state of a specific Kanban task.",
+      "The agent logged an observation entry inside the compliance journal."
+    ]
+  },
+  {
+    "id": "scenario_10x_pipeline",
+    "trigger": "Perform a comprehensive system modernization: 1) Discover files in the active workspace and search for any package references. 2) Open a sandbox container for the 'apt_cache' repository. 3) Inspect the current configuration files to check for deprecated dependencies. 4) Run 'npm i' and execute the testing suite 'npm run test'. 5) Since the tests fail, create a critical Kanban bug task and register a scheduled daily cron job named 'nightly_lint' (0 0 * * *) to automatically scan code. 6) Finally, write a detailed architectural proposal to the compliance journal documenting the entire migration plan.",
+    "criteria": [
+      "The agent queried the database or workspace files to discover active configurations.",
+      "The agent managed dependencies or executed terminal commands inside the sandboxed workspace.",
+      "The agent scheduled a daily cron job to automate lint scanning.",
+      "The agent recorded a comprehensive migration proposal entry in the journal.",
+      "The agent successfully triaged failures by creating a Kanban task."
+    ]
+  },
+  {
+    "id": "scenario_qa_coverage",
+    "trigger": "Deploy a testing sandbox, run dependency setup, execute coverage scanning using 'npm run coverage', and write a warning journal entry if the coverage results are less than 85%.",
+    "criteria": [
+      "The agent spun up or resolved a test sandbox container.",
+      "The agent ran coverage tools using a terminal execution loop.",
+      "The agent verified coverage threshold and recorded findings in the compliance journal."
+    ]
+  },
+  {
+    "id": "scenario_qa_lint",
+    "trigger": "Perform a workspace-wide clean: locate and scan source folders, trigger automated code formatting via 'npm run lint:fix', and record a diagnostic report in the system log.",
+    "criteria": [
+      "The agent targeted formatting rules using terminal command utilities.",
+      "The agent triggered automated code corrections.",
+      "The agent logged a clean audit report entry."
+    ]
+  },
+  {
+    "id": "scenario_qa_security",
+    "trigger": "Conduct a dependency security scan on the workspace to verify package vulnerabilities, and create an urgent Kanban warning task if any critical vulnerabilities are exposed.",
+    "criteria": [
+      "The agent performed security dependency scanning (npm audit).",
+      "The agent successfully parsed diagnostic security output.",
+      "The agent recorded an urgent Kanban task for security triage."
+    ]
+  },
+  {
+    "id": "scenario_qa_smoke",
+    "trigger": "Start up the staging microservice daemon in a test sandbox, execute standard curl-based smoke endpoint tests, and log service startup times to the journal ministry.",
+    "criteria": [
+      "The agent ran the microservice daemon inside a sandbox.",
+      "The agent executed smoke API requests using terminal utilities.",
+      "The agent stored a timing observation in the compliance journal."
+    ]
+  },
+  {
+    "id": "scenario_qa_perf",
+    "trigger": "Launch a sandboxed target service, execute a 100-request load check, capture the timing latency distribution, and write an optimization proposal to the database.",
+    "criteria": [
+      "The agent ran performance benchmark utilities.",
+      "The agent parsed latency standard deviations and maximums.",
+      "The agent created an architectural performance proposal."
+    ]
+  },
+  {
+    "id": "scenario_qa_build",
+    "trigger": "Trigger a production package build using 'npm run build', inspect compiled build assets size, and record a warning entry if size budgets exceed limits.",
+    "criteria": [
+      "The agent triggered production bundlers.",
+      "The agent checked file sizes in the compilation output directories.",
+      "The agent logged budget warning entries when size invariants failed."
+    ]
+  },
+  {
+    "id": "scenario_qa_e2e",
+    "trigger": "Simulate automated browser actions inside a sandbox: navigate to a test login form, enter dummy validation keys, and log visual verification outcomes to the journal.",
+    "criteria": [
+      "The agent orchestrated visual flow actions.",
+      "The agent recorded form submission execution states.",
+      "The agent verified results and documented them in compliance logs."
+    ]
+  },
+  {
+    "id": "scenario_qa_migration",
+    "trigger": "Run database migration scripts using 'npm run db:migrate', check schema update records, and transition the associated migrations task on the Kanban board to done.",
+    "criteria": [
+      "The agent executed schema migrations in the sandboxed database.",
+      "The agent verified update compliance indicators.",
+      "The agent updated task states on the Kanban board."
+    ]
+  },
+  {
+    "id": "scenario_qa_rollback",
+    "trigger": "Scan system diagnostics; if any service test fails, run the rollback task command, alert operators, and log a critical failure observation.",
+    "criteria": [
+      "The agent scanned service diagnostics.",
+      "The agent triggered the staging command to roll back.",
+      "The agent recorded rolling back details in the compliance journal."
+    ]
+  },
+  {
+    "id": "scenario_qa_integration",
+    "trigger": "Execute cross-service communication checks, capture message delivery timing details, and submit a sync journal report verifying integrity.",
+    "criteria": [
+      "The agent tested inter-process APIs.",
+      "The agent measured message transit durations.",
+      "The agent verified transit compliance in the journal."
+    ]
+  },
+  {
+    "id": "scenario_env_provision",
+    "trigger": "Bootstrap 3 isolated sandboxes concurrently for dev, staging, and audit purposes, and verify that all 3 active containers report stable status.",
+    "criteria": [
+      "The agent created three separate isolated sandbox instances.",
+      "The agent verified each container status dynamically.",
+      "The agent documented container allocation in the system log."
+    ]
+  },
+  {
+    "id": "scenario_env_cleanup",
+    "trigger": "Audit active sandboxes, identify stale sandboxes older than 24 hours, safely decommission them, and record a decommissioning report.",
+    "criteria": [
+      "The agent queried all allocated sandboxes.",
+      "The agent calculated container age metrics.",
+      "The agent deleted stale sandboxes and documented the cleanups."
+    ]
+  },
+  {
+    "id": "scenario_env_prereqs",
+    "trigger": "Check for global build tools inside the sandboxed operating system, install any missing development packages, and log dependencies status.",
+    "criteria": [
+      "The agent audited command availability in the shell.",
+      "The agent triggered system packaging utilities.",
+      "The agent logged successful prerequisite setup."
+    ]
+  },
+  {
+    "id": "scenario_env_backup",
+    "trigger": "Compress local configurations and sandbox settings, generate a timestamped archive, and move the archive to a designated backup storage path.",
+    "criteria": [
+      "The agent compressed file directory packages.",
+      "The agent created unique timestamped archive files.",
+      "The agent safely archived resources to backing folders."
+    ]
+  },
+  {
+    "id": "scenario_env_restore",
+    "trigger": "Locate the latest backup archive package, restore configurations to a fresh staging sandbox, and execute an integrity sanity test.",
+    "criteria": [
+      "The agent resolved archived assets from backup directories.",
+      "The agent decompressed file assets into fresh targets.",
+      "The agent executed sanity checks to verify system readiness."
+    ]
+  },
+  {
+    "id": "scenario_env_isolation",
+    "trigger": "Verify environment isolation constraints by attempting to write outside sandbox jail boundaries and verify standard permissions fail.",
+    "criteria": [
+      "The agent attempted sandbox jail containment checks.",
+      "The agent validated that path escapes fail securely.",
+      "The agent logged access permission enforcement proofs."
+    ]
+  },
+  {
+    "id": "scenario_env_monitoring",
+    "trigger": "Query staging container CPU, memory load, and disk utilization, and register an observation warnings entry if thresholds are breached.",
+    "criteria": [
+      "The agent captured container physical usage metrics.",
+      "The agent verified metrics against standard safety thresholds.",
+      "The agent created alert entries when utilization was excessive."
+    ]
+  },
+  {
+    "id": "scenario_env_mount",
+    "trigger": "Mount local resources and static assets into the sandbox workspace, verify access permissions, and write a verification log.",
+    "criteria": [
+      "The agent configured local-to-sandbox folder mountings.",
+      "The agent verified read access to the mounted folder.",
+      "The agent stored positive mount verifications in logs."
+    ]
+  },
+  {
+    "id": "scenario_env_secrets",
+    "trigger": "Provision configuration environment keys inside the running context and verify credentials are not leaked in plaintext log dumps.",
+    "criteria": [
+      "The agent set container variables inside the active sandbox.",
+      "The agent ran validation scans checking for clear text variables.",
+      "The agent verified secure variables management."
+    ]
+  },
+  {
+    "id": "scenario_env_sync",
+    "trigger": "Synchronize local folder code bases with remote repositories in the staging sandbox and verify Git integrity is clean.",
+    "criteria": [
+      "The agent synced source folder codes.",
+      "The agent verified Git branch diff status.",
+      "The agent confirmed operational Git integrity."
+    ]
+  },
+  {
+    "id": "scenario_pulse_health",
+    "trigger": "Trigger a comprehensive manager pulse check to snapshot the system state, verify that all task states reconcile, and write a compliance log.",
+    "criteria": [
+      "The agent executed tool 'manager_pulse' to reconcile system health.",
+      "The agent checked system snapshot parameters.",
+      "The agent stored a pulse audit note in the journal."
+    ]
+  },
+  {
+    "id": "scenario_pulse_reconciliation",
+    "trigger": "Trigger a manager pulse, verify task status distributions, and auto-correct any Kanban task having a missing target thread.",
+    "criteria": [
+      "The agent called the manager pulse tool.",
+      "The agent audited task status distributions.",
+      "The agent aligned tasks with corresponding threads."
+    ]
+  },
+  {
+    "id": "scenario_pulse_staleness",
+    "trigger": "Run an automated pulse check, identify tasks stuck in progress for over 48 hours, and flag them as stalled inside the compliance logs.",
+    "criteria": [
+      "The agent captured telemetry via a pulse request.",
+      "The agent isolated tasks with high active time metrics.",
+      "The agent recorded task staleness alerts in compliance logs."
+    ]
+  },
+  {
+    "id": "scenario_pulse_resource_balance",
+    "trigger": "Audit workload distribution: query active sandboxes, trigger a pulse, and reallocate active tasks if limits are reached.",
+    "criteria": [
+      "The agent audited sandboxes count.",
+      "The agent triggered a pulse request.",
+      "The agent optimized task allocations based on container capacities."
+    ]
+  },
+  {
+    "id": "scenario_pulse_alert",
+    "trigger": "Detect a system crash event, execute an emergency manager pulse check immediately to isolate failures, and generate a post-mortem proposal.",
+    "criteria": [
+      "The agent captured critical failure signals.",
+      "The agent ran an immediate pulse check to snapshot health.",
+      "The agent filed a post-mortem proposal in the system."
+    ]
+  },
+  {
+    "id": "scenario_pulse_triage",
+    "trigger": "Perform weekly board triage: move expired backlog items to archived, trigger a pulse check, and list outstanding actions.",
+    "criteria": [
+      "The agent transitioned tasks to archival statuses.",
+      "The agent reconciled states by executing manager pulse.",
+      "The agent listed all outstanding actions."
+    ]
+  },
+  {
+    "id": "scenario_pulse_reconciliation_cleanup",
+    "trigger": "Reconcile completed features: run a pulse check, locate completed task boards, and delete associated test sandboxes safely.",
+    "criteria": [
+      "The agent executed manager pulse.",
+      "The agent identified resolved task boards.",
+      "The agent decommissioned and deleted related staging sandboxes."
+    ]
+  },
+  {
+    "id": "scenario_pulse_metrics",
+    "trigger": "Acquire pass/fail statistics from the latest pulse telemetry records and write a dashboard summary to the journal.",
+    "criteria": [
+      "The agent extracted telemetry records.",
+      "The agent compiled pass-rate metric distributions.",
+      "The agent wrote a performance dashboard journal note."
+    ]
+  },
+  {
+    "id": "scenario_pulse_dependency_check",
+    "trigger": "Run a pulse reconciliation check to detect overlapping task assignments across separate agents and log conflicts.",
+    "criteria": [
+      "The agent ran manager pulse to inspect active missions.",
+      "The agent detected overlapping domain assignments.",
+      "The agent logged conflict warnings in compliance files."
+    ]
+  },
+  {
+    "id": "scenario_pulse_recovery",
+    "trigger": "Identify orphaned sandbox containers, wipe their temporary storage, and run a pulse check to verify the system is stable.",
+    "criteria": [
+      "The agent isolated orphaned sandbox containers.",
+      "The agent cleaned temporary directories.",
+      "The agent verified stable states with a manager pulse call."
+    ]
+  },
+  {
+    "id": "scenario_audit_licensing",
+    "trigger": "Scan all project dependencies, verify if any packages use non-compliant licenses, and raise a warning task if found.",
+    "criteria": [
+      "The agent audited dependency licenses.",
+      "The agent parsed license compliance outputs.",
+      "The agent created warning tasks for non-compliant licenses."
+    ]
+  },
+  {
+    "id": "scenario_audit_pr",
+    "trigger": "Inspect open code pull requests, run automated safety checks, and log a merge compliance sign-off in the journal.",
+    "criteria": [
+      "The agent inspected pull requests in Git.",
+      "The agent executed safety lint and compile tests.",
+      "The agent logged merge compliance sign-offs."
+    ]
+  },
+  {
+    "id": "scenario_audit_log_rotation",
+    "trigger": "Archive stale platform history logs, compress them into backup folders, and start a fresh logging cycle.",
+    "criteria": [
+      "The agent archived old log files.",
+      "The agent compressed log structures.",
+      "The agent initialized a fresh logging cycle."
+    ]
+  },
+  {
+    "id": "scenario_audit_auth",
+    "trigger": "Review all write access privileges inside sandbox settings and write a security compliance sign-off journal note.",
+    "criteria": [
+      "The agent reviewed container write access permissions.",
+      "The agent checked security isolation controls.",
+      "The agent filed a compliance sign-off observation."
+    ]
+  },
+  {
+    "id": "scenario_audit_config",
+    "trigger": "Verify that active configurations strictly match their JSON schemas and log schema validation results in the journal.",
+    "criteria": [
+      "The agent audited active configurations.",
+      "The agent validated files against JSON schemas.",
+      "The agent logged validation outcomes in compliance files."
+    ]
+  },
+  {
+    "id": "scenario_audit_changelog",
+    "trigger": "Auto-generate a release changelog based on the latest Git commits and store the finalized document in the project root.",
+    "criteria": [
+      "The agent extracted recent Git commit histories.",
+      "The agent compiled formatted changelogs.",
+      "The agent saved changelog markdown documents."
+    ]
+  },
+  {
+    "id": "scenario_audit_deployment",
+    "trigger": "Perform a pre-flight staging checklist: check server daemons, verify databases are online, and log sign-offs in the compliance journal.",
+    "criteria": [
+      "The agent checked server daemon processes.",
+      "The agent verified database connectivity.",
+      "The agent recorded flight readiness sign-offs."
+    ]
+  },
+  {
+    "id": "scenario_audit_compliance_signoff",
+    "trigger": "Solicit strict compliance sign-off, verify security guidelines are met, and log a sign-off entry in the database.",
+    "criteria": [
+      "The agent initiated compliance advisor reviews.",
+      "The agent verified guideline compliance.",
+      "The agent created a compliance sign-off journal record."
+    ]
+  },
+  {
+    "id": "scenario_audit_anonymization",
+    "trigger": "Scan output directories for sensitive keys or user data, scrub PII before publishing, and document anonymization steps.",
+    "criteria": [
+      "The agent scanned files for clear text credentials.",
+      "The agent scrubbed PII or secrets successfully.",
+      "The agent logged anonymization confirmations."
+    ]
+  },
+  {
+    "id": "scenario_audit_weekly_summary",
+    "trigger": "Compile a weekly operations executive summary by querying system pulse histories and save the final report in the journal.",
+    "criteria": [
+      "The agent extracted pulse reports.",
+      "The agent compiled historical system performance records.",
+      "The agent saved the executive summary in compliance journals."
+    ]
+  }
+]

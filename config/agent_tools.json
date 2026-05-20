@@ -1,0 +1,59 @@
+{
+  "castellan.orchestrator": [
+    "kanban_create",
+    "kanban_list",
+    "kanban_get",
+    "kanban_move",
+    "github_list_repos",
+    "manager_inquire",
+    "manager_execute",
+    "manager_research",
+    "journal_list",
+    "journal_note",
+    "journal_resolve",
+    "sandbox_get",
+    "sandbox_create",
+    "sandbox_list",
+    "sandbox_delete",
+    "sandbox_set_active",
+    "sandbox_fs_list",
+    "sandbox_fs_read"
+  ],
+  "castellan.inquirer": [
+    "kanban_get",
+    "sandbox_fs_list",
+    "sandbox_fs_read",
+    "github_list_repos",
+    "github_get_repo",
+    "journal_list",
+    "journal_note",
+    "journal_resolve"
+  ],
+  "castellan.engineer": [
+    "kanban_get",
+    "sandbox_fs_read",
+    "sandbox_fs_write",
+    "sandbox_fs_list",
+    "sandbox_fs_mkdir",
+    "sandbox_fs_move",
+    "sandbox_fs_remove",
+    "sandbox_terminal_execute",
+    "github_status",
+    "journal_list",
+    "journal_note",
+    "journal_resolve"
+  ],
+  "castellan.researcher": [
+    "kanban_get",
+    "sandbox_fs_read",
+    "sandbox_fs_list",
+    "web_list",
+    "web_get",
+    "web_create",
+    "web_fetch_feed",
+    "web_searxng_search",
+    "journal_list",
+    "journal_note",
+    "journal_resolve"
+  ]
+}

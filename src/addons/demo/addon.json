@@ -1,0 +1,20 @@
+{
+  "id": "demo",
+  "name": "Demo Extension",
+  "version": "1.0.0",
+  "description": "A demonstration of the extension and UI APIs.",
+  "publisher": "Castellan",
+  "startup": true,
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "demo-view",
+        "location": "left-panel",
+        "icon": "fas fa-flask",
+        "title": "Demo Extension",
+        "order": 10
+      }
+    ]
+  }
+}

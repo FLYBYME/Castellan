@@ -1,0 +1,19 @@
+{
+  "id": "marketplace",
+  "name": "Marketplace",
+  "version": "1.0.0",
+  "description": "Discover and manage Castellan addons.",
+  "publisher": "Castellan",
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "marketplace-view",
+        "location": "left-panel",
+        "icon": "fas fa-store",
+        "title": "Marketplace",
+        "order": 90
+      }
+    ]
+  }
+}

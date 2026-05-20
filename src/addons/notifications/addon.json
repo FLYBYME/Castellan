@@ -1,0 +1,20 @@
+{
+  "id": "notifications",
+  "name": "Notifications",
+  "version": "1.0.0",
+  "description": "System-wide notifications and activity history.",
+  "publisher": "Castellan",
+  "startup": true,
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "notification-center",
+        "location": "bottom-panel",
+        "icon": "fas fa-bell",
+        "title": "Notifications",
+        "order": 100
+      }
+    ]
+  }
+}

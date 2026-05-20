@@ -1,0 +1,20 @@
+{
+  "id": "sandbox",
+  "name": "Sandbox Extension",
+  "version": "1.0.0",
+  "description": "Tenant-isolated environment, path-jailed filesystem, pseudo-terminals, and language servers.",
+  "publisher": "Castellan",
+  "startup": true,
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "sandbox-view",
+        "location": "left-panel",
+        "icon": "fas fa-box-open",
+        "title": "Jailed Sandbox Manager",
+        "order": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "infer",
+  "name": "Inference Engine",
+  "version": "1.0.0",
+  "description": "Distributed LLM inference and Ollama instance management.",
+  "publisher": "Castellan",
+  "startup": true,
+  "main": "extension/index.ts",
+  "contributes": {
+    "views": [
+      {
+        "id": "infer-manager",
+        "location": "left-panel",
+        "icon": "fas fa-microchip",
+        "title": "Inference Engine",
+        "order": 20
+      },
+      {
+        "id": "model-inventory",
+        "location": "center-panel",
+        "title": "Model Inventory",
+        "order": 10
+      }
+    ]
+  }
+}
