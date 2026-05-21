@@ -1,4 +1,4 @@
-import { BaseSkillModule, SkillActionHandler } from 'castellan/core';
+import { BaseSkillModule, ISkillContext, SkillActionHandler } from 'castellan/core';
 import { z } from 'zod';
 import {
     ollamaCrud,
@@ -6,6 +6,7 @@ import {
     threadCrud,
     messageCrud,
     toolCallCrud,
+    inferQueueCrud,
     inferChatContract,
     inferApproveToolContract,
     inferRefreshInventoryContract,
@@ -17,15 +18,19 @@ import {
     approve_tool,
     refresh_inventory,
     acquire_ollama,
-    release_ollama
+    release_ollama,
+    process_infer_queue
 } from './infer.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
+import { InferScheduler } from './InferScheduler.js';
 
 /**
  * InferSkill: Manages LLM inference, stateful threads, and Ollama concurrency.
  */
 export class InferSkill extends BaseSkillModule<ContextApi> {
     public readonly domain = 'infer';
+    private contextApi?: ISkillContext<ContextApi>;
+    private scheduler?: InferScheduler;
 
     constructor() {
         super();
@@ -36,6 +41,7 @@ export class InferSkill extends BaseSkillModule<ContextApi> {
         this.mountCrud(threadCrud);
         this.mountCrud(messageCrud);
         this.mountCrud(toolCallCrud);
+        this.mountCrud(inferQueueCrud);
 
         // 2. Mount inference tools
         this.mountTool(
@@ -57,5 +63,11 @@ export class InferSkill extends BaseSkillModule<ContextApi> {
                 console.log(`[InferSkill] New node discovered: ${payload.id}.`);
             }
         });
+    }
+
+    public async postInit(context: ISkillContext<ContextApi>): Promise<void> {
+        this.contextApi = context;
+        this.scheduler = new InferScheduler(context);
+        this.scheduler.start();
     }
 }

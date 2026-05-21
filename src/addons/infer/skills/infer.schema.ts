@@ -95,3 +95,19 @@ export const ModelSchema = z.object({
     quantizationLevel: z.string().optional(),
 });
 export type Model = z.infer<typeof ModelSchema>;
+
+/**
+ * InferQueue: Durably tracks pending inference requests.
+ */
+export const InferQueueStatusSchema = z.enum(['queued', 'processing', 'completed', 'failed']);
+
+export const InferQueueSchema = z.object({
+    threadId: z.string().describe("The conversation thread to run inference on"),
+    status: InferQueueStatusSchema.default('queued').describe("Current status in the queue"),
+    retryCount: z.number().default(0).describe("Number of times this has been retried"),
+    error: z.string().optional().describe("Error message if failed"),
+    createdAt: z.coerce.date(),
+    updatedAt: z.coerce.date(),
+});
+
+export type InferQueue = z.infer<typeof InferQueueSchema>;

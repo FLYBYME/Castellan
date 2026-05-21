@@ -1,11 +1,8 @@
 import { ISkillContext } from 'castellan/core';
 import { z } from 'zod';
-import {
+import { 
     agentRunContract,
-    agentStructuredInferContract
 } from './agent.contract.js';
-import { Ollama } from 'ollama';
-
 /**
  * agent_run: Starts an autonomous turn for an agent.
  */
@@ -21,13 +18,6 @@ export async function agent_run(
     const thread = await ctx.api.threads.get({ id: input.threadId });
     if (!thread) throw new Error(`Thread ${input.threadId} not found`);
 
-    // 2. Create Run Record
-    const run = await ctx.api.agent_run.create({
-        agentId: input.agentId,
-        threadId: input.threadId,
-        status: 'running',
-        options: { autoApprove: input.autoApprove }
-    });
 
     // 3. Ensure System Prompt is in the thread
     const systemMessage = await ctx.api.messages.find_one({
@@ -58,8 +48,17 @@ export async function agent_run(
         });
     }
 
-    // 6. Trigger initial inference (background)
-    void ctx.api.infer.chat({ threadId: input.threadId });
+    // 6. Enqueue inference
+    const queue = await ctx.api.infer_queue.create({ threadId: input.threadId, status: 'queued' });
+
+    // 2. Create Run Record
+    const run = await ctx.api.agent_run.create({
+        agentId: input.agentId,
+        threadId: input.threadId,
+        queueId: queue.id,
+        status: 'running',
+        options: { autoApprove: input.autoApprove }
+    });
 
     return { runId: run.id };
 }
@@ -155,8 +154,8 @@ export async function handle_tool_completion(
         const allDone = siblingCalls.every(c => ['completed', 'failed', 'rejected'].includes(c.status));
 
         if (allDone) {
-            console.log(`[AgentSkill] Message ${call.messageId} turn complete. Triggering follow-up inference.`);
-            void ctx.api.infer.chat({ threadId: call.threadId });
+            console.log(`[AgentSkill] Message ${call.messageId} turn complete. Enqueueing follow-up inference.`);
+            await ctx.api.infer_queue.create({ threadId: call.threadId, status: 'queued' });
         }
     }
 }

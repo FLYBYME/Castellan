@@ -1,10 +1,9 @@
 /**
  * ext.castellan.audit — Safety & Evaluation extension with Triage Desk, Arena, and Scorecard.
  */
-import type { IDE } from '../../../client/core/IDE.js';
 import type { ViewProvider } from '../../../client/core/extensions/ViewProvider.js';
 import type { ExtensionContext } from '../../../client/core/extensions/Extension.js';
-import type { Approval, Scenario, Evaluation } from '../skills/approval.schema.js';
+import type { Approval } from '../skills/approval.schema.js';
 import * as ui from '../../../client/ui-lib/index.js';
 
 // ─── Triage Desk View ──────────────────────────────────────────────────────────
@@ -38,12 +37,13 @@ class TriageDeskViewProvider implements ViewProvider {
         await this.refreshData(content);
 
         // Listen for data updates
-        const unsub = this.context.ide.commands.on('data:updated', (payload: any) => {
-            if (payload.domain === 'approval') {
+        const unsub = this.context.ide.commands.on('data:updated', (payload: unknown) => {
+            const p = payload as { domain: string };
+            if (p.domain === 'approval') {
                 this.refreshData(content);
             }
         });
-        disposables.push({ dispose: () => this.context.ide.commands.off('data:updated', unsub) });
+        disposables.push({ dispose: () => this.context.ide.commands.off(unsub) });
     }
 
     private async refreshData(content?: HTMLElement) {
@@ -54,7 +54,7 @@ class TriageDeskViewProvider implements ViewProvider {
             const client = this.context.ide.getClient() as any;
             const approvals = await client.api.approval.find({});
             this.renderApprovals(target, approvals);
-        } catch (err) {
+        } catch (_err) {
             target.innerHTML = '<div style="color: var(--error); padding: 20px;">Failed to fetch approvals</div>';
         }
     }
@@ -100,7 +100,7 @@ class TriageDeskViewProvider implements ViewProvider {
     private renderApprovalCard(approval: Approval, showActions: boolean): HTMLElement {
         const card = new ui.Card({
             padding: 'sm',
-            variant: approval.status === 'pending' ? 'default' : 'default',
+            variant: 'default',
         });
         
         card.getElement().style.marginBottom = '8px';
@@ -115,7 +115,7 @@ class TriageDeskViewProvider implements ViewProvider {
             new ui.Text({ text: approval.toolName, weight: 'bold', size: 'sm' }),
             new ui.Badge({ 
                 count: approval.status.toUpperCase(), 
-                variant: approval.status === 'approved' ? 'success' : approval.status === 'denied' ? 'danger' : 'warning',
+                variant: approval.status === 'approved' ? 'success' : approval.status === 'denied' ? 'error' : 'warning',
                 size: 'sm'
             })
         );
@@ -134,7 +134,7 @@ class TriageDeskViewProvider implements ViewProvider {
         stack.appendChildren(header, args);
 
         if (approval.reason) {
-            stack.appendChildren(new ui.Text({ text: `Reason: ${approval.reason}`, size: 'xs', variant: 'warning' }));
+            stack.appendChildren(new ui.Text({ text: `Reason: ${approval.reason}`, size: 'xs', variant: 'error' }));
         }
 
         if (showActions) {
@@ -146,13 +146,13 @@ class TriageDeskViewProvider implements ViewProvider {
                     label: 'Approve',
                     variant: 'primary',
                     size: 'small',
-                    onClick: () => this.resolve(approval, 'approved')
+                    onClick: () => this.resolve(approval as unknown as { id: string }, 'approved')
                 }),
                 new ui.Button({
                     label: 'Deny',
                     variant: 'danger',
                     size: 'small',
-                    onClick: () => this.resolve(approval, 'denied')
+                    onClick: () => this.resolve(approval as unknown as { id: string }, 'denied')
                 })
             );
             stack.appendChildren(actions);
@@ -162,7 +162,7 @@ class TriageDeskViewProvider implements ViewProvider {
         return card.getElement();
     }
 
-    private async resolve(approval: any, action: 'approved' | 'denied') {
+    private async resolve(approval: { id: string }, action: 'approved' | 'denied') {
         const client = this.context.ide.getClient() as any;
         let reason: string | undefined;
         if (action === 'denied') {
@@ -218,13 +218,12 @@ class AuditExtension {
         context.ide.views.registerProvider('center-panel', new RegressionArenaViewProvider(context));
         context.ide.views.registerProvider('center-panel', new ScorecardViewProvider(context));
 
-        // Register Activity Bar Item
         context.ide.activityBar.registerItem({
             id: 'audit-view',
             icon: 'fas fa-shield-alt',
-            label: 'Audit & Safety',
-            priority: 200,
-            render: (container) => context.ide.views.renderView('left-panel', 'audit-triage')
+            title: 'Audit & Safety',
+            location: 'left-panel',
+            order: 200
         });
     }
 

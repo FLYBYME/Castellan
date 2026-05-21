@@ -25,6 +25,7 @@ export type Agent = z.infer<typeof AgentSchema>;
 export const AgentRunSchema = z.object({
     agentId: z.string().describe("The agent performing the run"),
     threadId: z.string().describe("The conversation context"),
+    queueId: z.string().describe("The inference queue id to use"),
     status: z.enum(['running', 'waiting_for_approval', 'finished', 'failed']),
     options: z.object({
         autoApprove: z.boolean().default(false).describe("If true, all tools are auto-approved"),

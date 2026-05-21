@@ -1,0 +1,9 @@
+{
+    "name": "web",
+    "version": "1.0.0",
+    "description": "External data ingestion and web search orchestration.",
+    "skills": [
+        "skills/web.skill.ts"
+    ],
+    "extension": "extension/index.ts"
+}

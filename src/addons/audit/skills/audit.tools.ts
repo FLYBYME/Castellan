@@ -9,8 +9,7 @@ import {
     auditEvaluateApprovalContract,
     approvalResolveContract
 } from './approval.contract.js';
-import { ApprovalSchema, ScenarioSchema, EvaluationSchema } from './approval.schema.js';
-import { MessageSchema } from '../../agents/skills/agent.schema.js';
+import { MessageSchema } from '../../infer/skills/infer.schema.js';
 
 // Internal type for the structured findings
 interface AuditFindings {
@@ -93,7 +92,7 @@ export async function audit_run(
                 payload: { threadId: input.threadId, findings },
                 status: 'pending'
             });
-        } catch (e) {
+        } catch (_e) {
             console.warn("[Audit] Failed to create journal proposal (journal skill might be missing)");
         }
     }
@@ -173,8 +172,6 @@ export async function audit_generate_scenario(
         commitHash: data.commitHash,
         vaguePrompt: data.vaguePrompt,
         goldStandardSITREP: data.goldStandardSITREP,
-        createdAt: new Date(),
-        updatedAt: new Date()
     });
 
     return { success: true, scenario };
@@ -208,7 +205,7 @@ export async function audit_evaluate_triad(
         
         // 4. Run Multi-Judge Ensemble for Grading
         const judges = ['Skeptic', 'UserAdvocate', 'Architect'];
-        const results = [];
+        const results: unknown[] = [];
 
         for (const judge of judges) {
             const auditThreadId = `eval_${judge.toLowerCase()}_${nanoid(6)}`;
@@ -277,7 +274,6 @@ export async function audit_evaluate_triad(
             scores: data.scores,
             consensusCritique: data.consensusCritique,
             testThreadId,
-            createdAt: new Date()
         });
 
         return { success: true, evaluation };
@@ -286,7 +282,7 @@ export async function audit_evaluate_triad(
         // Cleanup: delete testbed
         try {
             await (ctx.api as any).sandbox.delete({ id: sandboxId });
-        } catch (e) {
+        } catch (_e) {
             console.warn("[Audit] Failed to delete testbed sandbox");
         }
     }

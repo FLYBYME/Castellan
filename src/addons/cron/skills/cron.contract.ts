@@ -13,11 +13,7 @@ export const cronJobCrud = defineCrud('cron', CronJobSchema, {
  * Cron Run CRUD: APIs for viewing execution history and metrics.
  */
 export const cronJobRunCrud = defineCrud('cron_runs', CronJobRunSchema, {
-    pluralPath: 'cron-runs',
-    listSchema: z.object({
-        jobId: z.string().optional(),
-        status: z.enum(['running', 'completed', 'failed']).optional(),
-    })
+    pluralPath: 'cron-runs'
 });
 
 /**

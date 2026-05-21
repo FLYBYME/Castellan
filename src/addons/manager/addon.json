@@ -1,0 +1,9 @@
+{
+    "name": "manager",
+    "version": "1.0.0",
+    "description": "Central Directorate responsible for intent translation and agent delegation.",
+    "skills": [
+        "skills/manager.skill.ts"
+    ],
+    "extension": "extension/index.ts"
+}

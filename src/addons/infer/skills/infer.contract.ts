@@ -5,7 +5,8 @@ import {
     ModelSchema,
     ThreadSchema,
     MessageSchema,
-    ToolCallRecordSchema
+    ToolCallRecordSchema,
+    InferQueueSchema
 } from './infer.schema.js';
 
 /**
@@ -24,6 +25,7 @@ declare module '../../../core/events.js' {
         'infer:tool_call_requested': { threadId: string; toolCallId: string };
         'infer:completed': { threadId: string; messageId: string };
         'infer:aborted': { threadId: string; messageId: string };
+        'infer:queue_item_created': { id: string; threadId: string };
     }
 }
 
@@ -42,12 +44,17 @@ export const messageCrud = defineCrud('messages', MessageSchema);
 
 export const toolCallCrud = defineCrud('tool_calls', ToolCallRecordSchema);
 
+export const inferQueueCrud = defineCrud('infer_queue', InferQueueSchema, {
+    pluralPath: 'infer_queue',
+});
+
 /**
  * --- Tool Contracts ---
  */
 
 export const ChatInputSchema = z.object({
     threadId: z.string().describe("The thread context for this chat"),
+    instanceId: z.string().optional().describe("Optional Ollama instance to use (bypasses automatic acquisition)"),
 });
 
 export const ChatOutputSchema = z.object({

@@ -1,0 +1,9 @@
+{
+    "name": "journal",
+    "version": "1.0.0",
+    "description": "Episodic memory ledger and architectural rule extraction.",
+    "skills": [
+        "skills/journal.skill.ts"
+    ],
+    "extension": "extension/index.ts"
+}

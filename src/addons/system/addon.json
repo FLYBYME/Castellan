@@ -1,0 +1,8 @@
+{
+    "name": "system",
+    "version": "1.0.0",
+    "description": "Core system orchestration, bootstrapping, and lifecycle management.",
+    "skills": [
+        "skills/system.skill.ts"
+    ]
+}

@@ -1,5 +1,4 @@
 import parser from 'cron-parser';
-import { nanoid } from 'nanoid';
 import { ISkillContext } from 'castellan/core';
 import { CronJob, CronJobRun } from './cron.schema.js';
 
@@ -160,8 +159,8 @@ export class CronScheduler {
             });
 
             // 5. Success Recovery & Scheduling
-            const parseFn = (parser as any).parse || (parser as any).default?.parse;
-            const interval = parseFn(job.schedule);
+            const parserObj = parser as unknown as { parse: (s: string) => { next: () => { toDate: () => Date } } };
+            const interval = parserObj.parse(job.schedule);
             const nextRun = interval.next().toDate();
 
             const updatedJob = await this.context.api.cron.update({

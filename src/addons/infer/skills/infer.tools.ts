@@ -12,6 +12,14 @@ import {
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { agentStructuredInferContract } from 'src/addons/agents/skills/agent.contract.js';
 
+import {
+    OllamaInstanceSchema,
+    ModelSchema,
+    ThreadSchema,
+    MessageSchema,
+    ToolCallRecordSchema,
+    InferQueueSchema
+} from './infer.schema.js';
 
 /**
  * getToolDefinition: Formats a standard platform tool into an Ollama Tool representation.
@@ -121,8 +129,17 @@ export async function infer_chat(
     }
 
     // Resolve the Ollama instance base URL dynamically
-    const modelRecord = await ctx.api.models.find_one({ query: { name: thread.model } });
-    const { instance } = await ctx.api.infer.acquire_ollama({});
+    let instance: any;
+    let shouldRelease = false;
+
+    if (input.instanceId) {
+        instance = await ctx.api.ollama.get({ id: input.instanceId });
+        if (!instance) throw new Error(`Provided Ollama instance ${input.instanceId} not found.`);
+    } else {
+        const result = await ctx.api.infer.acquire_ollama({});
+        instance = result.instance;
+        shouldRelease = true;
+    }
 
     if (!instance?.url) {
         throw new Error("Failed to acquire Ollama instance.");
@@ -195,8 +212,9 @@ export async function infer_chat(
         }
 
         if (part.done) {
-
-            await ctx.api.infer.release_ollama({ instanceId: instance.id });
+            if (shouldRelease) {
+                await ctx.api.infer.release_ollama({ instanceId: instance.id });
+            }
             const metrics = {
                 total_duration: part.total_duration,
                 load_duration: part.load_duration,
@@ -359,4 +377,52 @@ export async function release_ollama(
         activeRequests: 0
     });
     return { success: true };
+}
+
+/**
+ * process_infer_queue: Picks up a queued request and executes it.
+ */
+export async function process_infer_queue(
+    queueId: string,
+    ctx: ISkillContext
+): Promise<void> {
+    const item = await ctx.api.infer_queue.get({ id: queueId });
+    if (!item || item.status !== 'queued') return;
+
+    // 1. Mark as processing
+    await ctx.api.infer_queue.update({ id: item.id, status: 'processing' });
+
+    try {
+        // 2. Acquire Ollama instance
+        const { success, instance } = await ctx.api.infer.acquire_ollama({});
+        if (!success || !instance) {
+            // No resources, put back in queue
+            await ctx.api.infer_queue.update({ id: item.id, status: 'queued' });
+            return;
+        }
+
+        try {
+            // 3. Execute Chat
+            console.log(`[InferSkill] Processing queued inference for thread: ${item.threadId} on instance ${instance.name}`);
+            await infer_chat({ 
+                threadId: item.threadId,
+                instanceId: instance.id 
+            }, ctx);
+
+            // 4. Mark as completed
+            await ctx.api.infer_queue.update({ id: item.id, status: 'completed' });
+
+        } finally {
+            // 5. Always release the instance
+            await ctx.api.infer.release_ollama({ instanceId: instance.id });
+        }
+
+    } catch (err) {
+        console.error(`[InferSkill] Queue processing failed for ${queueId}:`, err);
+        await ctx.api.infer_queue.update({ 
+            id: item.id, 
+            status: 'failed', 
+            error: err instanceof Error ? err.message : String(err) 
+        });
+    }
 }

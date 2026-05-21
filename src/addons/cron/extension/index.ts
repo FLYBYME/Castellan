@@ -1,7 +1,6 @@
 /**
  * ext.castellan.cron — Job Scheduler extension with CRUD and run history.
  */
-import type { IDE } from '../../../client/core/IDE.js';
 import type { ViewProvider } from '../../../client/core/extensions/ViewProvider.js';
 import type { ExtensionContext } from '../../../client/core/extensions/Extension.js';
 import type { CronJob } from '../skills/cron.schema.js';
@@ -36,27 +35,28 @@ class JobSchedulerViewProvider implements ViewProvider {
         container.appendChild(content);
 
         await this.refreshData(content);
-
-        const unsub = this.context.ide.commands.on('data:updated', (payload: any) => {
-            if (payload.domain === 'cron') {
-                this.refreshData(content);
-            }
-        });
-        disposables.push({ dispose: () => this.context.ide.commands.off('data:updated', unsub) });
+// Listen for data updates
+const unsub = this.context.ide.commands.on('data:updated', (payload: unknown) => {
+    const p = payload as { domain: string };
+    if (p.domain === 'cron') {
+        this.refreshData(content);
     }
+});
+disposables.push({ dispose: () => this.context.ide.commands.off(unsub) });
+}
 
-    private async refreshData(content?: HTMLElement) {
-        const target = content || document.querySelector(`#${this.id}-content`) as HTMLElement;
-        if (!target) return;
+private async refreshData(content?: HTMLElement) {
+const target = content || document.querySelector(`#${this.id}-content`) as HTMLElement;
+if (!target) return;
 
-        try {
-            const client = this.context.ide.getClient() as any;
-            const jobs = await client.api.cron.find({});
-            this.renderJobs(target, jobs);
-        } catch (err) {
-            target.innerHTML = '<div style="color: var(--error); padding: 20px;">Failed to fetch cron jobs</div>';
-        }
-    }
+try {
+    const client = this.context.ide.getClient() as any;
+    const jobs = await client.api.cron.find({});
+    this.renderJobs(target, jobs);
+} catch (_err) {
+    target.innerHTML = '<div style="color: var(--error); padding: 20px;">Failed to fetch cron jobs</div>';
+}
+}
 
     private renderJobs(container: HTMLElement, jobs: CronJob[]): void {
         container.innerHTML = '';
@@ -93,8 +93,8 @@ class JobSchedulerViewProvider implements ViewProvider {
                 new ui.Text({ text: `Tool: ${job.tool}`, size: 'xs', variant: 'muted' })
             );
 
-            if ((job as any).nextRun) {
-                details.appendChildren(new ui.Text({ text: `Next run: ${new Date((job as any).nextRun).toLocaleString()}`, size: 'xs', variant: 'muted' }));
+            if ((job as { nextRun?: Date }).nextRun) {
+                details.appendChildren(new ui.Text({ text: `Next run: ${new Date((job as { nextRun: Date }).nextRun).toLocaleString()}`, size: 'xs', variant: 'muted' }));
             }
 
             const actions = new ui.Row({ gap: 'sm' });
@@ -104,13 +104,13 @@ class JobSchedulerViewProvider implements ViewProvider {
                     label: 'Trigger',
                     variant: 'primary',
                     size: 'small',
-                    onClick: () => this.triggerJob(job)
+                    onClick: () => this.triggerJob(job as unknown as { id: string })
                 }),
                 new ui.Button({
                     label: 'Delete',
                     variant: 'danger',
                     size: 'small',
-                    onClick: () => this.deleteJob(job)
+                    onClick: () => this.deleteJob(job as unknown as { id: string })
                 })
             );
 
@@ -120,13 +120,13 @@ class JobSchedulerViewProvider implements ViewProvider {
         }
     }
 
-    private getStatusVariant(status: string): any {
+    private getStatusVariant(status: string): 'accent' | 'error' | 'warning' | 'success' | undefined {
         switch (status) {
             case 'running': return 'warning';
             case 'completed': return 'success';
-            case 'failed': return 'danger';
-            case 'queued': return 'info';
-            default: return 'default';
+            case 'failed': return 'error';
+            case 'queued': return 'accent';
+            default: return undefined;
         }
     }
 
@@ -149,13 +149,13 @@ class JobSchedulerViewProvider implements ViewProvider {
         this.refreshData();
     }
 
-    private async triggerJob(job: any) {
+    private async triggerJob(job: { id: string }) {
         const client = this.context.ide.getClient() as any;
         await client.api.cron.trigger({ id: job.id, wait: false });
         this.refreshData();
     }
 
-    private async deleteJob(job: any) {
+    private async deleteJob(job: { id: string }) {
         if (!confirm('Are you sure?')) return;
         const client = this.context.ide.getClient() as any;
         await client.api.cron.delete({ id: job.id });
@@ -172,9 +172,9 @@ class CronExtension {
         context.ide.activityBar.registerItem({
             id: 'cron-view',
             icon: 'fas fa-clock',
-            label: 'Cron Scheduler',
-            priority: 150,
-            render: (container) => context.ide.views.renderView('bottom-panel', 'cron-scheduler')
+            title: 'Cron Scheduler',
+            location: 'bottom-panel',
+            order: 150
         });
     }
 

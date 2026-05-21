@@ -6,11 +6,17 @@ import * as Contract_0 from '../../addons/agents/skills/agent.contract.js';
 import * as Contract_1 from '../../addons/audit/skills/approval.contract.js';
 import * as Contract_2 from '../../addons/cron/skills/cron.contract.js';
 import * as Contract_3 from '../../addons/demo/skills/demo.contract.js';
-import * as Contract_4 from '../../addons/infer/skills/infer.contract.js';
-import * as Contract_5 from '../../addons/marketplace/skills/marketplace.contract.js';
-import * as Contract_6 from '../../addons/notifications/skills/notifications.contract.js';
-import * as Contract_7 from '../../addons/sandbox/skills/sandbox.contract.js';
-import * as Contract_8 from '../../addons/settings/skills/settings.contract.js';
+import * as Contract_4 from '../../addons/github/skills/github.contract.js';
+import * as Contract_5 from '../../addons/infer/skills/infer.contract.js';
+import * as Contract_6 from '../../addons/journal/skills/journal.contract.js';
+import * as Contract_7 from '../../addons/kanban/skills/kanban.contract.js';
+import * as Contract_8 from '../../addons/manager/skills/manager.contract.js';
+import * as Contract_9 from '../../addons/marketplace/skills/marketplace.contract.js';
+import * as Contract_10 from '../../addons/notifications/skills/notifications.contract.js';
+import * as Contract_11 from '../../addons/sandbox/skills/sandbox.contract.js';
+import * as Contract_12 from '../../addons/settings/skills/settings.contract.js';
+import * as Contract_13 from '../../addons/system/skills/system.contract.js';
+import * as Contract_14 from '../../addons/web/skills/web.contract.js';
 
 export class ContextApi implements ICastellanApi {
     constructor(private executor: ToolExecutor<ContextApi>, private context: ISkillContext<ContextApi>) {}
@@ -18,6 +24,8 @@ export class ContextApi implements ICastellanApi {
     public readonly agent = {
         run: (args: z.input<typeof Contract_0.agentRunContract['inputSchema']>): Promise<z.infer<typeof Contract_0.agentRunContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_0.agentRunContract['outputSchema']>>('agent', 'run', args, this.context),
+        structured_infer: (args: z.input<typeof Contract_0.agentStructuredInferContract['inputSchema']>): Promise<z.infer<typeof Contract_0.agentStructuredInferContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_0.agentStructuredInferContract['outputSchema']>>('agent', 'structured_infer', args, this.context),
         create: (args: z.input<typeof Contract_0.agentCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_0.agentCrud['create']['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_0.agentCrud['create']['outputSchema']>>('agent', 'create', args, this.context),
         find: (args: z.input<typeof Contract_0.agentCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_0.agentCrud['find']['outputSchema']>> => 
@@ -171,190 +179,338 @@ export class ContextApi implements ICastellanApi {
         delete: (args: z.input<typeof Contract_3.demoCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_3.demoCrud['delete']['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_3.demoCrud['delete']['outputSchema']>>('demo', 'delete', args, this.context),
     };
+    public readonly github = {
+        list_repos: (args: z.input<typeof Contract_4.githubListReposContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubListReposContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubListReposContract['outputSchema']>>('github', 'list_repos', args, this.context),
+        get_repo: (args: z.input<typeof Contract_4.githubGetRepoContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubGetRepoContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubGetRepoContract['outputSchema']>>('github', 'get_repo', args, this.context),
+        list_issues: (args: z.input<typeof Contract_4.githubListIssuesContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubListIssuesContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubListIssuesContract['outputSchema']>>('github', 'list_issues', args, this.context),
+        list_pulls: (args: z.input<typeof Contract_4.githubListPullsContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubListPullsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubListPullsContract['outputSchema']>>('github', 'list_pulls', args, this.context),
+        status: (args: z.input<typeof Contract_4.githubStatusContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubStatusContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubStatusContract['outputSchema']>>('github', 'status', args, this.context),
+        clone: (args: z.input<typeof Contract_4.githubCloneContract['inputSchema']>): Promise<z.infer<typeof Contract_4.githubCloneContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_4.githubCloneContract['outputSchema']>>('github', 'clone', args, this.context),
+    };
     public readonly infer = {
-        chat: (args: z.input<typeof Contract_4.inferChatContract['inputSchema']>): Promise<z.infer<typeof Contract_4.inferChatContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.inferChatContract['outputSchema']>>('infer', 'chat', args, this.context),
-        approve_tool: (args: z.input<typeof Contract_4.inferApproveToolContract['inputSchema']>): Promise<z.infer<typeof Contract_4.inferApproveToolContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.inferApproveToolContract['outputSchema']>>('infer', 'approve_tool', args, this.context),
-        refresh_inventory: (args: z.input<typeof Contract_4.inferRefreshInventoryContract['inputSchema']>): Promise<z.infer<typeof Contract_4.inferRefreshInventoryContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.inferRefreshInventoryContract['outputSchema']>>('infer', 'refresh_inventory', args, this.context),
-        acquire_ollama: (args: z.input<typeof Contract_4.inferAcquireOllamaContract['inputSchema']>): Promise<z.infer<typeof Contract_4.inferAcquireOllamaContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.inferAcquireOllamaContract['outputSchema']>>('infer', 'acquire_ollama', args, this.context),
-        release_ollama: (args: z.input<typeof Contract_4.inferReleaseOllamaContract['inputSchema']>): Promise<z.infer<typeof Contract_4.inferReleaseOllamaContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.inferReleaseOllamaContract['outputSchema']>>('infer', 'release_ollama', args, this.context),
+        chat: (args: z.input<typeof Contract_5.inferChatContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferChatContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferChatContract['outputSchema']>>('infer', 'chat', args, this.context),
+        approve_tool: (args: z.input<typeof Contract_5.inferApproveToolContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferApproveToolContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferApproveToolContract['outputSchema']>>('infer', 'approve_tool', args, this.context),
+        refresh_inventory: (args: z.input<typeof Contract_5.inferRefreshInventoryContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferRefreshInventoryContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferRefreshInventoryContract['outputSchema']>>('infer', 'refresh_inventory', args, this.context),
+        acquire_ollama: (args: z.input<typeof Contract_5.inferAcquireOllamaContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferAcquireOllamaContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferAcquireOllamaContract['outputSchema']>>('infer', 'acquire_ollama', args, this.context),
+        release_ollama: (args: z.input<typeof Contract_5.inferReleaseOllamaContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferReleaseOllamaContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferReleaseOllamaContract['outputSchema']>>('infer', 'release_ollama', args, this.context),
+        structured_chat: (args: z.input<typeof Contract_5.inferStructuredChatContract['inputSchema']>): Promise<z.infer<typeof Contract_5.inferStructuredChatContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferStructuredChatContract['outputSchema']>>('infer', 'structured_chat', args, this.context),
     };
     public readonly ollama = {
-        create: (args: z.input<typeof Contract_4.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['create']['outputSchema']>>('ollama', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_4.ollamaCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['find']['outputSchema']>>('ollama', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_4.ollamaCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['findOne']['outputSchema']>>('ollama', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_4.ollamaCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['count']['outputSchema']>>('ollama', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_4.ollamaCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['get']['outputSchema']>>('ollama', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_4.ollamaCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['update']['outputSchema']>>('ollama', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_4.ollamaCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_4.ollamaCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.ollamaCrud['delete']['outputSchema']>>('ollama', 'delete', args, this.context),
+        create: (args: z.input<typeof Contract_5.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['create']['outputSchema']>>('ollama', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.ollamaCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['find']['outputSchema']>>('ollama', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.ollamaCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['findOne']['outputSchema']>>('ollama', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.ollamaCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['count']['outputSchema']>>('ollama', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.ollamaCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['get']['outputSchema']>>('ollama', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.ollamaCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['update']['outputSchema']>>('ollama', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.ollamaCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.ollamaCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.ollamaCrud['delete']['outputSchema']>>('ollama', 'delete', args, this.context),
     };
     public readonly models = {
-        create: (args: z.input<typeof Contract_4.modelCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['create']['outputSchema']>>('models', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_4.modelCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['find']['outputSchema']>>('models', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_4.modelCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['findOne']['outputSchema']>>('models', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_4.modelCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['count']['outputSchema']>>('models', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_4.modelCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['get']['outputSchema']>>('models', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_4.modelCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['update']['outputSchema']>>('models', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_4.modelCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_4.modelCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.modelCrud['delete']['outputSchema']>>('models', 'delete', args, this.context),
+        create: (args: z.input<typeof Contract_5.modelCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['create']['outputSchema']>>('models', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.modelCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['find']['outputSchema']>>('models', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.modelCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['findOne']['outputSchema']>>('models', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.modelCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['count']['outputSchema']>>('models', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.modelCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['get']['outputSchema']>>('models', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.modelCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['update']['outputSchema']>>('models', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.modelCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.modelCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.modelCrud['delete']['outputSchema']>>('models', 'delete', args, this.context),
     };
     public readonly threads = {
-        create: (args: z.input<typeof Contract_4.threadCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['create']['outputSchema']>>('threads', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_4.threadCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['find']['outputSchema']>>('threads', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_4.threadCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['findOne']['outputSchema']>>('threads', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_4.threadCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['count']['outputSchema']>>('threads', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_4.threadCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['get']['outputSchema']>>('threads', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_4.threadCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['update']['outputSchema']>>('threads', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_4.threadCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_4.threadCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.threadCrud['delete']['outputSchema']>>('threads', 'delete', args, this.context),
+        create: (args: z.input<typeof Contract_5.threadCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['create']['outputSchema']>>('threads', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.threadCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['find']['outputSchema']>>('threads', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.threadCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['findOne']['outputSchema']>>('threads', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.threadCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['count']['outputSchema']>>('threads', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.threadCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['get']['outputSchema']>>('threads', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.threadCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['update']['outputSchema']>>('threads', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.threadCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.threadCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.threadCrud['delete']['outputSchema']>>('threads', 'delete', args, this.context),
     };
     public readonly messages = {
-        create: (args: z.input<typeof Contract_4.messageCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['create']['outputSchema']>>('messages', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_4.messageCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['find']['outputSchema']>>('messages', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_4.messageCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['findOne']['outputSchema']>>('messages', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_4.messageCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['count']['outputSchema']>>('messages', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_4.messageCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['get']['outputSchema']>>('messages', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_4.messageCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['update']['outputSchema']>>('messages', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_4.messageCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_4.messageCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.messageCrud['delete']['outputSchema']>>('messages', 'delete', args, this.context),
+        create: (args: z.input<typeof Contract_5.messageCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['create']['outputSchema']>>('messages', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.messageCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['find']['outputSchema']>>('messages', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.messageCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['findOne']['outputSchema']>>('messages', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.messageCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['count']['outputSchema']>>('messages', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.messageCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['get']['outputSchema']>>('messages', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.messageCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['update']['outputSchema']>>('messages', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.messageCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.messageCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.messageCrud['delete']['outputSchema']>>('messages', 'delete', args, this.context),
     };
     public readonly tool_calls = {
-        create: (args: z.input<typeof Contract_4.toolCallCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['create']['outputSchema']>>('tool_calls', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_4.toolCallCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['find']['outputSchema']>>('tool_calls', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_4.toolCallCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['findOne']['outputSchema']>>('tool_calls', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_4.toolCallCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['count']['outputSchema']>>('tool_calls', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_4.toolCallCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['get']['outputSchema']>>('tool_calls', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_4.toolCallCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['update']['outputSchema']>>('tool_calls', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_4.toolCallCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_4.toolCallCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_4.toolCallCrud['delete']['outputSchema']>>('tool_calls', 'delete', args, this.context),
+        create: (args: z.input<typeof Contract_5.toolCallCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['create']['outputSchema']>>('tool_calls', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.toolCallCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['find']['outputSchema']>>('tool_calls', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.toolCallCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['findOne']['outputSchema']>>('tool_calls', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.toolCallCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['count']['outputSchema']>>('tool_calls', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.toolCallCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['get']['outputSchema']>>('tool_calls', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.toolCallCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['update']['outputSchema']>>('tool_calls', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.toolCallCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.toolCallCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.toolCallCrud['delete']['outputSchema']>>('tool_calls', 'delete', args, this.context),
+    };
+    public readonly infer_queue = {
+        create: (args: z.input<typeof Contract_5.inferQueueCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['create']['outputSchema']>>('infer_queue', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.inferQueueCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['find']['outputSchema']>>('infer_queue', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.inferQueueCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['findOne']['outputSchema']>>('infer_queue', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.inferQueueCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['count']['outputSchema']>>('infer_queue', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.inferQueueCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['get']['outputSchema']>>('infer_queue', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.inferQueueCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['update']['outputSchema']>>('infer_queue', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.inferQueueCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.inferQueueCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.inferQueueCrud['delete']['outputSchema']>>('infer_queue', 'delete', args, this.context),
+    };
+    public readonly journal = {
+        note: (args: z.input<typeof Contract_6.journalNoteContract['inputSchema']>): Promise<z.infer<typeof Contract_6.journalNoteContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalNoteContract['outputSchema']>>('journal', 'note', args, this.context),
+        resolve: (args: z.input<typeof Contract_6.journalResolveContract['inputSchema']>): Promise<z.infer<typeof Contract_6.journalResolveContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalResolveContract['outputSchema']>>('journal', 'resolve', args, this.context),
+        compress: (args: z.input<typeof Contract_6.journalCompressContract['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCompressContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCompressContract['outputSchema']>>('journal', 'compress', args, this.context),
+        create: (args: z.input<typeof Contract_6.journalCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['create']['outputSchema']>>('journal', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_6.journalCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['find']['outputSchema']>>('journal', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_6.journalCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['findOne']['outputSchema']>>('journal', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_6.journalCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['count']['outputSchema']>>('journal', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_6.journalCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['get']['outputSchema']>>('journal', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_6.journalCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['update']['outputSchema']>>('journal', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_6.journalCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_6.journalCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.journalCrud['delete']['outputSchema']>>('journal', 'delete', args, this.context),
+    };
+    public readonly directive = {
+        create: (args: z.input<typeof Contract_6.directiveCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['create']['outputSchema']>>('directive', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_6.directiveCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['find']['outputSchema']>>('directive', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_6.directiveCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['findOne']['outputSchema']>>('directive', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_6.directiveCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['count']['outputSchema']>>('directive', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_6.directiveCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['get']['outputSchema']>>('directive', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_6.directiveCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['update']['outputSchema']>>('directive', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_6.directiveCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_6.directiveCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.directiveCrud['delete']['outputSchema']>>('directive', 'delete', args, this.context),
+    };
+    public readonly kanban = {
+        move: (args: z.input<typeof Contract_7.kanbanMoveContract['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanMoveContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanMoveContract['outputSchema']>>('kanban', 'move', args, this.context),
+        create: (args: z.input<typeof Contract_7.kanbanCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['create']['outputSchema']>>('kanban', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_7.kanbanCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['find']['outputSchema']>>('kanban', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_7.kanbanCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['findOne']['outputSchema']>>('kanban', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_7.kanbanCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['count']['outputSchema']>>('kanban', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_7.kanbanCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['get']['outputSchema']>>('kanban', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_7.kanbanCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['update']['outputSchema']>>('kanban', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_7.kanbanCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_7.kanbanCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_7.kanbanCrud['delete']['outputSchema']>>('kanban', 'delete', args, this.context),
+    };
+    public readonly manager = {
+        chat: (args: z.input<typeof Contract_8.managerChatContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerChatContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerChatContract['outputSchema']>>('manager', 'chat', args, this.context),
+        pulse: (args: z.input<typeof Contract_8.managerPulseContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerPulseContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerPulseContract['outputSchema']>>('manager', 'pulse', args, this.context),
+        inquire: (args: z.input<typeof Contract_8.managerInquireContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerInquireContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerInquireContract['outputSchema']>>('manager', 'inquire', args, this.context),
+        execute: (args: z.input<typeof Contract_8.managerExecuteContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerExecuteContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerExecuteContract['outputSchema']>>('manager', 'execute', args, this.context),
+        research: (args: z.input<typeof Contract_8.managerResearchContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerResearchContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerResearchContract['outputSchema']>>('manager', 'research', args, this.context),
+        run: (args: z.input<typeof Contract_8.managerRunContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerRunContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerRunContract['outputSchema']>>('manager', 'run', args, this.context),
+        list_tool_errors: (args: z.input<typeof Contract_8.managerListToolErrorsContract['inputSchema']>): Promise<z.infer<typeof Contract_8.managerListToolErrorsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.managerListToolErrorsContract['outputSchema']>>('manager', 'list_tool_errors', args, this.context),
+    };
+    public readonly pulse_report = {
+        create: (args: z.input<typeof Contract_8.pulseReportCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['create']['outputSchema']>>('pulse_report', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_8.pulseReportCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['find']['outputSchema']>>('pulse_report', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_8.pulseReportCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['findOne']['outputSchema']>>('pulse_report', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_8.pulseReportCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['count']['outputSchema']>>('pulse_report', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_8.pulseReportCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['get']['outputSchema']>>('pulse_report', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_8.pulseReportCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['update']['outputSchema']>>('pulse_report', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_8.pulseReportCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_8.pulseReportCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_8.pulseReportCrud['delete']['outputSchema']>>('pulse_report', 'delete', args, this.context),
     };
     public readonly marketplace = {
-        list: (args: z.input<typeof Contract_5.marketplaceListContract['inputSchema']>): Promise<z.infer<typeof Contract_5.marketplaceListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.marketplaceListContract['outputSchema']>>('marketplace', 'list', args, this.context),
-        install: (args: z.input<typeof Contract_5.marketplaceInstallContract['inputSchema']>): Promise<z.infer<typeof Contract_5.marketplaceInstallContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.marketplaceInstallContract['outputSchema']>>('marketplace', 'install', args, this.context),
+        list: (args: z.input<typeof Contract_9.marketplaceListContract['inputSchema']>): Promise<z.infer<typeof Contract_9.marketplaceListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_9.marketplaceListContract['outputSchema']>>('marketplace', 'list', args, this.context),
+        install: (args: z.input<typeof Contract_9.marketplaceInstallContract['inputSchema']>): Promise<z.infer<typeof Contract_9.marketplaceInstallContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_9.marketplaceInstallContract['outputSchema']>>('marketplace', 'install', args, this.context),
     };
     public readonly notifications = {
-        send: (args: z.input<typeof Contract_6.notificationsSendContract['inputSchema']>): Promise<z.infer<typeof Contract_6.notificationsSendContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_6.notificationsSendContract['outputSchema']>>('notifications', 'send', args, this.context),
-        list: (args: z.input<typeof Contract_6.notificationsListContract['inputSchema']>): Promise<z.infer<typeof Contract_6.notificationsListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_6.notificationsListContract['outputSchema']>>('notifications', 'list', args, this.context),
+        send: (args: z.input<typeof Contract_10.notificationsSendContract['inputSchema']>): Promise<z.infer<typeof Contract_10.notificationsSendContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_10.notificationsSendContract['outputSchema']>>('notifications', 'send', args, this.context),
+        list: (args: z.input<typeof Contract_10.notificationsListContract['inputSchema']>): Promise<z.infer<typeof Contract_10.notificationsListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_10.notificationsListContract['outputSchema']>>('notifications', 'list', args, this.context),
     };
     public readonly sandbox = {
-        set_active: (args: z.input<typeof Contract_7.sandboxSetActiveContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxSetActiveContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxSetActiveContract['outputSchema']>>('sandbox', 'set_active', args, this.context),
-        prune: (args: z.input<typeof Contract_7.sandboxPruneContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxPruneContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxPruneContract['outputSchema']>>('sandbox', 'prune', args, this.context),
-        fs_read: (args: z.input<typeof Contract_7.sandboxFsReadContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsReadContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsReadContract['outputSchema']>>('sandbox', 'fs_read', args, this.context),
-        fs_write: (args: z.input<typeof Contract_7.sandboxFsWriteContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsWriteContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsWriteContract['outputSchema']>>('sandbox', 'fs_write', args, this.context),
-        fs_list: (args: z.input<typeof Contract_7.sandboxFsListContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsListContract['outputSchema']>>('sandbox', 'fs_list', args, this.context),
-        fs_patch: (args: z.input<typeof Contract_7.sandboxFsPatchContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsPatchContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsPatchContract['outputSchema']>>('sandbox', 'fs_patch', args, this.context),
-        fs_remove: (args: z.input<typeof Contract_7.sandboxFsRemoveContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsRemoveContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsRemoveContract['outputSchema']>>('sandbox', 'fs_remove', args, this.context),
-        fs_mkdir: (args: z.input<typeof Contract_7.sandboxFsMkdirContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsMkdirContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsMkdirContract['outputSchema']>>('sandbox', 'fs_mkdir', args, this.context),
-        fs_move: (args: z.input<typeof Contract_7.sandboxFsMoveContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxFsMoveContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxFsMoveContract['outputSchema']>>('sandbox', 'fs_move', args, this.context),
-        terminal_execute: (args: z.input<typeof Contract_7.sandboxTerminalExecuteContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalExecuteContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalExecuteContract['outputSchema']>>('sandbox', 'terminal_execute', args, this.context),
-        terminal_spawn: (args: z.input<typeof Contract_7.sandboxTerminalSpawnContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalSpawnContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalSpawnContract['outputSchema']>>('sandbox', 'terminal_spawn', args, this.context),
-        terminal_list: (args: z.input<typeof Contract_7.sandboxTerminalListContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalListContract['outputSchema']>>('sandbox', 'terminal_list', args, this.context),
-        terminal_kill: (args: z.input<typeof Contract_7.sandboxTerminalKillContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalKillContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalKillContract['outputSchema']>>('sandbox', 'terminal_kill', args, this.context),
-        terminal_logs: (args: z.input<typeof Contract_7.sandboxTerminalLogsContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalLogsContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalLogsContract['outputSchema']>>('sandbox', 'terminal_logs', args, this.context),
-        terminal_session_open: (args: z.input<typeof Contract_7.sandboxTerminalSessionOpenContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalSessionOpenContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalSessionOpenContract['outputSchema']>>('sandbox', 'terminal_session_open', args, this.context),
-        terminal_session_list: (args: z.input<typeof Contract_7.sandboxTerminalSessionListContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalSessionListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalSessionListContract['outputSchema']>>('sandbox', 'terminal_session_list', args, this.context),
-        terminal_session_write: (args: z.input<typeof Contract_7.sandboxTerminalSessionWriteContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalSessionWriteContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalSessionWriteContract['outputSchema']>>('sandbox', 'terminal_session_write', args, this.context),
-        terminal_session_resize: (args: z.input<typeof Contract_7.sandboxTerminalSessionResizeContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxTerminalSessionResizeContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxTerminalSessionResizeContract['outputSchema']>>('sandbox', 'terminal_session_resize', args, this.context),
-        network_expose: (args: z.input<typeof Contract_7.sandboxNetworkExposeContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxNetworkExposeContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxNetworkExposeContract['outputSchema']>>('sandbox', 'network_expose', args, this.context),
-        network_unexpose: (args: z.input<typeof Contract_7.sandboxNetworkUnexposeContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxNetworkUnexposeContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxNetworkUnexposeContract['outputSchema']>>('sandbox', 'network_unexpose', args, this.context),
-        network_list: (args: z.input<typeof Contract_7.sandboxNetworkListContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxNetworkListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxNetworkListContract['outputSchema']>>('sandbox', 'network_list', args, this.context),
-        network_set_policy: (args: z.input<typeof Contract_7.sandboxNetworkSetPolicyContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxNetworkSetPolicyContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxNetworkSetPolicyContract['outputSchema']>>('sandbox', 'network_set_policy', args, this.context),
-        env_set: (args: z.input<typeof Contract_7.sandboxEnvSetContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxEnvSetContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxEnvSetContract['outputSchema']>>('sandbox', 'env_set', args, this.context),
-        env_set_secret: (args: z.input<typeof Contract_7.sandboxEnvSetSecretContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxEnvSetSecretContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxEnvSetSecretContract['outputSchema']>>('sandbox', 'env_set_secret', args, this.context),
-        env_list: (args: z.input<typeof Contract_7.sandboxEnvListContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxEnvListContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxEnvListContract['outputSchema']>>('sandbox', 'env_list', args, this.context),
-        resource_update_limits: (args: z.input<typeof Contract_7.sandboxResourceUpdateLimitsContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxResourceUpdateLimitsContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxResourceUpdateLimitsContract['outputSchema']>>('sandbox', 'resource_update_limits', args, this.context),
-        resource_get_stats: (args: z.input<typeof Contract_7.sandboxResourceGetStatsContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxResourceGetStatsContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxResourceGetStatsContract['outputSchema']>>('sandbox', 'resource_get_stats', args, this.context),
-        state_commit: (args: z.input<typeof Contract_7.sandboxStateCommitContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxStateCommitContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxStateCommitContract['outputSchema']>>('sandbox', 'state_commit', args, this.context),
-        state_clone: (args: z.input<typeof Contract_7.sandboxStateCloneContract['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxStateCloneContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxStateCloneContract['outputSchema']>>('sandbox', 'state_clone', args, this.context),
-        create: (args: z.input<typeof Contract_7.sandboxCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['create']['outputSchema']>>('sandbox', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_7.sandboxCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['find']['outputSchema']>>('sandbox', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_7.sandboxCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['findOne']['outputSchema']>>('sandbox', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_7.sandboxCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['count']['outputSchema']>>('sandbox', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_7.sandboxCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['get']['outputSchema']>>('sandbox', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_7.sandboxCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['update']['outputSchema']>>('sandbox', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_7.sandboxCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_7.sandboxCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_7.sandboxCrud['delete']['outputSchema']>>('sandbox', 'delete', args, this.context),
+        set_active: (args: z.input<typeof Contract_11.sandboxSetActiveContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxSetActiveContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxSetActiveContract['outputSchema']>>('sandbox', 'set_active', args, this.context),
+        prune: (args: z.input<typeof Contract_11.sandboxPruneContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxPruneContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxPruneContract['outputSchema']>>('sandbox', 'prune', args, this.context),
+        fs_read: (args: z.input<typeof Contract_11.sandboxFsReadContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsReadContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsReadContract['outputSchema']>>('sandbox', 'fs_read', args, this.context),
+        fs_write: (args: z.input<typeof Contract_11.sandboxFsWriteContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsWriteContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsWriteContract['outputSchema']>>('sandbox', 'fs_write', args, this.context),
+        fs_list: (args: z.input<typeof Contract_11.sandboxFsListContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsListContract['outputSchema']>>('sandbox', 'fs_list', args, this.context),
+        fs_patch: (args: z.input<typeof Contract_11.sandboxFsPatchContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsPatchContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsPatchContract['outputSchema']>>('sandbox', 'fs_patch', args, this.context),
+        fs_remove: (args: z.input<typeof Contract_11.sandboxFsRemoveContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsRemoveContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsRemoveContract['outputSchema']>>('sandbox', 'fs_remove', args, this.context),
+        fs_mkdir: (args: z.input<typeof Contract_11.sandboxFsMkdirContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsMkdirContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsMkdirContract['outputSchema']>>('sandbox', 'fs_mkdir', args, this.context),
+        fs_move: (args: z.input<typeof Contract_11.sandboxFsMoveContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxFsMoveContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxFsMoveContract['outputSchema']>>('sandbox', 'fs_move', args, this.context),
+        terminal_execute: (args: z.input<typeof Contract_11.sandboxTerminalExecuteContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalExecuteContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalExecuteContract['outputSchema']>>('sandbox', 'terminal_execute', args, this.context),
+        terminal_spawn: (args: z.input<typeof Contract_11.sandboxTerminalSpawnContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalSpawnContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalSpawnContract['outputSchema']>>('sandbox', 'terminal_spawn', args, this.context),
+        terminal_list: (args: z.input<typeof Contract_11.sandboxTerminalListContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalListContract['outputSchema']>>('sandbox', 'terminal_list', args, this.context),
+        terminal_kill: (args: z.input<typeof Contract_11.sandboxTerminalKillContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalKillContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalKillContract['outputSchema']>>('sandbox', 'terminal_kill', args, this.context),
+        terminal_logs: (args: z.input<typeof Contract_11.sandboxTerminalLogsContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalLogsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalLogsContract['outputSchema']>>('sandbox', 'terminal_logs', args, this.context),
+        terminal_session_open: (args: z.input<typeof Contract_11.sandboxTerminalSessionOpenContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalSessionOpenContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalSessionOpenContract['outputSchema']>>('sandbox', 'terminal_session_open', args, this.context),
+        terminal_session_list: (args: z.input<typeof Contract_11.sandboxTerminalSessionListContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalSessionListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalSessionListContract['outputSchema']>>('sandbox', 'terminal_session_list', args, this.context),
+        terminal_session_write: (args: z.input<typeof Contract_11.sandboxTerminalSessionWriteContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalSessionWriteContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalSessionWriteContract['outputSchema']>>('sandbox', 'terminal_session_write', args, this.context),
+        terminal_session_resize: (args: z.input<typeof Contract_11.sandboxTerminalSessionResizeContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxTerminalSessionResizeContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxTerminalSessionResizeContract['outputSchema']>>('sandbox', 'terminal_session_resize', args, this.context),
+        network_expose: (args: z.input<typeof Contract_11.sandboxNetworkExposeContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxNetworkExposeContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxNetworkExposeContract['outputSchema']>>('sandbox', 'network_expose', args, this.context),
+        network_unexpose: (args: z.input<typeof Contract_11.sandboxNetworkUnexposeContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxNetworkUnexposeContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxNetworkUnexposeContract['outputSchema']>>('sandbox', 'network_unexpose', args, this.context),
+        network_list: (args: z.input<typeof Contract_11.sandboxNetworkListContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxNetworkListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxNetworkListContract['outputSchema']>>('sandbox', 'network_list', args, this.context),
+        network_set_policy: (args: z.input<typeof Contract_11.sandboxNetworkSetPolicyContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxNetworkSetPolicyContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxNetworkSetPolicyContract['outputSchema']>>('sandbox', 'network_set_policy', args, this.context),
+        env_set: (args: z.input<typeof Contract_11.sandboxEnvSetContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxEnvSetContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxEnvSetContract['outputSchema']>>('sandbox', 'env_set', args, this.context),
+        env_set_secret: (args: z.input<typeof Contract_11.sandboxEnvSetSecretContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxEnvSetSecretContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxEnvSetSecretContract['outputSchema']>>('sandbox', 'env_set_secret', args, this.context),
+        env_list: (args: z.input<typeof Contract_11.sandboxEnvListContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxEnvListContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxEnvListContract['outputSchema']>>('sandbox', 'env_list', args, this.context),
+        resource_update_limits: (args: z.input<typeof Contract_11.sandboxResourceUpdateLimitsContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxResourceUpdateLimitsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxResourceUpdateLimitsContract['outputSchema']>>('sandbox', 'resource_update_limits', args, this.context),
+        resource_get_stats: (args: z.input<typeof Contract_11.sandboxResourceGetStatsContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxResourceGetStatsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxResourceGetStatsContract['outputSchema']>>('sandbox', 'resource_get_stats', args, this.context),
+        state_commit: (args: z.input<typeof Contract_11.sandboxStateCommitContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxStateCommitContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxStateCommitContract['outputSchema']>>('sandbox', 'state_commit', args, this.context),
+        state_clone: (args: z.input<typeof Contract_11.sandboxStateCloneContract['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxStateCloneContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxStateCloneContract['outputSchema']>>('sandbox', 'state_clone', args, this.context),
+        create: (args: z.input<typeof Contract_11.sandboxCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['create']['outputSchema']>>('sandbox', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_11.sandboxCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['find']['outputSchema']>>('sandbox', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_11.sandboxCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['findOne']['outputSchema']>>('sandbox', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_11.sandboxCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['count']['outputSchema']>>('sandbox', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_11.sandboxCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['get']['outputSchema']>>('sandbox', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_11.sandboxCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['update']['outputSchema']>>('sandbox', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_11.sandboxCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_11.sandboxCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_11.sandboxCrud['delete']['outputSchema']>>('sandbox', 'delete', args, this.context),
     };
     public readonly settings = {
-        get: (args: z.input<typeof Contract_8.settingsGetContract['inputSchema']>): Promise<z.infer<typeof Contract_8.settingsGetContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_8.settingsGetContract['outputSchema']>>('settings', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_8.settingsUpdateContract['inputSchema']>): Promise<z.infer<typeof Contract_8.settingsUpdateContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_8.settingsUpdateContract['outputSchema']>>('settings', 'update', args, this.context),
-        getAll: (args: z.input<typeof Contract_8.settingsGetAllContract['inputSchema']>): Promise<z.infer<typeof Contract_8.settingsGetAllContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_8.settingsGetAllContract['outputSchema']>>('settings', 'getAll', args, this.context),
+        get: (args: z.input<typeof Contract_12.settingsGetContract['inputSchema']>): Promise<z.infer<typeof Contract_12.settingsGetContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_12.settingsGetContract['outputSchema']>>('settings', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_12.settingsUpdateContract['inputSchema']>): Promise<z.infer<typeof Contract_12.settingsUpdateContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_12.settingsUpdateContract['outputSchema']>>('settings', 'update', args, this.context),
+        getAll: (args: z.input<typeof Contract_12.settingsGetAllContract['inputSchema']>): Promise<z.infer<typeof Contract_12.settingsGetAllContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_12.settingsGetAllContract['outputSchema']>>('settings', 'getAll', args, this.context),
+    };
+    public readonly system = {
+        genesis: (args: z.input<typeof Contract_13.genesisContract['inputSchema']>): Promise<z.infer<typeof Contract_13.genesisContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_13.genesisContract['outputSchema']>>('system', 'genesis', args, this.context),
+        bootstrap: (args: z.input<typeof Contract_13.bootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_13.bootstrapContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_13.bootstrapContract['outputSchema']>>('system', 'bootstrap', args, this.context),
+        reset: (args: z.input<typeof Contract_13.resetContract['inputSchema']>): Promise<z.infer<typeof Contract_13.resetContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_13.resetContract['outputSchema']>>('system', 'reset', args, this.context),
+    };
+    public readonly web = {
+        fetch_feed: (args: z.input<typeof Contract_14.webFetchFeedContract['inputSchema']>): Promise<z.infer<typeof Contract_14.webFetchFeedContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.webFetchFeedContract['outputSchema']>>('web', 'fetch_feed', args, this.context),
+        searxng_search: (args: z.input<typeof Contract_14.webSearxngSearchContract['inputSchema']>): Promise<z.infer<typeof Contract_14.webSearxngSearchContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.webSearxngSearchContract['outputSchema']>>('web', 'searxng_search', args, this.context),
+        create: (args: z.input<typeof Contract_14.rssFeedCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['create']['outputSchema']>>('web', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_14.rssFeedCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['find']['outputSchema']>>('web', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_14.rssFeedCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['findOne']['outputSchema']>>('web', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_14.rssFeedCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['count']['outputSchema']>>('web', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_14.rssFeedCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['get']['outputSchema']>>('web', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_14.rssFeedCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['update']['outputSchema']>>('web', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_14.rssFeedCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_14.rssFeedCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_14.rssFeedCrud['delete']['outputSchema']>>('web', 'delete', args, this.context),
     };
 }
