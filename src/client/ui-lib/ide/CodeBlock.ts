@@ -20,7 +20,7 @@ export class CodeBlock extends BaseComponent<CodeBlockProps> {
         this.applyStyles({
             backgroundColor: Theme.colors.bgTertiary,
             border: `1px solid ${Theme.colors.border}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             padding: Theme.spacing.md,
             overflow: 'auto',
             fontFamily: 'var(--font-code, monospace)',

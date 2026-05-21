@@ -37,7 +37,7 @@ export class Table<T extends Record<string, unknown>> extends BaseComponent<Tabl
             overflowY: height ? 'auto' : 'visible',
             height: height || 'auto',
             border: `1px solid ${Theme.colors.border}`,
-            borderRadius: Theme.radius || '4px',
+            borderRadius: Theme.radius.md,
             backgroundColor: Theme.colors.bgSecondary,
             fontFamily: Theme.font.family,
             fontSize: '12px'

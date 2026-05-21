@@ -41,7 +41,7 @@ export class Alert extends BaseComponent<AlertProps> {
 
         this.applyStyles({
             padding: '12px 16px',
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             backgroundColor: Theme.colors.bgSecondary,
             borderLeft: `4px solid ${borderColor}`,
             display: 'flex',

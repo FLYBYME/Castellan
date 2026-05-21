@@ -25,7 +25,7 @@ export class Carousel extends BaseComponent<CarouselProps> {
             width,
             height,
             overflow: 'hidden',
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             backgroundColor: Theme.colors.bgSecondary,
             border: `1px solid ${Theme.colors.border}`,
             fontFamily: Theme.font.family

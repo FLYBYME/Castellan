@@ -29,7 +29,7 @@ export class InferenceManagerView implements ViewProvider {
         const statusRow = new ui.Row({ justify: 'space-between', align: 'center' });
         statusRow.appendChildren(
             new ui.Text({ text: 'Inference Mesh', size: 'xs', variant: 'muted' }),
-            new ui.Badge({ count: 'ONLINE', variant: 'success', size: 'xs' })
+            new ui.Badge({ count: 'ONLINE', variant: 'success', size: 'sm' })
         );
 
         const metricsGrid = new ui.Column({ gap: 'xs' });
@@ -75,7 +75,7 @@ export class InferenceManagerView implements ViewProvider {
     private createMetricRow(label: string, id: string, val: string, icon: string): ui.Row {
         const row = new ui.Row({ justify: 'space-between', align: 'center' });
         const left = new ui.Row({ gap: 'sm', align: 'center' });
-        left.appendChildren(new ui.Icon({ icon, size: 'xs', color: 'var(--text-muted)' }), new ui.Text({ text: label, size: 'xs', variant: 'muted' }));
+        left.appendChildren(new ui.Icon({ icon, size: 'sm', color: 'var(--text-muted)' }), new ui.Text({ text: label, size: 'xs', variant: 'muted' }));
         row.appendChildren(left, new ui.Text({ text: val, size: 'xs', weight: 'bold' }));
         return row;
     }
@@ -83,8 +83,9 @@ export class InferenceManagerView implements ViewProvider {
     private async renderInstanceList(container: HTMLElement) {
         container.innerHTML = '';
         try {
-            const instances = await this.context.ide.getClient().api.ollama.find({});
-            const models = await this.context.ide.getClient().api.models.find({});
+            const client = this.context.ide.getClient() as any;
+            const instances = await client.api.ollama.find({});
+            const models = await client.api.models.find({});
 
             // Update SITREP counters
             const nodesEl = document.querySelector('#node-count');
@@ -93,11 +94,15 @@ export class InferenceManagerView implements ViewProvider {
             if (modelsEl) modelsEl.textContent = String(models.length);
 
             if (instances.length === 0) {
-                container.appendChild(new ui.EmptyStateView({ title: 'No Managed Nodes', message: 'Add an Ollama instance to the mesh.', icon: 'fas fa-microchip' }).getElement());
+                container.appendChild(new ui.EmptyStateView({ 
+                    title: 'No Managed Nodes', 
+                    description: 'Add an Ollama instance to the mesh.', 
+                    icon: 'fas fa-microchip' 
+                }).getElement());
                 return;
             }
 
-            instances.forEach(inst => {
+            instances.forEach((inst: any) => {
                 const card = new ui.Card({ 
                     variant: 'default', 
                     padding: 'sm', 
@@ -105,7 +110,7 @@ export class InferenceManagerView implements ViewProvider {
                     onClick: () => this.showInstanceDetails(inst)
                 });
                 
-                const instModels = models.filter(m => m.instanceId === inst.id);
+                const instModels = models.filter((m: any) => m.instanceId === inst.id);
 
                 const row = new ui.Row({ justify: 'space-between', align: 'center' });
                 const info = new ui.Column({ gap: 'xs' });
@@ -116,7 +121,7 @@ export class InferenceManagerView implements ViewProvider {
 
                 const status = new ui.Column({ align: 'flex-end', gap: 'xs' });
                 status.appendChildren(
-                    new ui.Badge({ count: inst.status.toUpperCase(), variant: inst.status as any, size: 'xs' }),
+                    new ui.Badge({ count: inst.status.toUpperCase(), variant: inst.status as any, size: 'sm' }),
                     new ui.Text({ text: `${instModels.length} models`, size: 'xs', variant: 'muted' })
                 );
 
@@ -146,13 +151,13 @@ export class InferenceManagerView implements ViewProvider {
         });
 
         if (values) {
-            await this.context.ide.getClient().api.ollama.create({
-                id: 'inst-' + Date.now(),
+            const client = this.context.ide.getClient() as any;
+            await client.api.ollama.create({
                 name: String(values.name),
                 url: String(values.url),
                 status: 'online'
             });
-            await (this.context.ide.getClient() as any).api.infer.refresh_inventory({});
+            await client.api.infer.refresh_inventory({});
             this.refreshData();
         }
     }

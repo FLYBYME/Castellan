@@ -22,7 +22,7 @@ export class Skeleton extends BaseComponent<SkeletonProps> {
             width,
             height: variant === 'text' ? '12px' : height,
             backgroundColor: Theme.colors.bgTertiary,
-            borderRadius: variant === 'circle' ? '50%' : (variant === 'text' ? '2px' : Theme.radius),
+            borderRadius: variant === 'circle' ? '50%' : (variant === 'text' ? '2px' : Theme.radius.md),
             display: 'block',
             position: 'relative',
             overflow: 'hidden'

@@ -64,7 +64,7 @@ export class ContextMenu extends BaseComponent<{ items: ContextMenuItem[], x: nu
             border: `1px solid ${Theme.colors.border}`,
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
             padding: '4px 0',
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             fontFamily: Theme.font.family,
             fontSize: Theme.font.sizeBase,
             color: Theme.colors.textMain,

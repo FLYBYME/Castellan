@@ -53,7 +53,7 @@ export class AddonCard extends BaseComponent<AddonCardProps> {
             const installBtn = new Button({
                 label: 'Install',
                 variant: 'primary',
-                size: 'sm',
+                size: 'small',
                 onClick: () => this.props.onInstall?.(addon.id)
             });
             footerRow.appendChildren(installBtn);

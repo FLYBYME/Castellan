@@ -47,7 +47,7 @@ export class MiniMap extends BaseComponent<MiniMapProps> {
             width: `${size}px`,
             height: `${size}px`,
             border: `1px solid ${Theme.colors.border}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             overflow: 'hidden',
             position: 'relative',
         });

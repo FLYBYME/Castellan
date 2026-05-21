@@ -23,7 +23,7 @@ export class FileUpload extends BaseComponent<FileUploadProps> {
 
         this.applyStyles({
             border: `2px dashed ${Theme.colors.border}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             padding: '32px 16px',
             textAlign: 'center',
             backgroundColor: Theme.colors.bgSecondary,

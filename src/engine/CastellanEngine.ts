@@ -38,17 +38,18 @@ export class CastellanEngine<TApi extends ICastellanApi = ICastellanApi> {
             await this.loader.loadFromDirectory(skillsDir);
         }
 
-        // 1. Activate declarative event handlers
-        for (const skill of this.registry.allSkills()) {
-            const handlers = skill.getEventHandlers();
-            for (const [name, handler] of handlers.entries()) {
-                this.events.subscribe(name, handler);
-            }
-        }
-
-        // 2. Lifecycle hooks
+        // 5. Post-Init Skills & Subscribe Events
         const context = this.createContext(api, 'system-boot');
         for (const skill of this.registry.allSkills()) {
+            // Subscribe declarative handlers
+            if ('getEventHandlers' in skill && typeof skill.getEventHandlers === 'function') {
+                const handlers = (skill as any).getEventHandlers() as Map<string, any>;
+                for (const [name, handler] of handlers.entries()) {
+                    console.log(`[Engine] Subscribing skill ${skill.domain} to event: ${name}`);
+                    this.events.subscribe(name as any, handler.bind(skill));
+                }
+            }
+
             if (skill.postInit) {
                 await skill.postInit(context);
             }

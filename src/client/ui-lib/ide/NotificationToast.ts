@@ -57,7 +57,7 @@ export class NotificationToast extends BaseComponent<NotificationToastProps> {
             backgroundColor: Theme.colors.bgSecondary,
             border: `1px solid ${Theme.colors.border}`,
             borderLeft: `4px solid ${color}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
             color: Theme.colors.textMain,
             minWidth: '320px',

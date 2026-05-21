@@ -44,7 +44,7 @@ export class TextArea extends BaseComponent<TextAreaProps> {
             backgroundColor: Theme.colors.bgTertiary,
             color: Theme.colors.textMain,
             border: `1px solid ${Theme.colors.border}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             fontSize: Theme.font?.sizeBase || '13px',
             fontFamily: 'inherit',
             outline: 'none',

@@ -47,7 +47,7 @@ export class Toolbar extends BaseComponent<ToolbarProps> {
                 label: item.title,
                 onClick: item.onClick,
                 variant: 'ghost',
-                size: 'sm'
+                size: 'small'
             }));
             toolbarChildren.unshift(...itemButtons);
         }

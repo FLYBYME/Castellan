@@ -19,11 +19,14 @@ export class EventBus implements IEventBus {
         payload: EventRegistry[K]
     ): Promise<void> {
         const subscribers = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>> | undefined;
+        console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
 
         if (subscribers) {
             const promises: Promise<void>[] = [];
+            let i = 0;
             for (const handler of subscribers) {
                 try {
+                    console.log(`[EventBus] Calling handler ${++i} (${handler.name || 'anonymous'}) for ${name}`);
                     const r = handler(payload, correlationId);
                     if (r instanceof Promise) {
                         promises.push(r.catch(err => console.error(`[EventBus] Async handler error for ${name}:`, String(err))));
@@ -51,6 +54,7 @@ export class EventBus implements IEventBus {
         name: K,
         handler: (payload: EventRegistry[K], correlationId: string) => void | Promise<void>
     ): () => void {
+        console.log(`[EventBus] New subscription for event: ${name}`);
         if (!this.handlers[name]) {
             // We use an internal cast here to satisfy the Record/Set structure
             // while preserving the strict public signature.

@@ -24,7 +24,7 @@ export class NotificationCenterView implements ViewProvider {
             new Button({ 
                 label: 'Clear All', 
                 variant: 'ghost', 
-                size: 'sm',
+                size: 'small',
                 onClick: () => this.service.clearHistory()
             })
         );

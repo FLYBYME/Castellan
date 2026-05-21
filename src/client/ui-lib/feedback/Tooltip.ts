@@ -26,7 +26,7 @@ export class Tooltip extends BaseComponent<TooltipProps> {
             backgroundColor: Theme.colors.bgTertiary,
             color: Theme.colors.textMain,
             padding: `${Theme.spacing.xs} ${Theme.spacing.sm}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             fontSize: '11px',
             pointerEvents: 'none',
             opacity: '0',

@@ -29,7 +29,7 @@ export class InlineEditWidget extends BaseComponent<InlineEditWidgetProps> {
         this.generateBtn = new Button({
             label: 'Generate',
             variant: 'primary',
-            size: 'sm',
+            size: 'small',
             onClick: () => this.handleSubmit()
         });
         this.render();
@@ -44,7 +44,7 @@ export class InlineEditWidget extends BaseComponent<InlineEditWidgetProps> {
         this.applyStyles({
             backgroundColor: Theme.colors.bgSecondary,
             border: `1px solid ${Theme.colors.accent}`,
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             padding: Theme.spacing.md,
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
             margin: `${Theme.spacing.xs} 0`
@@ -83,7 +83,7 @@ export class InlineEditWidget extends BaseComponent<InlineEditWidgetProps> {
         const cancelBtn = new Button({
             label: 'Cancel',
             variant: 'secondary',
-            size: 'sm',
+            size: 'small',
             onClick: () => this.props.onCancel()
         });
 
@@ -126,7 +126,7 @@ export class InlineEditWidget extends BaseComponent<InlineEditWidgetProps> {
         this.isLoading = loading;
         this.input.setDisabled(loading);
         this.generateBtn.updateProps({
-            loading: loading,
+            disabled: loading,
             label: loading ? 'Generating...' : 'Generate'
         });
     }

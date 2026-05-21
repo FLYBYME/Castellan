@@ -1,0 +1,9 @@
+{
+    "name": "cron",
+    "version": "1.0.0",
+    "description": "Background automation and scheduled tasks.",
+    "skills": [
+        "skills/cron.skill.ts"
+    ],
+    "extension": "extension/index.ts"
+}

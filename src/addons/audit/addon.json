@@ -1,0 +1,9 @@
+{
+    "name": "audit",
+    "version": "1.0.0",
+    "description": "Safety auditing, human-in-the-loop approvals, and agent evaluation arena.",
+    "skills": [
+        "skills/audit.skill.ts"
+    ],
+    "extension": "extension/index.ts"
+}

@@ -95,7 +95,7 @@ export class ModelInventoryView implements ViewProvider {
                     {
                         key: 'family',
                         header: 'Family',
-                        render: (m) => new ui.Tag({ text: String(m.family || 'unknown'), variant: 'info' }).getElement()
+                        render: (m) => new ui.Tag({ label: String(m.family || 'unknown'), variant: 'accent' }).getElement()
                     },
                     {
                         key: 'parameterSize',

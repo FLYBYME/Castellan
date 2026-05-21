@@ -22,7 +22,7 @@ export class ButtonGroup extends BaseComponent<ButtonGroupProps> {
             display: 'inline-flex',
             flexDirection: orientation === 'horizontal' ? 'row' : 'column',
             width: fill ? '100%' : 'auto',
-            borderRadius: Theme.radius,
+            borderRadius: Theme.radius.md,
             overflow: 'hidden',
             border: `1px solid ${Theme.colors.border}`
         });

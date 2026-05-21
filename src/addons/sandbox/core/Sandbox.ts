@@ -11,7 +11,7 @@ export class Sandbox implements ISandbox {
     public portMappings: Record<number, number> = {};
     private activeHostPath: string | null = null;
     private services: Map<string, BackgroundService> = new Map();
-    private ptySessions: Map<string, { stream: any, exec: any, shell: string }> = new Map();
+    private ptySessions: Map<string, { stream: NodeJS.ReadWriteStream, exec: Docker.Exec, shell: string }> = new Map();
     public activeLspStream: { stdout: NodeJS.ReadableStream; stderr: NodeJS.ReadableStream; stdin: NodeJS.WritableStream } | null = null;
 
     private env: Record<string, string> = {};
@@ -56,15 +56,16 @@ export class Sandbox implements ISandbox {
         // Ensure image exists
         try {
             await this.docker.getImage(imageTag).inspect();
-        } catch (err) {
+        } catch (_err) {
             console.log(`[Sandbox] Pulling image: ${imageTag}`);
             try {
                 const stream = await this.docker.pull(imageTag);
                 await new Promise((resolve, reject) => {
-                    this.docker.modem.followProgress(stream, (err: any, res: any) => err ? reject(err) : resolve(res));
+                    this.docker.modem.followProgress(stream, (err: Error | null, res: unknown) => err ? reject(err) : resolve(res));
                 });
-            } catch (pullErr: any) {
-                console.error(`[Sandbox] Failed to pull ${imageTag}: ${pullErr.message}`);
+            } catch (pullErr: unknown) {
+                const message = pullErr instanceof Error ? pullErr.message : String(pullErr);
+                console.error(`[Sandbox] Failed to pull ${imageTag}: ${message}`);
                 // If specific pull fails (e.g. manifest not found), fallback to project default
                 if (imageTag !== 'node:18') {
                     console.warn(`[Sandbox] Falling back to default 'node:18' image.`);
@@ -74,8 +75,8 @@ export class Sandbox implements ISandbox {
             }
         }
 
-        const portBindings: any = {};
-        const exposedPortsObj: any = {};
+        const portBindings: Record<string, Array<{ HostPort: string }>> = {};
+        const exposedPortsObj: Record<string, Record<string, never>> = {};
 
         for (const port of exposedPorts) {
             const key = `${port}/tcp`;
@@ -109,9 +110,9 @@ export class Sandbox implements ISandbox {
         
         if (inspectData.NetworkSettings.Ports) {
             for (const [containerPortProto, bindings] of Object.entries(inspectData.NetworkSettings.Ports)) {
-                if (bindings && (bindings as any[]).length > 0) {
+                if (bindings && (bindings as Array<{ HostPort: string }>).length > 0) {
                     const containerPort = parseInt(containerPortProto.split('/')[0]);
-                    const hostPort = parseInt((bindings as any[])[0].HostPort);
+                    const hostPort = parseInt((bindings as Array<{ HostPort: string }>)[0].HostPort);
                     this.portMappings[containerPort] = hostPort;
                 }
             }
@@ -137,9 +138,13 @@ export class Sandbox implements ISandbox {
 
             if (includeStats) {
                 try {
-                    const statsStream = await container.stats({ stream: false });
-                    if (statsStream && (statsStream as any).cpu_stats) {
-                        const stats = statsStream as any;
+                    const statsStream = await container.stats({ stream: false }) as unknown as {
+                        cpu_stats: { cpu_usage: { total_usage: number }, system_cpu_usage: number, online_cpus: number },
+                        precpu_stats: { cpu_usage: { total_usage: number }, system_cpu_usage: number },
+                        memory_stats: { usage: number }
+                    };
+                    if (statsStream && statsStream.cpu_stats) {
+                        const stats = statsStream;
                         const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
                         const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
                         if (systemDelta > 0.0 && cpuDelta > 0.0) {
@@ -147,7 +152,7 @@ export class Sandbox implements ISandbox {
                         }
                         memoryUsageMB = stats.memory_stats.usage / (1024 * 1024);
                     }
-                } catch (e) {
+                } catch (_e) {
                     // Ignore stats failures
                 }
             }
@@ -162,7 +167,7 @@ export class Sandbox implements ISandbox {
                 try {
                     const top = await container.top();
                     activeProcesses = top.Processes.length;
-                } catch (e) {
+                } catch (_e) {
                     // Ignore if top fails
                 }
             }
