@@ -6,9 +6,11 @@ import {
     inferRefreshInventoryContract,
     inferApproveToolContract,
     inferAcquireOllamaContract,
-    inferReleaseOllamaContract
+    inferReleaseOllamaContract,
+    inferStructuredChatContract
 } from './infer.contract.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { agentStructuredInferContract } from 'src/addons/agents/skills/agent.contract.js';
 
 
 /**
@@ -114,6 +116,7 @@ export async function infer_chat(
         }
         ollamaConfig.tools = tools;
     } else {
+        // This is where the structured data is being requested
         ollamaConfig.format = thread.format;
     }
 
@@ -125,9 +128,7 @@ export async function infer_chat(
         throw new Error("Failed to acquire Ollama instance.");
     }
 
-
     const ollama = new Ollama({ host: instance.url });
-    const response = await ollama.chat(ollamaConfig);
 
     let fullContent = '';
     let fullThinking = '';
@@ -139,6 +140,8 @@ export async function infer_chat(
         thinking: '',
         status: 'processing'
     });
+
+    const response = await ollama.chat(ollamaConfig);
 
     const toolCalls = [];
 
@@ -192,6 +195,8 @@ export async function infer_chat(
         }
 
         if (part.done) {
+
+            await ctx.api.infer.release_ollama({ instanceId: instance.id });
             const metrics = {
                 total_duration: part.total_duration,
                 load_duration: part.load_duration,
@@ -228,11 +233,22 @@ export async function infer_chat(
         }
     }
 
-    await ctx.api.infer.release_ollama({ instanceId: instance.id });
 
 
     return { messageId: message.id };
 }
+
+/**
+/**
+ * agent_structured_infer: High-level structured inference for agents.
+ */
+export async function agent_structured_infer(
+    input: z.infer<typeof agentStructuredInferContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof agentStructuredInferContract.outputSchema>> {
+    throw new Error('Deprecated use agent_infer instead');
+}
+
 
 export async function refresh_inventory(
     input: z.infer<typeof inferRefreshInventoryContract.inputSchema>,

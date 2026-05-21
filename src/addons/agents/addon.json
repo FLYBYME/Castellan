@@ -1,0 +1,8 @@
+{
+    "name": "agents",
+    "version": "1.0.0",
+    "description": "Autonomous agents and event-driven execution turns.",
+    "skills": [
+        "skills/agent.skill.ts"
+    ]
+}

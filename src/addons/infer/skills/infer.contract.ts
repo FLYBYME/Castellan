@@ -112,3 +112,22 @@ export const inferReleaseOllamaContract = defineContract({
     rest: { method: 'POST', path: '/infer/ollama/release' },
     destructive: true
 });
+
+export const StructuredChatInputSchema = z.object({
+    threadId: z.string().describe("The thread context for this chat"),
+    model: z.string().optional().describe("Override model to use"),
+    format: z.record(z.string(), z.unknown()).describe("JSON schema for the output format")
+});
+
+export const StructuredChatOutputSchema = z.object({
+    data: z.record(z.string(), z.unknown()).describe("The structured response data")
+});
+
+export const inferStructuredChatContract = defineContract({
+    domain: 'infer',
+    action: 'structured_chat',
+    description: 'Perform a structured completion using a JSON schema format.',
+    inputSchema: StructuredChatInputSchema,
+    outputSchema: StructuredChatOutputSchema,
+    rest: { method: 'POST', path: '/infer/structured' }
+});
