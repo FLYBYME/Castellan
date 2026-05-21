@@ -1,5 +1,5 @@
 import parser from 'cron-parser';
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext, parseToolKey } from 'castellan/core';
 import { CronJob, CronJobRun } from './cron.schema.js';
 
 /**
@@ -138,7 +138,7 @@ export class CronScheduler {
             console.log(`[CronScheduler] Executing Job: ${job.name} (${job.id}). Run: ${runRecord.id}`);
 
             // 3. Invoke tool
-            const [domain, action] = job.tool.split('_');
+            const { domain, action } = parseToolKey(job.tool);
             if (!domain || !action) throw new Error(`Invalid tool key: ${job.tool}`);
 
             const skill = this.context.skills.getSkill(domain);

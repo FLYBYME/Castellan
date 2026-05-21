@@ -7,7 +7,7 @@ async function main() {
     let isThinking = false;
     let isGenerating = false;
 
-    client.onEvent((name, payload, correlationId) => {
+    client.onEvent(async (name, payload, correlationId) => {
         if (name === 'infer:thinking_chunk') {
             const p = payload as { delta: string };
             if (!isThinking) {
@@ -25,10 +25,24 @@ async function main() {
         } else if (name === 'infer:tool_call_requested') {
             const p = payload as { toolCallId: string };
             console.log(`\n\n${C.yellow}🔔 Tool call requested: ${p.toolCallId}${C.reset}`);
+            console.log(p)
+            const toolCall = await client.api.tool_calls.get({ id: p.toolCallId });
+            if (!toolCall) {
+                console.log(`Tool call ${p.toolCallId} not found`);
+                return;
+            }
+            console.log(toolCall);
+
+            await client.api.infer.approve_tool({
+                toolCallId: p.toolCallId,
+            });
+
         } else if (name === 'infer:completed') {
             console.log(`\n\n${C.green}✔ Response complete.${C.reset}`);
         } else if (name === 'infer:aborted') {
             console.log(`\n\n${C.red}✖ Response aborted.${C.reset}`);
+        } else {
+            //console.log(name, payload);
         }
     });
 
@@ -54,7 +68,7 @@ async function main() {
     const run = await client.api.agent.run({
         agentId: agent.id,
         threadId: thread.id,
-        autoApprove: true,
+        autoApprove: false,
         prompt: 'Say hello to Gemini and check the status.'
     });
     console.log('Run started:', run.runId);

@@ -1,4 +1,4 @@
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext, parseToolKey } from 'castellan/core';
 import { z } from 'zod';
 import { ChatRequest, Message, Ollama, Tool, ToolCall } from 'ollama';
 import {
@@ -7,7 +7,8 @@ import {
     inferApproveToolContract,
     inferAcquireOllamaContract,
     inferReleaseOllamaContract,
-    inferStructuredChatContract
+    inferStructuredChatContract,
+    inferRejectToolContract
 } from './infer.contract.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { agentStructuredInferContract } from 'src/addons/agents/skills/agent.contract.js';
@@ -26,13 +27,18 @@ import {
  */
 export async function getToolDefinition(toolName: string, ctx: ISkillContext): Promise<Tool | null> {
 
-    const [domain, ...actionParts] = toolName.split('_');
-    const action = actionParts.join('_');
+    const { domain, action } = parseToolKey(toolName);
     const skill = ctx.skills.getSkill(domain);
-    if (!skill) return null;
+    if (!skill) {
+        console.error(`Skill ${domain} not found.`);
+        return null;
+    }
 
     const contract = skill.getContracts().find((c) => c.action === action);
-    if (!contract) return null;
+    if (!contract) {
+        console.error(`Contract ${action} not found in skill ${domain}.`);
+        return null;
+    }
 
     return {
         type: 'function',
@@ -66,7 +72,13 @@ export async function infer_chat(
 
     const messages = await ctx.api.messages.find({ query: { threadId: input.threadId } });
     const toolcalls = await ctx.api.tool_calls.find({ query: { threadId: input.threadId } });
-    const systemMessage = await ctx.api.messages.find_one({ query: { threadId: input.threadId, role: 'system' } });
+    // Get the latest system message
+    const systemMessage = await ctx.api.messages.find_one({
+        query: {
+            threadId: input.threadId, role: 'system'
+        },
+        sort: 'createdAt:desc'
+    });
 
     const constructedHistory: Message[] = [];
 
@@ -98,7 +110,7 @@ export async function infer_chat(
                 });
                 constructedHistory.push({
                     role: "tool",
-                    content: t.result ?? "",
+                    content: t.result ? t.result : t.error ?? 'No result or error provided'
                 });
             }
         };
@@ -338,6 +350,29 @@ export async function approve_tool(
     return { success: true };
 }
 
+export async function reject_tool(
+    input: z.infer<typeof inferRejectToolContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof inferRejectToolContract.outputSchema>> {
+    const call = await ctx.api.tool_calls.find_one({ query: { id: input.toolCallId } });
+    if (!call) throw new Error("Tool call not found");
+
+    // Transition run back to 'running' if it was waiting_for_approval
+    const runs = await ctx.api.agent_run.find({ query: { threadId: call.threadId, status: 'waiting_for_approval' } });
+    for (const run of runs) {
+        await ctx.api.agent_run.update({ id: run.id, status: 'running' });
+    }
+
+    await ctx.api.tool_calls.update({
+        id: call.id,
+        status: 'rejected',
+        error: input.reason ? `Rejected: ${input.reason}` : 'Rejected by user'
+    });
+
+    return { success: true };
+}
+
+
 export async function acquire_ollama(
     input: z.infer<typeof inferAcquireOllamaContract.inputSchema>,
     ctx: ISkillContext
@@ -404,9 +439,9 @@ export async function process_infer_queue(
         try {
             // 3. Execute Chat
             console.log(`[InferSkill] Processing queued inference for thread: ${item.threadId} on instance ${instance.name}`);
-            await infer_chat({ 
+            await infer_chat({
                 threadId: item.threadId,
-                instanceId: instance.id 
+                instanceId: instance.id
             }, ctx);
 
             // 4. Mark as completed
@@ -419,10 +454,10 @@ export async function process_infer_queue(
 
     } catch (err) {
         console.error(`[InferSkill] Queue processing failed for ${queueId}:`, err);
-        await ctx.api.infer_queue.update({ 
-            id: item.id, 
-            status: 'failed', 
-            error: err instanceof Error ? err.message : String(err) 
+        await ctx.api.infer_queue.update({
+            id: item.id,
+            status: 'failed',
+            error: err instanceof Error ? err.message : String(err)
         });
     }
 }

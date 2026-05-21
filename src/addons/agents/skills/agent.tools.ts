@@ -1,4 +1,4 @@
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext, parseToolKey } from 'castellan/core';
 import { z } from 'zod';
 import { 
     agentRunContract,
@@ -112,9 +112,7 @@ export async function handle_tool_completion(
         await ctx.api.tool_calls.update({ id: call.id, status: 'executing' });
 
         try {
-            const lastUnderscore = call.name.lastIndexOf('_');
-            const domain = call.name.substring(0, lastUnderscore);
-            const action = call.name.substring(lastUnderscore + 1);
+            const { domain, action } = parseToolKey(call.name);
 
             const skill = ctx.skills.getSkill(domain);
             if (!skill) throw new Error(`Domain ${domain} not found`);

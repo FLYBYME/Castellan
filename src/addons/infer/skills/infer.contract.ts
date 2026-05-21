@@ -138,3 +138,16 @@ export const inferStructuredChatContract = defineContract({
     outputSchema: StructuredChatOutputSchema,
     rest: { method: 'POST', path: '/infer/structured' }
 });
+
+export const inferRejectToolContract = defineContract({
+    domain: 'infer',
+    action: 'reject_tool',
+    description: 'Reject a pending tool call for execution.',
+    inputSchema: z.object({
+        toolCallId: z.string(),
+        reason: z.string().optional()
+    }),
+    outputSchema: z.object({ success: z.boolean() }),
+    rest: { method: 'POST', path: '/infer/reject' }
+});
+

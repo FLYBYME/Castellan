@@ -11,7 +11,8 @@ import {
     inferApproveToolContract,
     inferRefreshInventoryContract,
     inferAcquireOllamaContract,
-    inferReleaseOllamaContract
+    inferReleaseOllamaContract,
+    inferRejectToolContract
 } from './infer.contract.js';
 import {
     infer_chat,
@@ -19,7 +20,8 @@ import {
     refresh_inventory,
     acquire_ollama,
     release_ollama,
-    process_infer_queue
+    process_infer_queue,
+    reject_tool
 } from './infer.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
 import { InferScheduler } from './InferScheduler.js';
@@ -53,6 +55,7 @@ export class InferSkill extends BaseSkillModule<ContextApi> {
             >
         );
         this.mountTool(inferApproveToolContract, approve_tool);
+        this.mountTool(inferRejectToolContract, reject_tool);
         this.mountTool(inferRefreshInventoryContract, refresh_inventory);
         this.mountTool(inferAcquireOllamaContract, acquire_ollama);
         this.mountTool(inferReleaseOllamaContract, release_ollama);

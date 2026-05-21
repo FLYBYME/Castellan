@@ -27,7 +27,7 @@ export async function journal_note(
         correction: null
     });
 
-    return entry as JournalEntry;
+    return entry;
 }
 
 /**
@@ -39,7 +39,7 @@ export async function journal_resolve(
 ): Promise<JournalEntry> {
     const entry = await ctx.api.journal.get({ id: input.entryId });
     if (!entry) throw new Error(`Journal entry not found: ${input.entryId}`);
-    
+
     if (entry.type !== 'proposal') {
         throw new Error(`Only entries of type 'proposal' can be resolved. This entry is a '${entry.type}'.`);
     }
@@ -54,7 +54,7 @@ export async function journal_resolve(
         correction: input.correction ?? null
     });
 
-    return updated as JournalEntry;
+    return updated;
 }
 
 /**
@@ -67,7 +67,7 @@ export async function journal_compress(
 ) {
     // 1. Fetch rejected proposals with corrections
     const rejectedEntries = await ctx.api.journal.find({ query: { status: 'rejected' } });
-    const unprocessed = rejectedEntries.filter(e => e.correction); 
+    const unprocessed = rejectedEntries.filter(e => e.correction);
 
     if (unprocessed.length === 0) {
         return {
@@ -86,7 +86,7 @@ export async function journal_compress(
             sourceEntryId: entry.id,
         });
         createdCount++;
-        
+
         // Mark as completed to avoid double processing
         await ctx.api.journal.update({ id: entry.id, status: 'completed' });
     }

@@ -1,5 +1,7 @@
+import { ToolContract, parseToolKey } from '@castellan/core/tool_contract.js';
 import { ICastellanApi } from '../../core/api.js';
 import { ISkillModule } from '../../core/SkillModule.js';
+import z from 'zod';
 
 /**
  * SkillRegistry: A headless manager for all active skill modules.
@@ -42,6 +44,13 @@ export class SkillRegistry<TApi extends ICastellanApi = ICastellanApi> {
 
     public allSkills(): ISkillModule<TApi>[] {
         return Array.from(new Set(this.modules.values()));
+    }
+
+    public async getTool(toolName: string): Promise<ToolContract<z.ZodTypeAny, z.ZodTypeAny> | undefined> {
+        const { domain, action } = parseToolKey(toolName);
+        const skill = this.getSkill(domain);
+        if (!skill) return undefined;
+        return skill.getContracts().find((tool) => tool.action === action);
     }
 
     public clear(): void {

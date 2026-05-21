@@ -1,9 +1,0 @@
-{
-    "name": "github",
-    "version": "1.0.0",
-    "description": "GitHub organization monitoring and repository orchestration.",
-    "skills": [
-        "skills/github.skill.ts"
-    ],
-    "extension": "extension/index.ts"
-}

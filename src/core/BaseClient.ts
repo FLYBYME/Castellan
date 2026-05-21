@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseToolKey } from './tool_contract.js';
 
 /**
  * BaseClient: Core transport implementation for the Castellan SDK.
@@ -87,9 +88,7 @@ export abstract class BaseClient {
     ): Promise<TOut> {
         const ws = await this.getWebSocket();
         const requestId = Math.random().toString(36).substring(7);
-        const lastUnderscore = toolKey.lastIndexOf('_');
-        const domain = toolKey.substring(0, lastUnderscore);
-        const action = toolKey.substring(lastUnderscore + 1);
+        const { domain, action } = parseToolKey(toolKey);
 
         return new Promise<TOut>((resolve, reject) => {
             const listener = (msg: string) => {
@@ -132,9 +131,7 @@ export abstract class BaseClient {
     ): AsyncIterable<TOut> {
         const ws = await this.getWebSocket();
         const requestId = Math.random().toString(36).substring(7);
-        const lastUnderscore = toolKey.lastIndexOf('_');
-        const domain = toolKey.substring(0, lastUnderscore);
-        const action = toolKey.substring(lastUnderscore + 1);
+        const { domain, action } = parseToolKey(toolKey);
 
         const queue: TOut[] = [];
         let resolveNext: ((value: IteratorResult<TOut>) => void) | null = null;

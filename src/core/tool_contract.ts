@@ -79,6 +79,46 @@ export function toolKey(contract: ToolContract): string {
     return `${contract.domain}_${contract.action}`;
 }
 
+/**
+ * parseToolKey: Parses a canonical tool key into its domain and action parts.
+ * Correctly handles:
+ *  1. CRUD domains with underscores (e.g. 'tool_calls_find', 'tool_calls_find_one', 'agent_run_create')
+ *  2. Custom skill actions with underscores (e.g. 'infer_refresh_inventory')
+ */
+export function parseToolKey(toolKey: string): { domain: string; action: string } {
+    // 1. Check for standard CRUD action suffixes
+    const crudSuffixes = [
+        '_find_one',
+        '_create_many',
+        '_create',
+        '_find',
+        '_get',
+        '_update',
+        '_delete',
+        '_count',
+        '_replace',
+        '_resolve'
+    ];
+
+    for (const suffix of crudSuffixes) {
+        if (toolKey.endsWith(suffix)) {
+            const domain = toolKey.substring(0, toolKey.length - suffix.length);
+            const action = suffix.substring(1); // remove leading underscore
+            return { domain, action };
+        }
+    }
+
+    // 2. Default: split at the first underscore for standard domain_action convention
+    const firstUnderscore = toolKey.indexOf('_');
+    if (firstUnderscore === -1) {
+        return { domain: toolKey, action: '' };
+    }
+    return {
+        domain: toolKey.substring(0, firstUnderscore),
+        action: toolKey.substring(firstUnderscore + 1)
+    };
+}
+
 // ─── Contract Registry ───────────────────────────────────────────────────────
 
 /**

@@ -6,14 +6,15 @@ import { AnyCrudContracts } from './crud_contract.js';
 
 export interface ISkillRegistry<TApi extends ICastellanApi = ICastellanApi> {
     getSkill(domain: string): ISkillModule<TApi> | undefined;
+    getTool(toolName: string): Promise<ToolContract<z.ZodTypeAny, z.ZodTypeAny> | undefined>;
 }
 
 /**
  * ISkillContext: The strictly-typed execution context injected into every skill.
  */
 export interface ISkillContext<TApi extends ICastellanApi = ICastellanApi> {
-    readonly api: TApi; 
-    readonly events: IEventBus; 
+    readonly api: TApi;
+    readonly events: IEventBus;
     readonly skills: ISkillRegistry<TApi>;
     readonly sandboxId?: string;
     readonly correlationId: string;
@@ -53,9 +54,9 @@ export interface ISkillModule<TApi extends ICastellanApi = ICastellanApi> {
  */
 export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi> implements ISkillModule<TApi> {
     public abstract readonly domain: string;
-    
+
     private eventHandlers: Map<keyof EventRegistry, EventHandler<keyof EventRegistry>> = new Map();
-    
+
     protected handlers: Map<string, {
         contract: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
         handler: SkillActionHandler<unknown, unknown, TApi>;
@@ -70,12 +71,12 @@ export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi
         if (!binding) {
             throw new Error(`Execution Error: Action '${action}' not found in domain '${domain}' of skill '${this.domain}'.`);
         }
-        
+
         const result = binding.handler(args, context);
         if (result instanceof Promise) {
             return await (result as Promise<T>);
         }
-        
+
         throw new Error(`Execution Error: Action '${action}' in '${domain}' of skill '${this.domain}' returned a stream.`);
     }
 

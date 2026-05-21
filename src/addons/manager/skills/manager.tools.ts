@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { nanoid } from 'nanoid';
 import { ISkillContext } from 'castellan/core';
 import { 
     managerChatContract, 
@@ -11,7 +10,30 @@ import {
     managerListToolErrorsContract
 } from './manager.contract.js';
 import { PulseReport } from './manager.schema.js';
-import { MessageSchema } from '../../infer/skills/infer.schema.js';
+
+/**
+ * getAgentByName: Helper to resolve agent ID by name.
+ */
+async function getAgentByName(name: string, ctx: ISkillContext): Promise<{ id: string }> {
+    const agent = await ctx.api.agent.find_one({ query: { name } });
+    if (!agent) throw new Error(`Agent with name "${name}" not found. Please provision agents using System Genesis.`);
+    return agent;
+}
+
+/**
+ * getOrCreateThread: Helper to resolve or create a thread.
+ */
+async function getOrCreateThread(title: string, ctx: ISkillContext, threadId?: string): Promise<{ id: string }> {
+    if (threadId) {
+        const thread = await ctx.api.threads.get({ id: threadId });
+        if (thread) return thread;
+    }
+    return await ctx.api.threads.create({
+        title,
+        model: 'gpt-oss:20b',
+        status: 'active'
+    });
+}
 
 /**
  * manager_chat: Directorate interaction entry point.
@@ -20,29 +42,18 @@ export async function manager_chat(
     input: z.infer<typeof managerChatContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const threadId = input.threadId || `directorate_${nanoid(8)}`;
-
-    // Ensure thread exists
-    let thread = await ctx.api.threads.get({ id: threadId });
-    if (!thread) {
-        thread = await ctx.api.threads.create({
-            title: `Directorate: ${input.prompt.substring(0, 30)}...`,
-            model: 'gpt-oss:20b',
-            status: 'active'
-        });
-    }
+    const thread = await getOrCreateThread(`Directorate: ${input.prompt.substring(0, 30)}...`, ctx, input.threadId);
+    const orchestrator = await getAgentByName('Castellan Orchestrator', ctx);
 
     const result = await ctx.api.agent.run({
-        threadId,
-        agentId: 'castellan.orchestrator',
+        threadId: thread.id,
+        agentId: orchestrator.id,
         prompt: input.prompt
     });
 
-    // In the new architecture, agent.run returns immediately with runId.
-    // The chat response will be streamed or available via messages once the turn completes.
     return {
         response: `Directorate mission initialized (Run ID: ${result.runId}). Follow the thread for SITREP updates.`,
-        threadId
+        threadId: thread.id
     };
 }
 
@@ -94,8 +105,6 @@ export async function manager_pulse(
         }
     };
 
-    // 5. Wake up Orchestrator for deep reconciliation (if daily or forced)
-    // For now, we'll just log it.
     console.log(`[manager_pulse] Reconciliation summary: ${report.summary}`);
 
     const savedReport = await ctx.api.pulse_report.create(report);
@@ -109,17 +118,18 @@ export async function manager_inquire(
     input: z.infer<typeof managerInquireContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const threadId = `discovery_${nanoid(8)}`;
+    const thread = await getOrCreateThread(`Discovery Mission for Kanban ID ${input.kanbanId}`, ctx);
+    const inquirer = await getAgentByName('Castellan Inquirer', ctx);
 
     const result = await ctx.api.agent.run({
-        threadId,
-        agentId: 'castellan.inquirer',
+        threadId: thread.id,
+        agentId: inquirer.id,
         prompt: `Discovery Mission for Kanban ID ${input.kanbanId}: ${input.question}`
     });
 
     return {
-        threadId,
-        answer: `Inquirer dispatched (Run ID: ${result.runId}). Findings will be recorded in thread ${threadId}.`
+        threadId: thread.id,
+        answer: `Inquirer dispatched (Run ID: ${result.runId}). Findings will be recorded in thread ${thread.id}.`
     };
 }
 
@@ -133,24 +143,26 @@ export async function manager_execute(
     const task = await ctx.api.kanban.get({ id: input.kanbanId });
     if (!task) throw new Error(`Kanban task '${input.kanbanId}' not found.`);
 
-    const threadId = `execution_${nanoid(8)}`;
+    const thread = await getOrCreateThread(`Execution Mission for Kanban ID ${input.kanbanId}`, ctx);
 
     await ctx.api.kanban.update({
         id: input.kanbanId,
         status: 'In Progress',
-        threadId,
+        threadId: thread.id,
     });
 
+    const engineer = await getAgentByName('Castellan Engineer', ctx);
+
     const result = await ctx.api.agent.run({
-        threadId,
-        agentId: 'castellan.engineer',
+        threadId: thread.id,
+        agentId: engineer.id,
         prompt: `Execution Mission for Kanban ID ${input.kanbanId}: ${input.instruction}`
     });
 
     return {
-        threadId,
+        threadId: thread.id,
         status: 'Mission started.',
-        response: `Engineer dispatched (Run ID: ${result.runId}). Progress tracked in thread ${threadId}.`
+        response: `Engineer dispatched (Run ID: ${result.runId}). Progress tracked in thread ${thread.id}.`
     };
 }
 
@@ -164,24 +176,26 @@ export async function manager_research(
     const task = await ctx.api.kanban.get({ id: input.kanbanId });
     if (!task) throw new Error(`Kanban task '${input.kanbanId}' not found.`);
 
-    const threadId = `research_${nanoid(8)}`;
+    const thread = await getOrCreateThread(`Research Mission for Kanban ID ${input.kanbanId}`, ctx);
 
     await ctx.api.kanban.update({
         id: input.kanbanId,
         status: 'In Progress',
-        threadId,
+        threadId: thread.id,
     });
 
+    const researcher = await getAgentByName('Castellan Researcher', ctx);
+
     const result = await ctx.api.agent.run({
-        threadId,
-        agentId: 'castellan.researcher',
+        threadId: thread.id,
+        agentId: researcher.id,
         prompt: `Research Mission for Kanban ID ${input.kanbanId}: ${input.topic}`
     });
 
     return {
-        threadId,
+        threadId: thread.id,
         status: 'Research started.',
-        response: `Researcher dispatched (Run ID: ${result.runId}). Findings will be in thread ${threadId}.`
+        response: `Researcher dispatched (Run ID: ${result.runId}). Findings will be in thread ${thread.id}.`
     };
 }
 
@@ -192,16 +206,17 @@ export async function manager_run(
     input: z.infer<typeof managerRunContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const threadId = input.threadId || `directorate_${nanoid(8)}`;
+    const thread = await getOrCreateThread(`Directorate Mission`, ctx, input.threadId);
+    const orchestrator = await getAgentByName('Castellan Orchestrator', ctx);
 
     const result = await ctx.api.agent.run({
-        threadId,
-        agentId: 'castellan.orchestrator',
+        threadId: thread.id,
+        agentId: orchestrator.id,
         prompt: input.prompt
     });
 
     return {
-        threadId,
+        threadId: thread.id,
         response: `Directorate mission started (Run ID: ${result.runId}).`
     };
 }
