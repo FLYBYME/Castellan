@@ -161,6 +161,8 @@ export class CastellanClient extends BaseClient {
                 this.request<z.infer<typeof Contract_3.inferReleaseOllamaContract['outputSchema']>>('infer_release_ollama', args, Contract_3.inferReleaseOllamaContract.outputSchema),
             structured_chat: (args: z.input<typeof Contract_3.inferStructuredChatContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>('infer_structured_chat', args, Contract_3.inferStructuredChatContract.outputSchema),
+            reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>('infer_reject_tool', args, Contract_3.inferRejectToolContract.outputSchema),
         },
         ollama: {
             create: (args: z.input<typeof Contract_3.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_3.ollamaCrud['create']['outputSchema']>> => 
@@ -329,6 +331,8 @@ export class CastellanClient extends BaseClient {
                 this.request<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>('manager_run', args, Contract_6.managerRunContract.outputSchema),
             list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>('manager_list_tool_errors', args, Contract_6.managerListToolErrorsContract.outputSchema),
+            agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>('manager_agent_bootstrap', args, Contract_6.managerAgentBootstrapContract.outputSchema),
         },
         pulse_report: {
             create: (args: z.input<typeof Contract_6.pulseReportCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_6.pulseReportCrud['create']['outputSchema']>> => 

@@ -19,7 +19,9 @@ export class EventBus implements IEventBus {
         payload: EventRegistry[K]
     ): Promise<void> {
         const subscribers = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>> | undefined;
-        console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
+        if (name !== 'infer:thinking_chunk' && name !== 'infer:content_chunk') {
+            console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
+        }
 
         if (subscribers) {
             const promises: Promise<void>[] = [];
@@ -62,10 +64,10 @@ export class EventBus implements IEventBus {
             const handlers = this.handlers as Record<string, unknown>;
             handlers[name] = newSet;
         }
-        
+
         const set = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>>;
         set.add(handler);
-        
+
         return () => {
             const currentSet = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>> | undefined;
             if (currentSet) {

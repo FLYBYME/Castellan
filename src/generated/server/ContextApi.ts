@@ -126,6 +126,8 @@ export class ContextApi implements ICastellanApi {
             this.executor.execute<z.infer<typeof Contract_3.inferReleaseOllamaContract['outputSchema']>>('infer', 'release_ollama', args, this.context),
         structured_chat: (args: z.input<typeof Contract_3.inferStructuredChatContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>('infer', 'structured_chat', args, this.context),
+        reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>('infer', 'reject_tool', args, this.context),
     };
     public readonly ollama = {
         create: (args: z.input<typeof Contract_3.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_3.ollamaCrud['create']['outputSchema']>> => 
@@ -294,6 +296,8 @@ export class ContextApi implements ICastellanApi {
             this.executor.execute<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>('manager', 'run', args, this.context),
         list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>('manager', 'list_tool_errors', args, this.context),
+        agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>('manager', 'agent_bootstrap', args, this.context),
     };
     public readonly pulse_report = {
         create: (args: z.input<typeof Contract_6.pulseReportCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_6.pulseReportCrud['create']['outputSchema']>> => 

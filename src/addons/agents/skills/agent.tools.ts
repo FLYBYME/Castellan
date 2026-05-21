@@ -1,6 +1,6 @@
 import { ISkillContext, parseToolKey } from 'castellan/core';
 import { z } from 'zod';
-import { 
+import {
     agentRunContract,
 } from './agent.contract.js';
 /**
@@ -85,7 +85,7 @@ export async function handle_tool_approval(
         await ctx.api.infer.approve_tool({ toolCallId });
     } else {
         // Run status transitions to 'waiting_for_approval'
-        if (run) {
+        if (run && run.status !== 'waiting_for_approval') {
             await ctx.api.agent_run.update({ id: run.id, status: 'waiting_for_approval' });
         }
     }
@@ -101,56 +101,70 @@ export async function handle_tool_completion(
     const call = await ctx.api.tool_calls.get({ id: toolCallId });
     if (!call) return;
 
-    if (call.status === 'approved') {
-        // Transition run back to 'running' if it was waiting
-        const runs = await ctx.api.agent_run.find({ query: { threadId: call.threadId, status: 'waiting_for_approval' } });
-        for (const run of runs) {
-            await ctx.api.agent_run.update({ id: run.id, status: 'running' });
-        }
+    // 1. Get all sibling tool calls for this message
+    const siblingCalls = await ctx.api.tool_calls.find({ query: { messageId: call.messageId } });
 
-        // Execute Tool
-        await ctx.api.tool_calls.update({ id: call.id, status: 'executing' });
+    // 2. Check if any tool call is still pending user approval/rejection
+    const anyPending = siblingCalls.some(c => c.status === 'pending_approval');
+    if (anyPending) {
+        console.log(`[AgentSkill] Message ${call.messageId} still has pending tool calls. Waiting...`);
+        return;
+    }
 
-        try {
-            const { domain, action } = parseToolKey(call.name);
+    // 3. If we get here, all tool calls in the message are resolved.
+    // Transition run back to 'running' if it was waiting
+    const runs = await ctx.api.agent_run.find({ query: { threadId: call.threadId, status: 'waiting_for_approval' } });
+    for (const run of runs) {
+        await ctx.api.agent_run.update({ id: run.id, status: 'running' });
+    }
 
-            const skill = ctx.skills.getSkill(domain);
-            if (!skill) throw new Error(`Domain ${domain} not found`);
+    // 4. Find any tool calls that are approved and need execution
+    const approvedCalls = siblingCalls.filter(c => c.status === 'approved');
+    if (approvedCalls.length > 0) {
+        for (const approvedCall of approvedCalls) {
+            // Execute Tool
+            await ctx.api.tool_calls.update({ id: approvedCall.id, status: 'executing' });
 
-            const result = await skill.execute(domain, action, call.arguments, ctx);
+            try {
+                const { domain, action } = parseToolKey(approvedCall.name);
 
-            let finalizedResult: string;
-            if (typeof result === 'string') {
-                finalizedResult = result;
-            } else if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
-                // Collect stream
-                let full = '';
-                for await (const chunk of result as AsyncIterable<unknown>) {
-                    full += typeof chunk === 'string' ? chunk : JSON.stringify(chunk);
+                const skill = ctx.skills.getSkill(domain);
+                if (!skill) throw new Error(`Domain ${domain} not found`);
+
+                const result = await skill.execute(domain, action, approvedCall.arguments, ctx);
+
+                let finalizedResult: string;
+                if (typeof result === 'string') {
+                    finalizedResult = result;
+                } else if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
+                    // Collect stream
+                    let full = '';
+                    for await (const chunk of result as AsyncIterable<unknown>) {
+                        full += typeof chunk === 'string' ? chunk : JSON.stringify(chunk);
+                    }
+                    finalizedResult = full;
+                } else {
+                    finalizedResult = JSON.stringify(result, null, 2);
                 }
-                finalizedResult = full;
-            } else {
-                finalizedResult = JSON.stringify(result, null, 2);
+
+                await ctx.api.tool_calls.update({
+                    id: approvedCall.id,
+                    status: 'completed',
+                    result: finalizedResult
+                });
+
+            } catch (err) {
+                await ctx.api.tool_calls.update({
+                    id: approvedCall.id,
+                    status: 'failed',
+                    error: err instanceof Error ? err.message : String(err)
+                });
             }
-
-            await ctx.api.tool_calls.update({
-                id: call.id,
-                status: 'completed',
-                result: finalizedResult
-            });
-
-        } catch (err) {
-            await ctx.api.tool_calls.update({
-                id: call.id,
-                status: 'failed',
-                error: err instanceof Error ? err.message : String(err)
-            });
         }
-    } else if (call.status === 'completed' || call.status === 'failed' || call.status === 'rejected') {
-        // Check message completion
-        const siblingCalls = await ctx.api.tool_calls.find({ query: { messageId: call.messageId } });
+    } else {
+        // 5. If there are no approved calls to run, check if all calls are in their final state.
+        // If they are all done, we enqueue the follow-up inference.
         const allDone = siblingCalls.every(c => ['completed', 'failed', 'rejected'].includes(c.status));
-
         if (allDone) {
             console.log(`[AgentSkill] Message ${call.messageId} turn complete. Enqueueing follow-up inference.`);
             await ctx.api.infer_queue.create({ threadId: call.threadId, status: 'queued' });

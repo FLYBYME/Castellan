@@ -1,14 +1,14 @@
 import { BaseSkillModule, ISkillContext, ISkillRegistry, IEventBus } from 'castellan/core';
-import { 
-    agentCrud, 
-    agentRunCrud, 
-    agentRunContract 
+import {
+    agentCrud,
+    agentRunCrud,
+    agentRunContract
 } from './agent.contract.js';
-import { 
-    agent_run, 
-    handle_tool_approval, 
+import {
+    agent_run,
+    handle_tool_approval,
     handle_tool_completion,
-    handle_inference_completion 
+    handle_inference_completion
 } from './agent.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
 

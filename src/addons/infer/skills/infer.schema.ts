@@ -24,7 +24,7 @@ export const ThreadSchema = z.object({
         temperature: z.number().optional().default(0.1).describe("Sampling temperature"),
     }).optional().describe("Model options"),
     tools: z.array(z.string()).optional().describe("List of tool names enabled"),
-    format: z.string().optional().describe("Response format constraint (e.g. 'json')"),
+    format: z.any().optional().describe("Response format constraint (e.g. 'json')"),
     metrics: z.object({
         total_duration: z.number().optional(),
         load_duration: z.number().optional(),

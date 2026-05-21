@@ -7,7 +7,8 @@ import {
     managerExecuteContract,
     managerResearchContract,
     managerRunContract,
-    managerListToolErrorsContract
+    managerListToolErrorsContract,
+    managerAgentBootstrapContract
 } from './manager.contract.js';
 import { 
     manager_chat, 
@@ -16,7 +17,8 @@ import {
     manager_execute, 
     manager_research, 
     manager_run,
-    manager_list_tool_errors
+    manager_list_tool_errors,
+    manager_agent_bootstrap
 } from './manager.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
 
@@ -37,5 +39,6 @@ export class ManagerSkill extends BaseSkillModule<ContextApi> {
         this.mountTool(managerResearchContract, manager_research);
         this.mountTool(managerRunContract, manager_run);
         this.mountTool(managerListToolErrorsContract, manager_list_tool_errors);
+        this.mountTool(managerAgentBootstrapContract, manager_agent_bootstrap);
     }
 }

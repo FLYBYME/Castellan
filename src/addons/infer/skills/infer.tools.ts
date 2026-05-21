@@ -141,7 +141,7 @@ export async function infer_chat(
     }
 
     // Resolve the Ollama instance base URL dynamically
-    let instance: any;
+    let instance;
     let shouldRelease = false;
 
     if (input.instanceId) {
@@ -357,16 +357,10 @@ export async function reject_tool(
     const call = await ctx.api.tool_calls.find_one({ query: { id: input.toolCallId } });
     if (!call) throw new Error("Tool call not found");
 
-    // Transition run back to 'running' if it was waiting_for_approval
-    const runs = await ctx.api.agent_run.find({ query: { threadId: call.threadId, status: 'waiting_for_approval' } });
-    for (const run of runs) {
-        await ctx.api.agent_run.update({ id: run.id, status: 'running' });
-    }
-
     await ctx.api.tool_calls.update({
         id: call.id,
         status: 'rejected',
-        error: input.reason ? `Rejected: ${input.reason}` : 'Rejected by user'
+        error: input.reason ?? 'Rejected by user'
     });
 
     return { success: true };

@@ -17,7 +17,7 @@ export class InferScheduler {
      */
     public async start(): Promise<void> {
         if (this.interval) return;
-        
+
         // Reset any items stuck in 'processing' from a previous crash
         await this.reclaimOrphans();
 
@@ -61,7 +61,7 @@ export class InferScheduler {
 
         try {
             // 1. Fetch next queued item
-            const queued = await this.context.api.infer_queue.find({ 
+            const queued = await this.context.api.infer_queue.find({
                 query: { status: 'queued' },
                 sort: ['createdAt'],
                 limit: 1
@@ -73,7 +73,7 @@ export class InferScheduler {
             // 2. Attempt to acquire an Ollama instance
             // We use the existing acquire_ollama tool which respects instance-level concurrency.
             const { success, instance } = await this.context.api.infer.acquire_ollama({});
-            
+
             if (!success || !instance) {
                 // No nodes available. Task stays in 'queued'.
                 return;
@@ -102,20 +102,20 @@ export class InferScheduler {
             // B. Execute Chat turn
             // Note: We need to pass the instanceId to bypass internal acquisition in infer_chat.
             // We'll update the infer_chat signature in the next step.
-            await this.context.api.infer.chat({ 
+            await this.context.api.infer.chat({
                 threadId: task.threadId,
                 instanceId: instanceId // This requires an update to the contract/tool
-            } as any);
+            });
 
             // C. Success
             await this.context.api.infer_queue.update({ id: task.id, status: 'completed' });
 
         } catch (err) {
             console.error(`[InferScheduler] Task ${task.id} failed:`, err);
-            await this.context.api.infer_queue.update({ 
-                id: task.id, 
-                status: 'failed', 
-                error: err instanceof Error ? err.message : String(err) 
+            await this.context.api.infer_queue.update({
+                id: task.id,
+                status: 'failed',
+                error: err instanceof Error ? err.message : String(err)
             });
         } finally {
             // D. CRITICAL: Always release the resource

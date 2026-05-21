@@ -123,6 +123,8 @@ declare module '../core/api.js' {
             readonly release_ollama: (args: z.input<typeof Contract_3.inferReleaseOllamaContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferReleaseOllamaContract['outputSchema']>>;
             /** Perform a structured completion using a JSON schema format. */
             readonly structured_chat: (args: z.input<typeof Contract_3.inferStructuredChatContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>;
+            /** Reject a pending tool call for execution. */
+            readonly reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>;
         };
         readonly ollama: {
             /** CRUD create for ollama (ollamaCrud) */
@@ -291,6 +293,8 @@ declare module '../core/api.js' {
             readonly run: (args: z.input<typeof Contract_6.managerRunContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>;
             /** Retrieve the last 50 tool result messages that generated execution errors. */
             readonly list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>;
+            /** Compile system prompts (Operational Mandates) for Castellan specialized sub-agents. */
+            readonly agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>;
         };
         readonly pulse_report: {
             /** CRUD create for pulse_report (pulseReportCrud) */

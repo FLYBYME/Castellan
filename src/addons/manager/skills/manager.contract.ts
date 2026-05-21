@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { defineContract, defineCrud } from 'castellan/core';
 import { PulseReportSchema } from './manager.schema.js';
+import { agentCrud } from 'src/addons/agents/skills/agent.contract.js';
 
 /**
  * Manager Ministry: The Central Directorate responsible for intent translation and agent delegation.
@@ -133,3 +134,20 @@ export const managerListToolErrorsContract = defineContract({
     rest: { method: 'GET', path: '/manager/tool-errors' },
     destructive: false
 });
+
+export const managerAgentBootstrapContract = defineContract({
+    domain: 'manager',
+    action: 'agent_bootstrap',
+    description: 'Compile system prompts (Operational Mandates) for Castellan specialized sub-agents.',
+    inputSchema: z.object({
+        name: z.string().describe("The name identifier for the bootstrap session.")
+    }),
+    outputSchema: z.object({
+        threadId: z.string().describe("The thread ID where the agent compilation took place."),
+        response: z.string().describe("Bootstrap status message."),
+        agents: z.array(agentCrud.outputSchema).describe("The agents that were created or updated.")
+    }),
+    rest: { method: 'POST', path: '/manager/agent-bootstrap' },
+    destructive: true
+});
+

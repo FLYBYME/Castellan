@@ -757,6 +757,21 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_infer_inferStructuredChatContract_structured_chat, Contract_3.inferStructuredChatContract.inputSchema);
+    const cmd_infer_inferRejectToolContract_reject_tool = infer.command('reject_tool').description(`Reject a pending tool call for execution.`);
+    cmd_infer_inferRejectToolContract_reject_tool.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing infer:reject_tool...' + C.reset);
+            const res = await client.api.infer.reject_tool(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_3.inferRejectToolContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_infer_inferRejectToolContract_reject_tool, Contract_3.inferRejectToolContract.inputSchema);
     const ollama = program.command('ollama').description('ollama tools');
     const cmd_ollama_ollamaCrud_create_create = ollama.command('create').description(`CRUD create for ollama (ollamaCrud)`);
     cmd_ollama_ollamaCrud_create_create.action(async (o) => {
@@ -1877,6 +1892,21 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerListToolErrorsContract_list_tool_errors, Contract_6.managerListToolErrorsContract.inputSchema);
+    const cmd_manager_managerAgentBootstrapContract_agent_bootstrap = manager.command('agent_bootstrap').description(`Compile system prompts (Operational Mandates) for Castellan specialized sub-agents.`);
+    cmd_manager_managerAgentBootstrapContract_agent_bootstrap.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing manager:agent_bootstrap...' + C.reset);
+            const res = await client.api.manager.agent_bootstrap(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_6.managerAgentBootstrapContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_manager_managerAgentBootstrapContract_agent_bootstrap, Contract_6.managerAgentBootstrapContract.inputSchema);
     const pulse_report = program.command('pulse_report').description('pulse_report tools');
     const cmd_pulse_report_pulseReportCrud_create_create = pulse_report.command('create').description(`CRUD create for pulse_report (pulseReportCrud)`);
     cmd_pulse_report_pulseReportCrud_create_create.action(async (o) => {
