@@ -8,7 +8,8 @@ import {
     inferAcquireOllamaContract,
     inferReleaseOllamaContract,
     inferStructuredChatContract,
-    inferRejectToolContract
+    inferRejectToolContract,
+    toolCallCrud
 } from './infer.contract.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { agentStructuredInferContract } from 'src/addons/agents/skills/agent.contract.js';
@@ -49,6 +50,9 @@ export async function getToolDefinition(toolName: string, ctx: ISkillContext): P
         },
     };
 }
+
+
+type ToolCallSchemaType = z.infer<typeof toolCallCrud.baseSchema>;
 
 /**
  * infer_chat: Stateful, throttled, and stateless-resumable reasoning.
@@ -130,7 +134,11 @@ export async function infer_chat(
         const tools: Tool[] = [];
         for (const toolName of thread.tools) {
             const toolDefinition = await getToolDefinition(toolName, ctx);
-            if (!toolDefinition) continue;
+            if (!toolDefinition) {
+                console.error(`Tool ${toolName} not found.`);
+                continue;
+            }
+            console.log(`Tool ${toolName} found.`);
 
             tools.push(toolDefinition);
         }
@@ -208,18 +216,62 @@ export async function infer_chat(
 
         if (part.message?.tool_calls) {
             for (const t of part.message.tool_calls) {
-                const toolCall = await ctx.api.tool_calls.create({
+                const toolCallConfig: ToolCallSchemaType = {
                     threadId: input.threadId,
                     messageId: message.id,
                     name: t.function.name,
                     arguments: t.function.arguments,
                     status: 'pending_approval'
-                });
+                };
+                const tool = await ctx.skills.getTool(toolCallConfig.name);
+
+                if (!tool) {
+                    toolCallConfig.status = 'failed';
+                    toolCallConfig.error = 'Tool not found.';
+                } else {
+                    try {
+                        const parsed = tool.inputSchema.safeParse(t.function.arguments);
+                        if (!parsed.success) {
+                            toolCallConfig.status = 'failed';
+                            toolCallConfig.error = parsed.error.message;
+                        } else {
+                            toolCallConfig.arguments = parsed.data;
+
+                            if (tool.destructive && !thread.autoApproveDestructiveTools) {
+                                toolCallConfig.status = 'pending_approval';
+                            } else {
+                                toolCallConfig.status = 'approved';
+                            }
+
+                        }
+                    } catch (error) {
+                        toolCallConfig.status = 'failed';
+                        toolCallConfig.error = error as string;
+                    }
+                }
+
+
+                const toolCall = await ctx.api.tool_calls.create(toolCallConfig);
                 toolCalls.push(toolCall);
-                await ctx.events.dispatch('infer:tool_call_requested', message.id, {
-                    threadId: input.threadId,
-                    toolCallId: toolCall.id
-                });
+
+                if (toolCallConfig.status === 'pending_approval') {
+                    await ctx.events.dispatch('infer:tool_call_requested', message.id, {
+                        threadId: input.threadId,
+                        toolCallId: toolCall.id
+                    });
+                }
+                else if (toolCallConfig.status === 'failed') {
+                    await ctx.events.dispatch('infer:tool_call_failed', message.id, {
+                        threadId: input.threadId,
+                        toolCallId: toolCall.id,
+                        error: toolCallConfig.error
+                    });
+                } else {
+                    await ctx.events.dispatch('infer:tool_call_auto_approved', message.id, {
+                        threadId: input.threadId,
+                        toolCallId: toolCall.id,
+                    });
+                }
             }
         }
 

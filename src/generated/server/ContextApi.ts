@@ -298,6 +298,8 @@ export class ContextApi implements ICastellanApi {
             this.executor.execute<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>('manager', 'list_tool_errors', args, this.context),
         agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>('manager', 'agent_bootstrap', args, this.context),
+        evaluate_approval: (args: z.input<typeof Contract_6.managerEvaluateApprovalContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>>('manager', 'evaluate_approval', args, this.context),
     };
     public readonly pulse_report = {
         create: (args: z.input<typeof Contract_6.pulseReportCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_6.pulseReportCrud['create']['outputSchema']>> => 

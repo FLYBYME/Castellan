@@ -1,8 +1,12 @@
-import { ISkillContext, parseToolKey } from 'castellan/core';
+import { globalContractRegistry, ISkillContext, parseToolKey } from 'castellan/core';
 import { z } from 'zod';
 import {
     agentRunContract,
 } from './agent.contract.js';
+import { toolCallCrud } from 'src/addons/infer/skills/infer.contract.js';
+
+export const pendingRunPromises = new Map<string, { resolve: () => void; reject: (err: Error) => void }>();
+
 /**
  * agent_run: Starts an autonomous turn for an agent.
  */
@@ -60,6 +64,12 @@ export async function agent_run(
         options: { autoApprove: input.autoApprove }
     });
 
+    if (input.wait) {
+        await new Promise<void>((resolve, reject) => {
+            pendingRunPromises.set(run.id, { resolve, reject });
+        });
+    }
+
     return { runId: run.id };
 }
 
@@ -91,6 +101,7 @@ export async function handle_tool_approval(
     }
 }
 
+type ToolCallSchemaType = z.infer<typeof toolCallCrud.baseSchema>;
 /**
  * handle_tool_completion: Executes the tool and continues the loop if necessary.
  */
@@ -111,6 +122,7 @@ export async function handle_tool_completion(
         return;
     }
 
+
     // 3. If we get here, all tool calls in the message are resolved.
     // Transition run back to 'running' if it was waiting
     const runs = await ctx.api.agent_run.find({ query: { threadId: call.threadId, status: 'waiting_for_approval' } });
@@ -121,39 +133,88 @@ export async function handle_tool_completion(
     // 4. Find any tool calls that are approved and need execution
     const approvedCalls = siblingCalls.filter(c => c.status === 'approved');
     if (approvedCalls.length > 0) {
+        console.log(`///////////////////////////////////////////////////`)
         for (const approvedCall of approvedCalls) {
             // Execute Tool
             await ctx.api.tool_calls.update({ id: approvedCall.id, status: 'executing' });
 
             try {
-                const { domain, action } = parseToolKey(approvedCall.name);
+                const tool = ctx.skills.getTool(approvedCall.name);
+                const toolContract = globalContractRegistry.get(approvedCall.name);
 
-                const skill = ctx.skills.getSkill(domain);
-                if (!skill) throw new Error(`Domain ${domain} not found`);
-
-                const result = await skill.execute(domain, action, approvedCall.arguments, ctx);
-
-                let finalizedResult: string;
-                if (typeof result === 'string') {
-                    finalizedResult = result;
-                } else if (result && typeof result === 'object' && Symbol.asyncIterator in result) {
-                    // Collect stream
-                    let full = '';
-                    for await (const chunk of result as AsyncIterable<unknown>) {
-                        full += typeof chunk === 'string' ? chunk : JSON.stringify(chunk);
-                    }
-                    finalizedResult = full;
+                if (!tool || !toolContract) {
+                    console.log(`Tool ${approvedCall.name} not found`);
+                    await ctx.api.tool_calls.update({
+                        id: approvedCall.id,
+                        status: 'failed',
+                        error: `Tool ${approvedCall.name} not found`
+                    });
                 } else {
-                    finalizedResult = JSON.stringify(result, null, 2);
+                    const skill = await ctx.skills.getSkill(toolContract.domain);
+                    if (!skill) {
+                        console.log(`Skill ${toolContract.domain} not found`);
+                        await ctx.api.tool_calls.update({
+                            id: approvedCall.id,
+                            status: 'failed',
+                            error: `Skill ${toolContract.domain} not found`
+                        });
+                        continue;
+                    }
+
+                    console.log(`Executing tool ${approvedCall.name}`);
+                    const parsedArgs = toolContract.inputSchema.safeParse(approvedCall.arguments);
+                    if (!parsedArgs.success) {
+                        await ctx.api.tool_calls.update({
+                            id: approvedCall.id,
+                            status: 'failed',
+                            error: `Invalid arguments: ${parsedArgs.error.message}`
+                        });
+                        continue;
+                    }
+
+                    // Execute tool
+                    const apiDomain = (ctx.api as unknown as Record<string, Record<string, (args: unknown) => Promise<unknown>>>)[toolContract.domain];
+                    const apiAction = apiDomain?.[toolContract.action];
+
+                    const executePromise = apiAction
+                        ? apiAction(parsedArgs.data)
+                        : skill.execute(toolContract.domain, toolContract.action, parsedArgs.data, ctx);
+
+                    await executePromise
+                        .then(async (res) => {
+                            const string = await toolContract.print(res);
+                            console.log(`Tool ${approvedCall.name} completed`);
+                            console.log(`Result: ${string}`);
+                            await ctx.api.tool_calls.update({
+                                id: approvedCall.id,
+                                status: 'completed',
+                                result: string
+                            });
+                            await ctx.events.dispatch('infer:tool_call_completed', approvedCall.messageId, {
+                                threadId: approvedCall.threadId,
+                                id: approvedCall.id,
+                                success: true,
+                            });
+                        }).catch(async (err) => {
+                            console.log(`Tool ${approvedCall.name} failed`);
+                            console.log(`Error: ${err}`);
+                            await ctx.api.tool_calls.update({
+                                id: approvedCall.id,
+                                status: 'failed',
+                                error: err instanceof Error ? err.message : String(err)
+                            });
+                            await ctx.events.dispatch('infer:tool_call_failed', approvedCall.messageId, {
+                                threadId: approvedCall.threadId,
+                                toolCallId: approvedCall.id,
+                                error: err instanceof Error ? err.message : String(err),
+                            });
+                        });
+
                 }
 
-                await ctx.api.tool_calls.update({
-                    id: approvedCall.id,
-                    status: 'completed',
-                    result: finalizedResult
-                });
-
             } catch (err) {
+                console.log(`Tool ${approvedCall.name} failed`);
+                console.log(`Error: ${err}`);
                 await ctx.api.tool_calls.update({
                     id: approvedCall.id,
                     status: 'failed',
@@ -166,8 +227,12 @@ export async function handle_tool_completion(
         // If they are all done, we enqueue the follow-up inference.
         const allDone = siblingCalls.every(c => ['completed', 'failed', 'rejected'].includes(c.status));
         if (allDone) {
-            console.log(`[AgentSkill] Message ${call.messageId} turn complete. Enqueueing follow-up inference.`);
-            await ctx.api.infer_queue.create({ threadId: call.threadId, status: 'queued' });
+            // Check if the message is actually finished (to avoid race conditions during creation)
+            const msg = await ctx.api.messages.get({ id: call.messageId });
+            if (msg?.status === 'done') {
+                console.log(`[AgentSkill] Message ${call.messageId} turn complete. Enqueueing follow-up inference.`);
+                await ctx.api.infer_queue.create({ threadId: call.threadId, status: 'queued' });
+            }
         }
     }
 }
@@ -188,5 +253,12 @@ export async function handle_inference_completion(
     if (messageCalls.length === 0) {
         console.log(`[AgentSkill] Run ${run.id} finished (Assistant responded without tools).`);
         await ctx.api.agent_run.update({ id: run.id, status: 'finished' });
+    } else {
+        // If there ARE tool calls, check if they are all already terminal (e.g. failed/rejected)
+        const allDone = messageCalls.every(c => ['completed', 'failed', 'rejected'].includes(c.status));
+        if (allDone) {
+            console.log(`[AgentSkill] Message ${messageId} turn complete (all tools terminal). Enqueueing follow-up.`);
+            await ctx.api.infer_queue.create({ threadId, status: 'queued' });
+        }
     }
 }

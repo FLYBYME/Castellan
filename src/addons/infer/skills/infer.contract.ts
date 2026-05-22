@@ -23,6 +23,8 @@ declare module '../../../core/events.js' {
         'infer:thinking_chunk': { threadId: string; delta: string };
         'infer:content_chunk': { threadId: string; delta: string };
         'infer:tool_call_requested': { threadId: string; toolCallId: string };
+        'infer:tool_call_auto_approved': { threadId: string; toolCallId: string };
+        'infer:tool_call_failed': { threadId: string; toolCallId: string; error?: string };
         'infer:completed': { threadId: string; messageId: string };
         'infer:aborted': { threadId: string; messageId: string };
         'infer:queue_item_created': { id: string; threadId: string };
@@ -67,7 +69,8 @@ export const inferChatContract = defineContract({
     description: 'Perform stateful chat completion within a thread.',
     inputSchema: ChatInputSchema,
     outputSchema: ChatOutputSchema,
-    rest: { method: 'POST', path: '/infer/chat' }
+    rest: { method: 'POST', path: '/infer/chat' },
+    print: (output) => `Inference started. Created message: ${output.messageId}`
 });
 
 export const inferApproveToolContract = defineContract({
@@ -78,7 +81,8 @@ export const inferApproveToolContract = defineContract({
         toolCallId: z.string()
     }),
     outputSchema: z.object({ success: z.boolean() }),
-    rest: { method: 'POST', path: '/infer/approve' }
+    rest: { method: 'POST', path: '/infer/approve' },
+    print: (output) => `Tool call approval status: ${output.success ? 'Success' : 'Failed'}`
 });
 
 export const inferRefreshInventoryContract = defineContract({
@@ -89,7 +93,8 @@ export const inferRefreshInventoryContract = defineContract({
         instanceId: z.string().optional().describe("Optionally refresh only a specific instance")
     }),
     outputSchema: z.object({ success: z.boolean(), updatedInstances: z.number() }),
-    rest: { method: 'POST', path: '/infer/refresh' }
+    rest: { method: 'POST', path: '/infer/refresh' },
+    print: (output) => `Model inventory refresh status: ${output.success ? 'Success' : 'Failed'} (${output.updatedInstances} instances updated)`
 });
 
 export const inferAcquireOllamaContract = defineContract({
@@ -103,7 +108,8 @@ export const inferAcquireOllamaContract = defineContract({
         message: z.string()
     }),
     rest: { method: 'POST', path: '/infer/ollama/acquire' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Ollama Acquisition: ${output.message}`
 });
 
 export const inferReleaseOllamaContract = defineContract({
@@ -117,7 +123,8 @@ export const inferReleaseOllamaContract = defineContract({
         success: z.boolean()
     }),
     rest: { method: 'POST', path: '/infer/ollama/release' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Ollama instance release status: ${output.success ? 'Success' : 'Failed'}`
 });
 
 export const StructuredChatInputSchema = z.object({
@@ -136,7 +143,8 @@ export const inferStructuredChatContract = defineContract({
     description: 'Perform a structured completion using a JSON schema format.',
     inputSchema: StructuredChatInputSchema,
     outputSchema: StructuredChatOutputSchema,
-    rest: { method: 'POST', path: '/infer/structured' }
+    rest: { method: 'POST', path: '/infer/structured' },
+    print: (output) => `Structured Inference Result: ${JSON.stringify(output.data, null, 2)}`
 });
 
 export const inferRejectToolContract = defineContract({
@@ -148,6 +156,7 @@ export const inferRejectToolContract = defineContract({
         reason: z.string().optional()
     }),
     outputSchema: z.object({ success: z.boolean() }),
-    rest: { method: 'POST', path: '/infer/reject' }
+    rest: { method: 'POST', path: '/infer/reject' },
+    print: (output) => `Tool call rejection status: ${output.success ? 'Success' : 'Failed'}`
 });
 

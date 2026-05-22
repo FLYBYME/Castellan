@@ -144,7 +144,14 @@ export class CronScheduler {
             const skill = this.context.skills.getSkill(domain);
             if (!skill) throw new Error(`Skill domain not found: ${domain}`);
 
-            const result = await skill.execute(domain, action, job.params, this.context);
+            const apiDomain = (this.context.api as unknown as Record<string, Record<string, (args: unknown) => Promise<unknown>>>)[domain];
+            const apiAction = apiDomain?.[action];
+
+            const executePromise = apiAction
+                ? apiAction(job.params)
+                : skill.execute(domain, action, job.params, this.context);
+
+            const result = await executePromise;
             
             const endTime = new Date();
             const durationMs = endTime.getTime() - startTime.getTime();

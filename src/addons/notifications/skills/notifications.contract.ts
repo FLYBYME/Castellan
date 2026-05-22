@@ -17,7 +17,8 @@ export const notificationsSendContract = defineContract({
     description: 'Trigger a new system notification',
     inputSchema: NotificationSendInputSchema,
     outputSchema: NotificationSchema,
-    rest: { method: 'POST', path: '/notifications/send' }
+    rest: { method: 'POST', path: '/notifications/send' },
+    print: (output) => `Notification sent [${output.id}]: ${output.message}`
 });
 
 export const notificationsListContract = defineContract({
@@ -28,5 +29,6 @@ export const notificationsListContract = defineContract({
         limit: z.number().optional().default(50)
     }),
     outputSchema: z.array(NotificationSchema),
-    rest: { method: 'GET', path: '/notifications/list' }
+    rest: { method: 'GET', path: '/notifications/list' },
+    print: (output) => `Retrieved ${output.length} notifications.`
 });

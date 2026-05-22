@@ -46,20 +46,21 @@ async function main() {
         }
     });
 
-    console.log('Registering "Doer" agent...');
-    const agent = await client.api.agent.create({
-        name: 'Castellan Doer',
-        systemPrompt: 'You are a helpful assistant. MANDATORY: You MUST use tools for every action. To greet, use demo_hello. To check status, use demo_status. Do not answer from memory.',
-        model: 'gpt-oss:20b',
-        tools: ['demo_hello', 'demo_status'],
-        config: { temperature: 0.1 }
-    });
+    console.log('Getting "Doer" agent...');
+    const agent = await client.api.agent.find_one({
+        query: {
+            name: 'Castellan Orchestrator'
+        }
+    })
+    if (!agent) {
+        throw new Error('Agent not found');
+    }
     console.log('Agent registered:', agent.id);
 
     console.log('Creating a new thread...');
     const thread = await client.api.threads.create({
         title: 'Agent Test',
-        model: 'gpt-oss:20b',
+        model: 'gemma4:e4b',
         status: 'active'
     });
     console.log('Thread created:', thread.id);
@@ -69,26 +70,11 @@ async function main() {
         agentId: agent.id,
         threadId: thread.id,
         autoApprove: false,
-        prompt: 'Say hello to Gemini and check the status.'
+        prompt: 'Say hello to Gemini and check the status.',
+        wait: true
     });
-    console.log('Run started:', run.runId);
+    console.log('Run finished:', run);
 
-    // Wait for the run to complete
-    await new Promise<void>((resolve) => {
-        const handler = (name: string, payload: unknown) => {
-            if (name === 'data:updated') {
-                const p = payload as any;
-                if (p.domain === 'agent_run' && p.id === run.runId) {
-                    if (p.patch.status === 'finished' || p.patch.status === 'failed') {
-                        console.log(`\n\n${C.green}${C.bold}✔ Run finished with status: ${p.patch.status}${C.reset}`);
-                        client.offEvent(handler);
-                        resolve();
-                    }
-                }
-            }
-        };
-        client.onEvent(handler);
-    });
 
     client.close();
 }

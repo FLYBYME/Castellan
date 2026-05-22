@@ -20,7 +20,8 @@ export const AgentRunInputSchema = z.object({
     agentId: z.string().describe("The agent to run"),
     threadId: z.string().describe("The thread to run in"),
     autoApprove: z.boolean().optional().default(false).describe("If true, all tools are auto-approved for this run"),
-    prompt: z.string().optional().describe("Optional user prompt to seed the thread with")
+    prompt: z.string().optional().describe("Optional user prompt to seed the thread with"),
+    wait: z.boolean().optional().default(false).describe("If true, wait for the run to complete before returning")
 });
 
 export const AgentRunOutputSchema = z.object({
@@ -33,7 +34,8 @@ export const agentRunContract = defineContract({
     description: 'Start an autonomous execution turn for a specific agent.',
     inputSchema: AgentRunInputSchema,
     outputSchema: AgentRunOutputSchema,
-    rest: { method: 'POST', path: '/agent/run' }
+    rest: { method: 'POST', path: '/agent/run' },
+    print: (output) => `Agent run started. Run ID: ${output.runId}`
 });
 
 export const AgentStructuredInferInputSchema = z.object({
@@ -52,5 +54,6 @@ export const agentStructuredInferContract = defineContract({
     description: 'Perform a structured completion using a JSON schema format.',
     inputSchema: AgentStructuredInferInputSchema,
     outputSchema: AgentStructuredInferOutputSchema,
-    rest: { method: 'POST', path: '/agent/structured' }
+    rest: { method: 'POST', path: '/agent/structured' },
+    print: (output) => `Structured inference completed. Data: ${JSON.stringify(output.data, null, 2)}`
 });

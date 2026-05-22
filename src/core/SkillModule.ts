@@ -43,7 +43,7 @@ export type EventHandler<K extends keyof EventRegistry> = (
 export interface ISkillModule<TApi extends ICastellanApi = ICastellanApi> {
     readonly domain: string;
     getContracts(): ToolContract<z.ZodTypeAny, z.ZodTypeAny>[];
-    execute<T>(domain: string, action: string, args: unknown, context: ISkillContext<TApi>): Promise<T> | AsyncIterable<T>;
+    execute<T>(domain: string, action: string, args: unknown, context: ISkillContext<TApi>): Promise<T>;
     postInit?(context: ISkillContext<TApi>): Promise<void>;
     isCrud(domain: string, action: string): boolean;
     getEventHandlers(): Map<keyof EventRegistry, EventHandler<keyof EventRegistry>>;
@@ -97,7 +97,7 @@ export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi
         handler: SkillActionHandler<z.infer<TIn>, z.infer<TOut>, TApi>
     ): void {
         this.handlers.set(`${contract.domain}:${contract.action}`, {
-            contract,
+            contract: contract as unknown as ToolContract<z.ZodTypeAny, z.ZodTypeAny>,
             handler: handler as SkillActionHandler<unknown, unknown, TApi>
         });
     }

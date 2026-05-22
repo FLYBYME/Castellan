@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { CommandRegistry } from './core/CommandRegistry.js';
 import { StartCommand } from './commands/StartCommand.js';
 import { GenerateCommand } from './commands/GenerateCommand.js';
+import { ChatCommand } from './commands/ChatCommand.js';
 import { C } from './core/Utils.js';
 import fs from 'fs';
 import path from 'path';
@@ -13,6 +14,7 @@ const registry = new CommandRegistry();
 // Register Commands
 registry.register(new StartCommand());
 registry.register(new GenerateCommand());
+registry.register(new ChatCommand());
 
 program
     .name('castellan')

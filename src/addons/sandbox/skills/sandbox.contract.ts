@@ -73,6 +73,8 @@ export const sandboxCrud = defineCrud('sandbox', SandboxSchema, {
     idField: 'id'
 });
 
+const successPrint = (output: { success: boolean }): string => output.success ? 'Operation successful.' : 'Operation failed.';
+
 export const sandboxSetActiveContract = defineContract({
     domain: 'sandbox',
     action: 'set_active',
@@ -81,7 +83,8 @@ export const sandboxSetActiveContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandboxes/active' },
     destructive: false,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxPruneContract = defineContract({
@@ -94,7 +97,8 @@ export const sandboxPruneContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/prune' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 
@@ -108,7 +112,8 @@ export const sandboxFsReadContract = defineContract({
     outputSchema: z.object({ content: z.string(), size: z.number(), lastModified: z.coerce.date() }),
     rest: { method: 'GET', path: '/sandbox/fs/read' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Read file successful (${output.size} bytes).`
 });
 
 export const sandboxFsWriteContract = defineContract({
@@ -119,7 +124,8 @@ export const sandboxFsWriteContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/fs/write' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxFsListContract = defineContract({
@@ -130,7 +136,8 @@ export const sandboxFsListContract = defineContract({
     outputSchema: z.array(z.object({ name: z.string(), isDirectory: z.boolean(), size: z.number() })),
     rest: { method: 'GET', path: '/sandbox/fs/list' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Found ${output.length} filesystem items.`
 });
 
 export const sandboxFsPatchContract = defineContract({
@@ -141,7 +148,8 @@ export const sandboxFsPatchContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/fs/patch' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxFsRemoveContract = defineContract({
@@ -152,7 +160,8 @@ export const sandboxFsRemoveContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'DELETE', path: '/sandbox/fs/remove' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxFsMkdirContract = defineContract({
@@ -163,7 +172,8 @@ export const sandboxFsMkdirContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/fs/mkdir' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxFsMoveContract = defineContract({
@@ -174,7 +184,8 @@ export const sandboxFsMoveContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/fs/move' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 // ─── Terminal Contracts ──────────────────────────────────────────────────────
@@ -187,7 +198,8 @@ export const sandboxTerminalExecuteContract = defineContract({
     outputSchema: z.object({ exitCode: z.number(), stdout: z.string(), stderr: z.string() }),
     rest: { method: 'POST', path: '/sandbox/terminal/execute' },
     destructive: true,
-    event: true
+    event: true,
+    print: (output) => `Command completed with exit code ${output.exitCode}. stdout: ${output.stdout.substring(0, 100)}`
 });
 
 export const sandboxTerminalSpawnContract = defineContract({
@@ -198,7 +210,8 @@ export const sandboxTerminalSpawnContract = defineContract({
     outputSchema: z.object({ processId: z.string() }),
     rest: { method: 'POST', path: '/sandbox/terminal/spawn' },
     destructive: true,
-    event: true
+    event: true,
+    print: (output) => `Process spawned. Process ID: ${output.processId}`
 });
 
 export const sandboxTerminalListContract = defineContract({
@@ -209,7 +222,8 @@ export const sandboxTerminalListContract = defineContract({
     outputSchema: TerminalListOutputSchema,
     rest: { method: 'GET', path: '/sandbox/terminal/spawn' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Found ${output.length} running background processes.`
 });
 
 export const sandboxTerminalKillContract = defineContract({
@@ -220,7 +234,8 @@ export const sandboxTerminalKillContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/terminal/kill' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxTerminalLogsContract = defineContract({
@@ -231,7 +246,8 @@ export const sandboxTerminalLogsContract = defineContract({
     outputSchema: z.object({ logs: z.string() }),
     rest: { method: 'GET', path: '/sandbox/terminal/logs' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Fetched logs (${output.logs.length} chars).`
 });
 
 export const sandboxTerminalSessionOpenContract = defineContract({
@@ -242,7 +258,8 @@ export const sandboxTerminalSessionOpenContract = defineContract({
     outputSchema: z.object({ sessionId: z.string() }),
     rest: { method: 'POST', path: '/sandbox/terminal/sessions' },
     destructive: true,
-    event: true
+    event: true,
+    print: (output) => `PTY Session opened. Session ID: ${output.sessionId}`
 });
 
 export const sandboxTerminalSessionListContract = defineContract({
@@ -253,7 +270,8 @@ export const sandboxTerminalSessionListContract = defineContract({
     outputSchema: TerminalSessionListOutputSchema,
     rest: { method: 'GET', path: '/sandbox/terminal/sessions' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Found ${output.length} active PTY sessions.`
 });
 
 export const sandboxTerminalSessionWriteContract = defineContract({
@@ -264,7 +282,8 @@ export const sandboxTerminalSessionWriteContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/terminal/sessions/:sessionId/write' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxTerminalSessionResizeContract = defineContract({
@@ -275,7 +294,8 @@ export const sandboxTerminalSessionResizeContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/terminal/sessions/:sessionId/resize' },
     destructive: false,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 // ─── Networking & Port Forwarding Contracts ──────────────────────────────────
@@ -288,7 +308,8 @@ export const sandboxNetworkExposeContract = defineContract({
     outputSchema: NetworkExposeOutputSchema,
     rest: { method: 'POST', path: '/sandbox/network/expose' },
     destructive: true,
-    event: true
+    event: true,
+    print: (output) => `Port exposed. Mapped URL: ${output.mappedUrl}`
 });
 
 export const sandboxNetworkUnexposeContract = defineContract({
@@ -299,7 +320,8 @@ export const sandboxNetworkUnexposeContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/network/unexpose' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxNetworkListContract = defineContract({
@@ -310,7 +332,8 @@ export const sandboxNetworkListContract = defineContract({
     outputSchema: NetworkListOutputSchema,
     rest: { method: 'GET', path: '/sandbox/network/list' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Found ${output.length} exposed ports.`
 });
 
 export const sandboxNetworkSetPolicyContract = defineContract({
@@ -321,7 +344,8 @@ export const sandboxNetworkSetPolicyContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/network/policy' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 // ─── Environment Variables Contracts ────────────────────────────────────────
@@ -334,7 +358,8 @@ export const sandboxEnvSetContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/env' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxEnvSetSecretContract = defineContract({
@@ -345,7 +370,8 @@ export const sandboxEnvSetSecretContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/env/secret' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxEnvListContract = defineContract({
@@ -356,7 +382,8 @@ export const sandboxEnvListContract = defineContract({
     outputSchema: EnvListOutputSchema,
     rest: { method: 'GET', path: '/sandbox/env' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Found ${output.variables.length} environment variables.`
 });
 
 // ─── Resource Management & Telemetry Contracts ──────────────────────────────
@@ -369,7 +396,8 @@ export const sandboxResourceUpdateLimitsContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/resources/limits' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 
 export const sandboxResourceGetStatsContract = defineContract({
@@ -380,7 +408,8 @@ export const sandboxResourceGetStatsContract = defineContract({
     outputSchema: ResourceGetStatsOutputSchema,
     rest: { method: 'GET', path: '/sandbox/resources/stats' },
     destructive: false,
-    event: true
+    event: true,
+    print: (output) => `Stats retrieved. CPU: ${output.cpuPercent}%, Memory: ${output.memoryMb} MB (Limit: ${output.memoryLimitMb} MB)`
 });
 
 // ─── Snapshot & State Management Contracts ──────────────────────────────────
@@ -393,7 +422,8 @@ export const sandboxStateCommitContract = defineContract({
     outputSchema: StateCommitOutputSchema,
     rest: { method: 'POST', path: '/sandbox/state/commit' },
     destructive: true,
-    event: true
+    event: true,
+    print: (output) => `State committed. Image ID: ${output.imageId}`
 });
 
 export const sandboxStateCloneContract = defineContract({
@@ -404,6 +434,7 @@ export const sandboxStateCloneContract = defineContract({
     outputSchema: SuccessOutputSchema,
     rest: { method: 'POST', path: '/sandbox/state/clone' },
     destructive: true,
-    event: true
+    event: true,
+    print: successPrint
 });
 

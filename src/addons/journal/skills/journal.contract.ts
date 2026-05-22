@@ -5,7 +5,6 @@ import {
     DirectiveSchema,
     JournalNoteInputSchema,
     JournalResolveInputSchema,
-    JournalListInputSchema,
     JournalCompressOutputSchema
 } from './journal.schema.js';
 
@@ -32,7 +31,8 @@ export const journalNoteContract = defineContract({
     inputSchema: JournalNoteInputSchema,
     outputSchema: JournalEntrySchema,
     rest: { method: 'POST', path: '/journal/note' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Episodic Entry (${output.type}) in domain [${output.domain}]: ${output.content}`
 });
 
 export const journalResolveContract = defineContract({
@@ -42,7 +42,8 @@ export const journalResolveContract = defineContract({
     inputSchema: JournalResolveInputSchema,
     outputSchema: JournalEntrySchema,
     rest: { method: 'POST', path: '/journal/resolve' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Journal entry in domain [${output.domain}] resolution status: ${output.status}`
 });
 
 export const journalCompressContract = defineContract({
@@ -52,5 +53,6 @@ export const journalCompressContract = defineContract({
     inputSchema: z.object({}),
     outputSchema: JournalCompressOutputSchema,
     rest: { method: 'POST', path: '/journal/compress' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Memory Consolidation Complete. Created ${output.directivesCreated} directives. Processed ${output.entriesProcessed} episodic entries. Summary: ${output.summary}`
 });

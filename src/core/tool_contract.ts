@@ -34,7 +34,8 @@ export interface RestMeta {
  */
 export interface ToolContract<
     TInput extends z.ZodTypeAny = z.ZodTypeAny,
-    TOutput extends z.ZodTypeAny = z.ZodTypeAny
+    TOutput extends z.ZodTypeAny = z.ZodTypeAny,
+    TPrint = z.infer<TOutput>
 > {
     /** Domain namespace, e.g. 'agent', 'entity', 'combat' */
     readonly domain: string;
@@ -54,6 +55,8 @@ export interface ToolContract<
     readonly isCrud?: boolean;
     /** Optional event flag: true to dispatch default domain:action, or string to override action name */
     readonly event?: boolean | string;
+    /** Formats the tool output as a human-readable string */
+    readonly print: (output: TPrint) => string;
 }
 
 /**
@@ -63,8 +66,9 @@ export interface ToolContract<
  */
 export function defineContract<
     TInput extends z.ZodTypeAny,
-    TOutput extends z.ZodTypeAny
->(contract: ToolContract<TInput, TOutput>): ToolContract<TInput, TOutput> {
+    TOutput extends z.ZodTypeAny,
+    TPrint = z.infer<TOutput>
+>(contract: ToolContract<TInput, TOutput, TPrint>): ToolContract<TInput, TOutput, TPrint> {
     globalContractRegistry.register(contract);
     return contract;
 }
@@ -129,12 +133,12 @@ export function parseToolKey(toolKey: string): { domain: string; action: string 
 export class ContractRegistry {
     private readonly contracts = new Map<string, ToolContract>();
 
-    public register(contract: ToolContract): void {
-        const key = toolKey(contract);
+    public register<I extends z.ZodTypeAny, O extends z.ZodTypeAny>(contract: ToolContract<I, O>): void {
+        const key = toolKey(contract as unknown as ToolContract);
         if (this.contracts.has(key)) {
             return;
         }
-        this.contracts.set(key, contract);
+        this.contracts.set(key, contract as unknown as ToolContract);
     }
 
     public get(key: string): ToolContract | undefined {

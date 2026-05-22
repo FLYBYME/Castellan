@@ -8,7 +8,8 @@ export const marketplaceListContract = defineContract({
     description: 'List available and installed addons',
     inputSchema: z.object({}),
     outputSchema: z.array(AddonSchema),
-    rest: { method: 'GET', path: '/marketplace/list' }
+    rest: { method: 'GET', path: '/marketplace/list' },
+    print: (output) => `Found ${output.length} addons in marketplace.`
 });
 
 export const marketplaceInstallContract = defineContract({
@@ -17,5 +18,6 @@ export const marketplaceInstallContract = defineContract({
     description: 'Install an addon',
     inputSchema: AddonInstallInputSchema,
     outputSchema: AddonInstallOutputSchema,
-    rest: { method: 'POST', path: '/marketplace/install' }
+    rest: { method: 'POST', path: '/marketplace/install' },
+    print: (output) => output.success ? `Successfully installed addon: ${output.message || 'Success'}` : `Failed to install addon: ${output.message || 'Failure'}`
 });

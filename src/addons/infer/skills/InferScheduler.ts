@@ -48,7 +48,7 @@ export class InferScheduler {
                 }
             }
         } catch (err) {
-            console.error(`[InferScheduler] Orphan reclamation failed:`, err);
+            console.error(`[InferScheduler] Orphan reclamation failed:`, err instanceof Error ? err.stack || err.message : String(err));
         }
     }
 
@@ -85,7 +85,7 @@ export class InferScheduler {
             void this.processTask(task, instance.id);
 
         } catch (err) {
-            console.error(`[InferScheduler] Tick execution error:`, err);
+            console.error(`[InferScheduler] Tick execution error:`, err instanceof Error ? err.stack || err.message : String(err));
         } finally {
             this.isTicking = false;
         }
@@ -111,7 +111,7 @@ export class InferScheduler {
             await this.context.api.infer_queue.update({ id: task.id, status: 'completed' });
 
         } catch (err) {
-            console.error(`[InferScheduler] Task ${task.id} failed:`, err);
+            console.error(`[InferScheduler] Task ${task.id} failed:`, err instanceof Error ? err.stack || err.message : String(err));
             await this.context.api.infer_queue.update({
                 id: task.id,
                 status: 'failed',
@@ -122,7 +122,7 @@ export class InferScheduler {
             try {
                 await this.context.api.infer.release_ollama({ instanceId });
             } catch (releaseErr) {
-                console.error(`[InferScheduler] FAILED TO RELEASE INSTANCE ${instanceId}:`, releaseErr);
+                console.error(`[InferScheduler] FAILED TO RELEASE INSTANCE ${instanceId}:`, releaseErr instanceof Error ? releaseErr.stack || releaseErr.message : String(releaseErr));
             }
         }
     }

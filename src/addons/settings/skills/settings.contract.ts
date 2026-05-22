@@ -8,7 +8,8 @@ export const settingsGetContract = defineContract({
     description: 'Get a configuration value',
     inputSchema: SettingGetInputSchema,
     outputSchema: z.any(),
-    rest: { method: 'GET', path: '/settings/:key' }
+    rest: { method: 'GET', path: '/settings/:key' },
+    print: (output) => `Setting Value: ${typeof output === 'string' ? output : JSON.stringify(output)}`
 });
 
 export const settingsUpdateContract = defineContract({
@@ -19,7 +20,8 @@ export const settingsUpdateContract = defineContract({
     outputSchema: z.object({
         success: z.boolean()
     }),
-    rest: { method: 'POST', path: '/settings/update' }
+    rest: { method: 'POST', path: '/settings/update' },
+    print: (output) => `Setting update: ${output.success ? 'Success' : 'Failed'}`
 });
 
 export const settingsGetAllContract = defineContract({
@@ -28,5 +30,6 @@ export const settingsGetAllContract = defineContract({
     description: 'Get all configuration values',
     inputSchema: z.object({}),
     outputSchema: z.record(z.any()),
-    rest: { method: 'GET', path: '/settings/all' }
+    rest: { method: 'GET', path: '/settings/all' },
+    print: (output) => `Retrieved ${Object.keys(output).length} settings.`
 });

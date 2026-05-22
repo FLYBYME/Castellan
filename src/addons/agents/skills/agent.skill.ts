@@ -8,7 +8,8 @@ import {
     agent_run,
     handle_tool_approval,
     handle_tool_completion,
-    handle_inference_completion
+    handle_inference_completion,
+    pendingRunPromises
 } from './agent.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
 
@@ -39,12 +40,35 @@ export class AgentSkill extends BaseSkillModule<ContextApi> {
         });
 
         // 4. Event-Driven Loop: Tool Execution & Lifecycle
+        this.mountEventHandler('data:created', async (payload, correlationId) => {
+            if (!this.api || !this.skills || !this.events) return;
+
+            if (payload.domain === 'tool_calls') {
+                const ctx = this.createEventHandlerContext(correlationId);
+                await handle_tool_completion(payload.id, ctx);
+            }
+        });
+
         this.mountEventHandler('data:updated', async (payload, correlationId) => {
             if (!this.api || !this.skills || !this.events) return;
 
             if (payload.domain === 'tool_calls') {
                 const ctx = this.createEventHandlerContext(correlationId);
                 await handle_tool_completion(payload.id, ctx);
+            } else if (payload.domain === 'agent_run') {
+                const status = payload.patch['status'];
+                if (status === 'finished' || status === 'failed') {
+                    const pending = pendingRunPromises.get(payload.id);
+                    if (pending) {
+                        if (status === 'finished') {
+                            pending.resolve();
+                        } else {
+                            const errorMsg = typeof payload.patch['error'] === 'string' ? payload.patch['error'] : 'Unknown error';
+                            pending.reject(new Error(`Agent run failed: ${errorMsg}`));
+                        }
+                        pendingRunPromises.delete(payload.id);
+                    }
+                }
             }
         });
 

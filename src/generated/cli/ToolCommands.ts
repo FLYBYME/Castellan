@@ -1907,6 +1907,21 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerAgentBootstrapContract_agent_bootstrap, Contract_6.managerAgentBootstrapContract.inputSchema);
+    const cmd_manager_managerEvaluateApprovalContract_evaluate_approval = manager.command('evaluate_approval').description(`Evaluate a pending tool call via a multi-judge safety ensemble.`);
+    cmd_manager_managerEvaluateApprovalContract_evaluate_approval.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing manager:evaluate_approval...' + C.reset);
+            const res = await client.api.manager.evaluate_approval(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_6.managerEvaluateApprovalContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_manager_managerEvaluateApprovalContract_evaluate_approval, Contract_6.managerEvaluateApprovalContract.inputSchema);
     const pulse_report = program.command('pulse_report').description('pulse_report tools');
     const cmd_pulse_report_pulseReportCrud_create_create = pulse_report.command('create').description(`CRUD create for pulse_report (pulseReportCrud)`);
     cmd_pulse_report_pulseReportCrud_create_create.action(async (o) => {

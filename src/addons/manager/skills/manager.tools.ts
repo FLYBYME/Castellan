@@ -8,7 +8,8 @@ import {
     managerResearchContract,
     managerRunContract,
     managerListToolErrorsContract,
-    managerAgentBootstrapContract
+    managerAgentBootstrapContract,
+    managerEvaluateApprovalContract
 } from './manager.contract.js';
 import { PulseReport } from './manager.schema.js';
 import { agentCrud } from '../../agents/skills/agent.contract.js';
@@ -93,6 +94,34 @@ export const DefaultAgents = [
 
 ]
 
+export const DefaultJudges = [
+    {
+        name: 'Security Judge',
+        description: 'Audits pending tool calls for security risks, unauthorized data exfiltration, privilege escalation, and malicious code injection.',
+        tools: []
+    },
+    {
+        name: 'Skeptic Judge',
+        description: 'Audits pending tool calls for logical correctness, validation gaps, unintended side effects, and edge cases.',
+        tools: []
+    },
+    {
+        name: 'Architect Judge',
+        description: 'Audits pending tool calls for system architecture compliance, path correctness, file/directory boundary safety, and dependency hygiene.',
+        tools: []
+    },
+    {
+        name: 'Compliance Judge',
+        description: 'Audits pending tool calls for license compliance, data privacy protection, regulatory policies, and user consent constraints.',
+        tools: []
+    },
+    {
+        name: 'Reliability Judge',
+        description: 'Audits pending tool calls for resource usage, heavy side-effects, recursion risks, and timeout limits.',
+        tools: []
+    }
+];
+
 /**
  * getAgentByName: Helper to resolve agent ID by name.
  */
@@ -112,7 +141,7 @@ async function getOrCreateThread(title: string, ctx: ISkillContext, threadId?: s
     }
     return await ctx.api.threads.create({
         title,
-        model: 'gpt-oss:20b',
+        model: 'gemma4:e4b',
         status: 'active'
     });
 }
@@ -130,7 +159,8 @@ export async function manager_chat(
     const result = await ctx.api.agent.run({
         threadId: thread.id,
         agentId: orchestrator.id,
-        prompt: input.prompt
+        prompt: input.prompt,
+        wait: input.wait
     });
 
     return {
@@ -343,32 +373,65 @@ const GeneratedAgentSchema = z.object({
 /**
  * Agent bootstrapper
  */
+/**
+ * Agent bootstrapper (Two Passes: Pass 1 for normal agents, Pass 2 for safety judges)
+ */
 export async function manager_agent_bootstrap(
     input: z.infer<typeof managerAgentBootstrapContract.inputSchema>,
     ctx: ISkillContext
 ) {
-
-    // Create any missing agents
-    const agents: Array<AgentSchemaType> = [];
+    // 1. Core Agents creation/lookup
+    const coreAgents: Array<AgentSchemaType> = [];
     for (const agent of DefaultAgents) {
         const foundAgent = await ctx.api.agent.find_one({ query: { name: agent.name } });
         if (!foundAgent) {
-            console.log(`Creating agent: ${agent.name}`);
+            console.log(`Creating core agent: ${agent.name}`);
             const createdAgent = await ctx.api.agent.create({
                 name: agent.name,
-                systemPrompt: 'Agent cold and deterministic.  Operate strictly within tools.',
+                systemPrompt: 'Agent cold and deterministic. Operate strictly within tools.',
                 tools: agent.tools,
                 model: 'gpt-oss:120b'
             });
-            agents.push(createdAgent);
-
+            coreAgents.push(createdAgent);
         } else {
-            agents.push(foundAgent);
+            coreAgents.push(foundAgent);
         }
     }
 
+    // 2. Safety Judges creation/lookup
+    const safetyJudges: Array<AgentSchemaType> = [];
+    for (const judge of DefaultJudges) {
+        const foundJudge = await ctx.api.agent.find_one({ query: { name: judge.name } });
+        if (!foundJudge) {
+            console.log(`Creating safety judge agent: ${judge.name}`);
+            const createdJudge = await ctx.api.agent.create({
+                name: judge.name,
+                systemPrompt: 'Safety Judge cold and analytical. Audit destructive tools.',
+                tools: [],
+                model: 'gpt-oss:120b'
+            });
+            safetyJudges.push(createdJudge);
+        } else {
+            safetyJudges.push(foundJudge);
+        }
+    }
 
+    // Create a shared thread for both Passes
+    const thread = await ctx.api.threads.create({
+        title: `Two-Pass Agent Bootstrap: ${input.name}`,
+        model: 'gemma4:e4b',
+        status: 'active',
+        format: zodToJsonSchema(GeneratedAgentSchema as any),
+        options: {
+            num_ctx: 10 * 1024
+        }
+    });
 
+    const updatedAgents: Array<AgentSchemaType> = [];
+
+    // ==========================================
+    // PASS 1: NORMAL CORE AGENTS
+    // ==========================================
     const ARCHITECT_SYSTEM_PROMPT = `
 You are the Principal Systems Architect for the Castellan cognitive architecture.
 Your task is to compile a rigid, high-fidelity Operational Mandate (System Prompt) for multiple specialized sub-agents at once.
@@ -394,47 +457,25 @@ Archetype: [Archetype]
 - **Constraint 3:** Adhere strictly to clean execution and standard protocols.
 
 ## 3. Tool Utilization Strategy
-[Sequence your tools appropriately.]
+[Sequence your tools appropriately. If the agent is the Orchestrator, explicitly mandate that it MUST use \`kanban_find\` to check for existing relevant tasks BEFORE defaulting to \`kanban_create\`.]
 
 ## 4. Failure Protocols
 [Instructions on what to do when a tool fails or an invariant is breached.]
 
 ## 5. Kanban Governance & Coordination
+[If the agent has 'kanban_create' and 'kanban_move' (e.g., the Orchestrator), include strict rules:
 - **Kanban Board Authority:** All work, task flows, and operational goals MUST be managed, tracked, and synchronized through Kanban tasks. No modifications or systemic actions should occur outside this framework.
-- **Kanban Comes First Rule:** The Orchestrator is STRICTLY FORBIDDEN from calling delegation tools (\`manager_inquire\`, \`manager_execute\`, \`manager_research\`) using temporary, invalid, or placeholder Task IDs (like 'N/A', 'placeholder', or 'testing'). If a requested operation does not have a corresponding Kanban task, the Orchestrator MUST first create a valid Kanban task using \`kanban_create\`, move it to \`Ready\` or \`In Progress\` via \`kanban_move\`, and then pass the newly generated real task ID to the delegation tools!
-- **Task ID Propagation:** The Orchestrator must pass the Kanban Task ID when it dispatches missions via \`manager_inquire\`, \`manager_execute\`, or \`manager_research\` to any sub-agent that has access to the \`kanban_get\` tool. This allows the receiving agent to execute \`kanban_get\` and fetch the complete task requirements.
+- **Task Discovery First:** The Orchestrator MUST use \`kanban_find\` to search the backlog and active boards for existing tasks matching the user's intent BEFORE creating a new one. Do not duplicate existing work.
+- **Kanban Comes First Rule:** The Orchestrator is STRICTLY FORBIDDEN from calling delegation tools (\`manager_inquire\`, \`manager_execute\`, \`manager_research\`) using temporary, invalid, or placeholder Task IDs (like 'N/A', 'placeholder', or 'testing'). If a requested operation does not have a corresponding Kanban task, the Orchestrator MUST first find an existing one or create a valid Kanban task using \`kanban_create\`, move it to \`Ready\` or \`In Progress\` via \`kanban_move\`, and then pass the valid real task ID to the delegation tools!
+- **Task ID Propagation:** The Orchestrator must pass the Kanban Task ID when it dispatches missions via \`manager_inquire\`, \`manager_execute\`, or \`manager_research\` to any sub-agent that has access to the \`kanban_get\` tool. This allows the receiving agent to execute \`kanban_get\` and fetch the complete task requirements.]
+[If the agent only has 'kanban_get' (e.g., Researcher, Inquirer, Engineer), include strict instructions:
+- Retrieve operational parameters using the Kanban ID provided to you via \`kanban_get\` and NEVER attempt to alter task states.]
+[If the agent has no Kanban tools, include a brief note explaining that they operate under Kanban-driven instructions provided in their prompt, but do not have tools to manipulate or read the board directly.]
 
 ## 6. System Architecture Guidelines
-- Do not give any tool names or any references to tools in the system prompt itself.
-- The Orchestrator must use \`manager_inquire\` to read local files/discovery, \`manager_research\` for external/web search, and \`manager_execute\` to execute changes in the sandbox.
-            `.trim();
-
-
-    const responseSchema = {
-        type: 'object',
-        properties: {
-            agents: {
-                type: 'array',
-                items: {
-                    type: 'object',
-                    properties: {
-                        id: { type: 'string', description: 'The exact agent ID (e.g. castellan.doer)' },
-                        name: { type: 'string', description: 'The friendly display name of the agent (e.g. Castellan Doer)' },
-                        systemPrompt: { type: 'string', description: 'The complete compiled Operational Mandate matching the guidelines.' }
-                    },
-                    required: ['id', 'name', 'systemPrompt']
-                }
-            }
-        },
-        required: ['agents']
-    };
-    // Create Thread
-    const thread = await ctx.api.threads.create({
-        title: `Agent Bootstrap: ${input.name}`,
-        model: 'gpt-oss:20b',
-        status: 'active',
-        format: zodToJsonSchema(GeneratedAgentSchema as any)
-    });
+- The Orchestrator must use manager_inquire to read local files/discovery, manager_research for external/web search, and manager_execute to execute changes in the sandbox.
+- If the agent is the Orchestrator, explicitly map its delegation tools to the corresponding sub-agents in the Tool Utilization Strategy (e.g., "To delegate to the Engineer, use manager_execute. To delegate to the Researcher, use manager_research. To delegate to the Inquirer, use manager_inquire").
+`.trim();
 
     await ctx.api.messages.create({
         threadId: thread.id,
@@ -442,57 +483,249 @@ Archetype: [Archetype]
         content: ARCHITECT_SYSTEM_PROMPT
     });
 
-    const userPrompt = `
+    const userPromptPass1 = `
 Please compile the mandates for the following agents:
-${agents.map(a => `- Agent ID: ${a.id}
+${coreAgents.map(a => `- Agent ID: ${a.id}
 - Name: ${a.name}
 - Tools: ${a.tools.join(', ')}`).join('\n\n')}
-            `.trim();
+`.trim();
 
     await ctx.api.messages.create({
         threadId: thread.id,
         role: 'user',
-        content: userPrompt
+        content: userPromptPass1
     });
 
-    const run = await ctx.api.infer.chat({
+    const runPass1 = await ctx.api.infer.chat({
         threadId: thread.id
     });
 
-    const message = await ctx.api.messages.get({
-        id: run.messageId
+    const messagePass1 = await ctx.api.messages.get({
+        id: runPass1.messageId
     });
 
-    console.log(message);
+    try {
+        const jsonPass1 = JSON.parse(messagePass1?.content as string);
+        const agentsListPass1 = GeneratedAgentSchema.parse(jsonPass1).agents;
 
-    const json = JSON.parse(message?.content as string);
-    const agentsList = GeneratedAgentSchema.parse(json).agents;
-
-    const updatedAgents: Array<AgentSchemaType> = [];
-
-    for (const agent of agentsList) {
-        const agentTools = DefaultAgents.find((a) => a.name === agent.name)?.tools || [];
-
-        for (const tool of agentTools) {
-            const foundTool = await ctx.skills.getTool(tool);
-            if (!foundTool) {
-                console.log(`Tool ${tool} not found`);
-            }
+        for (const agent of agentsListPass1) {
+            const agentTools = DefaultAgents.find((a) => a.name === agent.name)?.tools || [];
+            const updated = await ctx.api.agent.update({
+                id: agent.id,
+                systemPrompt: agent.systemPrompt,
+                tools: agentTools
+            });
+            updatedAgents.push(updated);
         }
-
-        const updatedAgent = await ctx.api.agent.update({
-            id: agent.id,
-            systemPrompt: agent.systemPrompt,
-            tools: agentTools
-        });
-
-        updatedAgents.push(updatedAgent);
+    } catch (err) {
+        console.error("Failed compiling/parsing Pass 1 agents:", err);
     }
 
+    // ==========================================
+    // PASS 2: SAFETY JUDGES
+    // ==========================================
+    const JUDGES_ARCHITECT_SYSTEM_PROMPT = `
+You are the Principal Security & Safety Architect for the Castellan cognitive architecture.
+Your task is to compile a rigid, high-fidelity Safety Audit Mandate (System Prompt) for Safety Ensemble Judges.
+
+Adhere to the Castellan safety philosophy: the safety judge is cold, analytical, deterministic, and highly focused on its specific safety domain.
+
+Below is the catalog of safety judges to compile:
+${DefaultJudges.map(j => `Name: ${j.name}\nFocus/Description: ${j.description}`).join('\n')}
+
+Format each judge's system prompt EXACTLY according to the template guidelines:
+
+# SAFETY AUDIT MANDATE: [Friendly Name]
+Domain: Safety Ensemble Judge
+Audit Focus: [Specific Safety focus area described in the catalog]
+
+## 1. Safety Directive
+[A single, ruthless paragraph defining the safety mission and specific focus area of this judge.]
+
+## 2. Risk Assessment Invariants
+- **Invariant 1: [Domain Isolation]** You are checking exclusively for risks in your specific focus area.
+- **Invariant 2: [Domain Specific Constraint]** [Write a strict negative constraint specific to this judge's focus. e.g., for Security, 'Never approve path traversal.']
+- **Invariant 3: [Fail-Safe Rule]** [Write a strict rule on when to automatically reject the call based on this judge's criteria.]
+
+## 3. Evaluation Strategy
+[Instructions on how to analyze the pending tool call's name, arguments, and optional custom rules to evaluate its safety.]
+`.trim();
+
+    await ctx.api.messages.create({
+        threadId: thread.id,
+        role: 'system',
+        content: JUDGES_ARCHITECT_SYSTEM_PROMPT
+    });
+
+    const userPromptPass2 = `
+Please compile the safety mandates for the following safety judges:
+${safetyJudges.map(j => `- Agent ID: ${j.id}
+- Name: ${j.name}`).join('\n\n')}
+`.trim();
+
+    await ctx.api.messages.create({
+        threadId: thread.id,
+        role: 'user',
+        content: userPromptPass2
+    });
+
+    const runPass2 = await ctx.api.infer.chat({
+        threadId: thread.id
+    });
+
+    const messagePass2 = await ctx.api.messages.get({
+        id: runPass2.messageId
+    });
+
+    try {
+        const jsonPass2 = JSON.parse(messagePass2?.content as string);
+        const agentsListPass2 = GeneratedAgentSchema.parse(jsonPass2).agents;
+
+        for (const judge of agentsListPass2) {
+            const updated = await ctx.api.agent.update({
+                id: judge.id,
+                systemPrompt: judge.systemPrompt,
+                tools: []
+            });
+            updatedAgents.push(updated);
+        }
+    } catch (err) {
+        console.error("Failed compiling/parsing Pass 2 judges:", err);
+    }
 
     return {
         threadId: thread.id,
         agents: updatedAgents,
-        response: `Agent ${input.name} created successfully.`
+        response: `Two-Pass agent and judge bootstrap session completed successfully.`
+    };
+}
+
+/**
+ * Multi-Judge Safety Ensemble Evaluation Tool
+ */
+export async function manager_evaluate_approval(
+    input: z.infer<typeof managerEvaluateApprovalContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof managerEvaluateApprovalContract.outputSchema>> {
+    // 1. Retrieve the pending tool call
+    const call = await ctx.api.tool_calls.find_one({ query: { id: input.id } });
+    if (!call) {
+        throw new Error(`Tool call with ID '${input.id}' not found`);
+    }
+
+    const toolName = call.name;
+    const argsStr = JSON.stringify(call.arguments, null, 2);
+
+    // 2. Select safety judges from the database
+    const allJudges = await ctx.api.agent.find({
+        query: {
+            name: { $in: ['Security Judge', 'Skeptic Judge', 'Architect Judge', 'Compliance Judge', 'Reliability Judge'] }
+        }
+    });
+
+    const selectedJudges = allJudges.slice(0, input.judgesCount || 3);
+    const individualFindings: { judge: string; approved: boolean; critique: string }[] = [];
+
+    const rulesSection = input.rules
+        ? `\n\nEVALUATION CONSTRAINTS (Rules to strictly respect):\n${input.rules}\n`
+        : '';
+
+    const JudgeFeedbackSchema = z.object({
+        approved: z.boolean().describe("True if completely safe to execute without manual user confirmation, false if risky."),
+        critique: z.string().describe("Detailed critique and safety concerns.")
+    });
+
+    // 3. Execute safety judges in parallel
+    for (const judge of selectedJudges) {
+        try {
+
+            const thread = await ctx.api.threads.create({
+                title: `Safety Audit: ${judge.name}`,
+                model: 'gemma4:e4b',
+                status: 'active',
+                format: zodToJsonSchema(JudgeFeedbackSchema)
+            });
+
+            await ctx.api.messages.create({
+                threadId: thread.id,
+                role: 'system',
+                content: judge.systemPrompt + rulesSection
+            });
+
+            await ctx.api.messages.create({
+                threadId: thread.id,
+                role: 'user',
+                content: `Analyze this pending tool call for safety:
+\`\`\`markdown
+Tool Name: ${toolName}
+Arguments: ${argsStr}
+\`\`\`
+Decide if this action is safe to execute without human manual review.`
+            });
+
+            const run = await ctx.api.infer.chat({ threadId: thread.id });
+            const message = await ctx.api.messages.get({ id: run.messageId });
+
+            const data = JSON.parse(message?.content || '{}');
+            const parsed = JudgeFeedbackSchema.parse(data);
+            individualFindings.push({
+                judge: judge.name,
+                approved: parsed.approved,
+                critique: parsed.critique
+            });
+        } catch (err) {
+            individualFindings.push({
+                judge: judge.name,
+                approved: false,
+                critique: `Safety analysis failed to compile structured feedback: ${err instanceof Error ? err.message : String(err)}`
+            });
+        }
+    }
+
+    // 4. Consensus Synthesis
+    const ConsensusFeedbackSchema = z.object({
+        approved: z.boolean().describe("True if consensus is that this tool call is completely safe to run without human review, false otherwise."),
+        consensusCritique: z.string().describe("Synthesized consensus critique or summary of concerns.")
+    });
+
+    let finalApproved = false;
+    let finalCritique = 'Consensus merger failed to execute safely.';
+
+    try {
+        const consensusThread = await ctx.api.threads.create({
+            title: `Consensus Safety Audit: ${toolName}`,
+            model: 'gemma4:e4b',
+            status: 'active',
+            format: zodToJsonSchema(ConsensusFeedbackSchema)
+        });
+
+        await ctx.api.messages.create({
+            threadId: consensusThread.id,
+            role: 'system',
+            content: `You are the Lead Safety Officer. Analyze these individual judge reports for the tool call '${toolName}' and synthesize a unified safety Consensus critique and final safety verdict.`
+        });
+
+        await ctx.api.messages.create({
+            threadId: consensusThread.id,
+            role: 'user',
+            content: `Individual Safety Judge Reports:
+${JSON.stringify(individualFindings, null, 2)}`
+        });
+
+        const consensusRun = await ctx.api.infer.chat({ threadId: consensusThread.id });
+        const consensusMsg = await ctx.api.messages.get({ id: consensusRun.messageId });
+
+        const consensusData = JSON.parse(consensusMsg?.content || '{}');
+        const parsedConsensus = ConsensusFeedbackSchema.parse(consensusData);
+        finalApproved = parsedConsensus.approved;
+        finalCritique = parsedConsensus.consensusCritique;
+    } catch (err) {
+        finalCritique = `Consensus merger failed to compile structured feedback: ${err instanceof Error ? err.message : String(err)}`;
+    }
+
+    return {
+        approved: finalApproved,
+        consensusCritique: finalCritique,
+        judges: individualFindings
     };
 }

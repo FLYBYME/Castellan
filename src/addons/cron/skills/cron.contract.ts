@@ -35,7 +35,8 @@ export const cronTriggerContract = defineContract({
         error: z.string().optional().describe("The error message if the tool failed (if wait was true)")
     }),
     rest: { method: 'POST', path: '/cron/:id/trigger' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Cron triggered: ${output.success ? 'Success' : 'Failed'}`
 });
 
 /**
@@ -54,7 +55,8 @@ export const cronResetContract = defineContract({
         job: CronJobSchema
     }),
     rest: { method: 'POST', path: '/cron/:id/reset' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Cron reset status: ${output.success ? 'Success' : 'Failed'}`
 });
 
 /**
@@ -72,5 +74,6 @@ export const cronStatusContract = defineContract({
         groupConcurrency: z.record(z.string(), z.number())
     }),
     rest: { method: 'GET', path: '/cron/status' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Cron Scheduler Status: Running=${output.runningCount}, Queued=${output.queuedCount}, Failed=${output.failedCount}`
 });

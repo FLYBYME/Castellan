@@ -194,7 +194,7 @@ We assign available models to specific triad roles based on their strengths:
 - **Thinker / Manager**: `qwen3:14b` (High reasoning and context window).
 - **The Judges / Auditors**: `llama3.1:8b-instruct-q8_0` (Balanced, good at instruction following).
 - **Triage / Doer**: `qwen3.5:2b` (Fast, efficient for tool calling and quick scans).
-- **Large Context / Archive**: `gpt-oss:20b` (For analyzing massive historical message batches).
+- **Large Context / Archive**: `gemma4:e4b` (For analyzing massive historical message batches).
 
 ### C. Loop Protection
 - **AuditDepth Limit**: Audits are limited to a depth of 2. An Auditor can analyze a Thread, but an Auditor cannot be triggered to audit another Auditor's thread unless explicitly requested by a human.

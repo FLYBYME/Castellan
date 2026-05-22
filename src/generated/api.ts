@@ -295,6 +295,8 @@ declare module '../core/api.js' {
             readonly list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>;
             /** Compile system prompts (Operational Mandates) for Castellan specialized sub-agents. */
             readonly agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>;
+            /** Evaluate a pending tool call via a multi-judge safety ensemble. */
+            readonly evaluate_approval: (args: z.input<typeof Contract_6.managerEvaluateApprovalContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>>;
         };
         readonly pulse_report: {
             /** CRUD create for pulse_report (pulseReportCrud) */

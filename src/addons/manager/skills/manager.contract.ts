@@ -16,14 +16,18 @@ export const managerChatContract = defineContract({
     description: 'The exclusive entry point for user interaction. Translates intent into agent missions.',
     inputSchema: z.object({
         prompt: z.string().describe("Your natural language request or instruction."),
-        threadId: z.string().optional().describe("Persistent Directorate Thread ID.")
+        threadId: z.string().optional().describe("Persistent Directorate Thread ID."),
+        wait: z.boolean().optional().describe("If true, wait for the run to complete before returning")
     }),
     outputSchema: z.object({
         response: z.string().describe("The Directorate's response or SITREP."),
         threadId: z.string()
     }),
     rest: { method: 'POST', path: '/manager/chat' },
-    destructive: false
+    destructive: false,
+    print: (output) => {
+        return `Thread ${output.threadId}\n${output.response}`;
+    }
 });
 
 export const managerPulseContract = defineContract({
@@ -37,7 +41,8 @@ export const managerPulseContract = defineContract({
     }),
     outputSchema: PulseReportSchema,
     rest: { method: 'POST', path: '/manager/pulse' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Pulse Report at ${output.timestamp.toISOString()}: ${output.summary || 'No summary available.'}`
 });
 
 export const pulseReportCrud = defineCrud('pulse_report', PulseReportSchema, {
@@ -58,7 +63,8 @@ export const managerInquireContract = defineContract({
         answer: z.string().describe("The inquirer agent's findings.")
     }),
     rest: { method: 'POST', path: '/manager/inquire' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Inquiry Thread ${output.threadId}: ${output.answer}`
 });
 
 export const managerExecuteContract = defineContract({
@@ -76,7 +82,8 @@ export const managerExecuteContract = defineContract({
         response: z.string().describe("The final response from the engineer agent.")
     }),
     rest: { method: 'POST', path: '/manager/execute' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Execution Thread ${output.threadId} [${output.status}]: ${output.response}`
 });
 
 export const managerResearchContract = defineContract({
@@ -94,7 +101,8 @@ export const managerResearchContract = defineContract({
         response: z.string().describe("The final response from the researcher agent.")
     }),
     rest: { method: 'POST', path: '/manager/research' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Research Thread ${output.threadId} [${output.status}]: ${output.response}`
 });
 
 export const managerRunContract = defineContract({
@@ -110,7 +118,8 @@ export const managerRunContract = defineContract({
         response: z.string()
     }),
     rest: { method: 'POST', path: '/manager/run' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Run Thread ${output.threadId}: ${output.response}`
 });
 
 export const managerListToolErrorsContract = defineContract({
@@ -132,7 +141,8 @@ export const managerListToolErrorsContract = defineContract({
         })).describe("The list of tool result messages that encountered execution errors.")
     }),
     rest: { method: 'GET', path: '/manager/tool-errors' },
-    destructive: false
+    destructive: false,
+    print: (output) => `Found ${output.messages.length} tool errors.`
 });
 
 export const managerAgentBootstrapContract = defineContract({
@@ -148,6 +158,31 @@ export const managerAgentBootstrapContract = defineContract({
         agents: z.array(agentCrud.outputSchema).describe("The agents that were created or updated.")
     }),
     rest: { method: 'POST', path: '/manager/agent-bootstrap' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Bootstrapped ${output.agents.length} agents on Thread ${output.threadId}: ${output.response}`
 });
+
+export const managerEvaluateApprovalContract = defineContract({
+    domain: 'manager',
+    action: 'evaluate_approval',
+    description: 'Evaluate a pending tool call via a multi-judge safety ensemble.',
+    inputSchema: z.object({
+        id: z.string().describe("The ID of the pending tool call to evaluate"),
+        rules: z.string().optional().describe("Optional dynamic safety rules or constraints"),
+        judgesCount: z.number().optional().default(3).describe("Number of safety judges in the ensemble (default: 3)"),
+    }),
+    outputSchema: z.object({
+        approved: z.boolean().describe("Whether consensus approved the tool call"),
+        consensusCritique: z.string().describe("Synthesized consensus critique or summary of concerns"),
+        judges: z.array(z.object({
+            judge: z.string().describe("The name/identifier of the judge"),
+            approved: z.boolean().describe("Whether this judge approved the call"),
+            critique: z.string().describe("This judge's specific critique")
+        })).describe("Individual judge reports")
+    }),
+    rest: { method: 'POST', path: '/manager/evaluate-approval' },
+    destructive: false,
+    print: (output) => `Evaluation Result: ${output.approved ? 'APPROVED' : 'REJECTED'}\nConsensus: ${output.consensusCritique}`
+});
+
 

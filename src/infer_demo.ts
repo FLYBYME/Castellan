@@ -82,9 +82,9 @@ async function main() {
         }
 
         // Select the first available model
-        const selectedModel = models.find((model) => model.name === 'gpt-oss:20b')?.name;
+        const selectedModel = models.find((model) => model.name === 'gemma4:e4b')?.name;
         if (!selectedModel) {
-            console.log(`${C.red}✖ No gpt-oss:20b model found. Available models:${C.reset}`);
+            console.log(`${C.red}✖ No gemma4:e4b model found. Available models:${C.reset}`);
             models.forEach((model) => console.log(`  • ${model.name}`));
             await engine.shutdown();
             return;

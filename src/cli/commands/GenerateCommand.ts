@@ -278,7 +278,6 @@ export class GenerateCommand extends BaseCommand {
         code += `    }\n\n`;
         code += `    public async connect(): Promise<void> { await this.getWebSocket(); }\n\n`;
         code += `    public close(): void { if (this.socket) { (this.socket as any).close(); this.socket = null; } }\n\n`;
-        code += `    public readonly api = {\n`;
 
         const byDomain: Record<string, ContractDiscovery[]> = {};
         discovery.forEach(d => {
@@ -286,6 +285,27 @@ export class GenerateCommand extends BaseCommand {
             byDomain[d.domain].push(d);
         });
 
+        code += `    public readonly contracts = {\n`;
+        for (const [domain, methods] of Object.entries(byDomain)) {
+            code += `        ${domain}: {\n`;
+            for (const m of methods) {
+                const alias = aliasMap[files[domain]![0]]!.alias;
+                let contractRef = '';
+
+                if (m.exportName.includes('.')) {
+                    const [c, k] = m.exportName.split('.');
+                    contractRef = `${alias}.${c}['${k}']`;
+                } else {
+                    contractRef = `${alias}.${m.exportName}`;
+                }
+
+                code += `            ${m.action}: ${contractRef},\n`;
+            }
+            code += `        },\n`;
+        }
+        code += `    };\n\n`;
+
+        code += `    public readonly api = {\n`;
         for (const [domain, methods] of Object.entries(byDomain)) {
             code += `        ${domain}: {\n`;
             for (const m of methods) {

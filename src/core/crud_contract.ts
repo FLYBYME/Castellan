@@ -5,7 +5,7 @@ import { defineContract, ToolContract } from './tool_contract.js';
 type Prettify<T> = { [K in keyof T]: T[K] } & { [K in keyof T as never]: T[K] };
 type OmittedFields = 'id' | '_id' | 'createdAt' | 'updatedAt';
 
-type CreateIn<TBaseIn, TId extends string> = Prettify<Omit<TBaseIn, OmittedFields>>;
+type CreateIn<TBaseIn, TId extends string> = Prettify<Omit<TBaseIn, OmittedFields>> & { [K in TId as never]: string };
 type UpdateIn<TBaseIn, TId extends string> = Prettify<Partial<Omit<TBaseIn, OmittedFields>> & { [K in TId]: string }>;
 type ReplaceIn<TBaseIn, TId extends string> = Prettify<Omit<TBaseIn, OmittedFields> & { [K in TId]: string }>;
 type IdOnlyIn<TId extends string> = Prettify<{ [K in TId]: string }>;
@@ -39,16 +39,16 @@ export const CrudParamsSchema = z.object({
 export interface AnyCrudContracts extends Record<string, unknown> {
     readonly domain: string;
     readonly idField: string;
-    readonly find: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly findOne: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly count: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly get: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly create: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly update: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly delete: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly replace?: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly resolve?: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
-    readonly createMany?: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
+    readonly find: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly findOne: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly count: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly get: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly create: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly update: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly delete: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly replace?: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly resolve?: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
+    readonly createMany?: ToolContract<z.ZodTypeAny, z.ZodTypeAny, never>;
 }
 
 export type CrudContracts<
@@ -166,6 +166,10 @@ export function defineCrud<
         ...options.destructive
     };
 
+    const defaultPrint = (output: unknown): string => {
+        return typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+    };
+
     // --- Input Schemas ---
     const rawBase = baseSchema as unknown as z.ZodObject<z.ZodRawShape>;
 
@@ -231,7 +235,8 @@ export function defineCrud<
         outputSchema: z.array(outputSchema),
         rest: { method: 'GET', path: `/${plural}` },
         destructive: destructive.find, event: eventNames.find,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const findOneContract = defineContract({
@@ -241,7 +246,8 @@ export function defineCrud<
         outputSchema: outputSchema.optional(),
         rest: { method: 'GET', path: `/${plural}/one` },
         destructive: destructive.findOne, event: eventNames.findOne,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const countContract = defineContract({
@@ -251,7 +257,8 @@ export function defineCrud<
         outputSchema: z.number(),
         rest: { method: 'GET', path: `/${plural}/count` },
         destructive: destructive.count, event: eventNames.count,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const getContract = defineContract({
@@ -261,7 +268,8 @@ export function defineCrud<
         outputSchema,
         rest: { method: 'GET', path: `/${plural}/:${idField}` },
         destructive: destructive.get, event: eventNames.get,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const resolveContract = defineContract({
@@ -271,7 +279,8 @@ export function defineCrud<
         outputSchema: ResolveOutputSchema,
         rest: { method: 'POST', path: `/${plural}/resolve` },
         destructive: destructive.resolve, event: eventNames.resolve,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const createContract = defineContract({
@@ -281,7 +290,8 @@ export function defineCrud<
         outputSchema,
         rest: { method: 'POST', path: `/${plural}` },
         destructive: destructive.create, event: eventNames.create || true,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const createManyContract = defineContract({
@@ -291,7 +301,8 @@ export function defineCrud<
         outputSchema: z.array(outputSchema),
         rest: { method: 'POST', path: `/${plural}/create-many` },
         destructive: destructive.createMany, event: eventNames.createMany || true,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const updateContract = defineContract({
@@ -301,7 +312,8 @@ export function defineCrud<
         outputSchema,
         rest: { method: 'PATCH', path: `/${plural}/:${idField}` },
         destructive: destructive.update, event: eventNames.update || true,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const replaceContract = defineContract({
@@ -311,7 +323,8 @@ export function defineCrud<
         outputSchema,
         rest: { method: 'PUT', path: `/${plural}/:${idField}` },
         destructive: destructive.replace, event: eventNames.replace || true,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const deleteContract = defineContract({
@@ -321,7 +334,8 @@ export function defineCrud<
         outputSchema: z.object({ success: z.boolean() }),
         rest: { method: 'DELETE', path: `/${plural}/:${idField}` },
         destructive: destructive.delete, event: eventNames.delete || true,
-        isCrud: true
+        isCrud: true,
+        print: defaultPrint
     });
 
     const crudResult = {

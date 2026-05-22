@@ -18,5 +18,6 @@ export const kanbanMoveContract = defineContract({
     }),
     outputSchema: KanbanTaskSchema,
     rest: { method: 'POST', path: '/kanban/move' },
-    destructive: true
+    destructive: true,
+    print: (output) => `Task "${output.title}" moved to stage: ${output.status}`
 });

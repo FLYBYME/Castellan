@@ -12,6 +12,15 @@ export const OllamaInstanceSchema = z.object({
 });
 export type OllamaInstance = z.infer<typeof OllamaInstanceSchema>;
 
+export const MetricsSchema = z.object({
+    total_duration: z.preprocess((val) => val ?? 0, z.number().default(0)),
+    load_duration: z.preprocess((val) => val ?? 0, z.number().default(0)),
+    prompt_eval_count: z.preprocess((val) => val ?? 0, z.number().default(0)),
+    prompt_eval_duration: z.preprocess((val) => val ?? 0, z.number().default(0)),
+    eval_count: z.preprocess((val) => val ?? 0, z.number().default(0)),
+    eval_duration: z.preprocess((val) => val ?? 0, z.number().default(0)),
+});
+
 /**
  * Thread: A session or high-level "run" container.
  */
@@ -25,15 +34,9 @@ export const ThreadSchema = z.object({
     }).optional().describe("Model options"),
     tools: z.array(z.string()).optional().describe("List of tool names enabled"),
     format: z.any().optional().describe("Response format constraint (e.g. 'json')"),
-    metrics: z.object({
-        total_duration: z.number().optional(),
-        load_duration: z.number().optional(),
-        prompt_eval_count: z.number().optional(),
-        prompt_eval_duration: z.number().optional(),
-        eval_count: z.number().optional(),
-        eval_duration: z.number().optional(),
-    }).optional(),
+    metrics: MetricsSchema.optional(),
     metadata: z.record(z.string(), z.unknown()).optional(),
+    autoApproveDestructiveTools: z.boolean().default(false).describe("Auto-approve destructive tools"),
     createdAt: z.coerce.date(),
     updatedAt: z.coerce.date(),
 });
@@ -49,14 +52,7 @@ export const MessageSchema = z.object({
     thinking: z.string().optional().describe("Chain of thought"),
     status: z.enum(['processing', 'done', 'failed', 'aborted']).optional().describe("Execution status"),
     toolCallCount: z.number().optional().describe("Number of tool calls"),
-    metrics: z.object({
-        total_duration: z.number().optional(),
-        load_duration: z.number().optional(),
-        prompt_eval_count: z.number().optional(),
-        prompt_eval_duration: z.number().optional(),
-        eval_count: z.number().optional(),
-        eval_duration: z.number().optional(),
-    }).optional().describe("Inference performance metrics"),
+    metrics: MetricsSchema.optional().describe("Inference performance metrics"),
     createdAt: z.coerce.date(),
 });
 export type Message = z.infer<typeof MessageSchema>;
@@ -77,7 +73,6 @@ export const ToolCallRecordSchema = z.object({
         finishedAt: z.coerce.date().optional(),
     }).optional(),
     error: z.string().optional(),
-    createdAt: z.coerce.date(),
 });
 export type ToolCallRecord = z.infer<typeof ToolCallRecordSchema>;
 

@@ -47,7 +47,8 @@ export const demoHelloContract = defineContract({
     inputSchema: DemoHelloSchema,
     outputSchema: DemoHelloOutputSchema,
     rest: { method: 'POST', path: '/demo/hello' },
-    destructive: false
+    destructive: false,
+    print: (output) => output.message
 });
 
 export const DemoStatusSchema = z.object({
@@ -67,7 +68,8 @@ export const demoStatusContract = defineContract({
     inputSchema: DemoStatusSchema,
     outputSchema: DemoStatusOutputSchema,
     rest: { method: 'GET', path: '/demo/status' },
-    destructive: false
+    destructive: false,
+    print: (output) => output.message
 });
 
 export const DemoNotifySchema = z.object({
@@ -82,5 +84,6 @@ export const demoNotifyContract = defineContract({
     description: 'Send a notification via the system notifications service.',
     inputSchema: DemoNotifySchema,
     outputSchema: z.object({ success: z.boolean() }),
-    rest: { method: 'POST', path: '/demo/notify' }
+    rest: { method: 'POST', path: '/demo/notify' },
+    print: (output) => `Notification dispatched: ${output.success ? 'Success' : 'Failed'}`
 });
