@@ -30,8 +30,8 @@ tsconfig.tsbuildinfo
 lint_results.json
 
 mesht/.mesh/*
-scratch/*
-spec/*
+#scratch/*
+#spec/*
 data/*
 *.sqlite
 *.wgt

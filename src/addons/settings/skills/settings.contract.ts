@@ -9,7 +9,7 @@ export const settingsGetContract = defineContract({
     inputSchema: SettingGetInputSchema,
     outputSchema: z.any(),
     rest: { method: 'GET', path: '/settings/:key' },
-    print: (output) => `Setting Value: ${typeof output === 'string' ? output : JSON.stringify(output)}`
+    print: (output) => `**Setting Value**: ${typeof output === 'string' ? output : JSON.stringify(output, null, 2)}`
 });
 
 export const settingsUpdateContract = defineContract({
@@ -21,7 +21,7 @@ export const settingsUpdateContract = defineContract({
         success: z.boolean()
     }),
     rest: { method: 'POST', path: '/settings/update' },
-    print: (output) => `Setting update: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => output.success ? `✅ Setting updated successfully.` : `❌ Failed to update setting.`
 });
 
 export const settingsGetAllContract = defineContract({
@@ -31,5 +31,15 @@ export const settingsGetAllContract = defineContract({
     inputSchema: z.object({}),
     outputSchema: z.record(z.any()),
     rest: { method: 'GET', path: '/settings/all' },
-    print: (output) => `Retrieved ${Object.keys(output).length} settings.`
+    print: (output) => {
+        const keys = Object.keys(output);
+        if (keys.length === 0) return "No settings configured.";
+        const rows = keys.map(k => `| ${k} | ${JSON.stringify(output[k])} |`).join('\n');
+        return `
+### Global Settings
+| Key | Value |
+| :--- | :--- |
+${rows}
+        `.trim();
+    }
 });

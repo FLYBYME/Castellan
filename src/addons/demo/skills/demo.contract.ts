@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud } from 'castellan/core';
+import { defineContract, defineCrud, defaultPrint } from 'castellan/core';
 import { DemoSchema } from './demo.schema.js';
 
 /**
@@ -48,7 +48,7 @@ export const demoHelloContract = defineContract({
     outputSchema: DemoHelloOutputSchema,
     rest: { method: 'POST', path: '/demo/hello' },
     destructive: false,
-    print: (output) => output.message
+    print: defaultPrint
 });
 
 export const DemoStatusSchema = z.object({
@@ -69,7 +69,7 @@ export const demoStatusContract = defineContract({
     outputSchema: DemoStatusOutputSchema,
     rest: { method: 'GET', path: '/demo/status' },
     destructive: false,
-    print: (output) => output.message
+    print: defaultPrint
 });
 
 export const DemoNotifySchema = z.object({
@@ -85,5 +85,5 @@ export const demoNotifyContract = defineContract({
     inputSchema: DemoNotifySchema,
     outputSchema: z.object({ success: z.boolean() }),
     rest: { method: 'POST', path: '/demo/notify' },
-    print: (output) => `Notification dispatched: ${output.success ? 'Success' : 'Failed'}`
+    print: defaultPrint
 });

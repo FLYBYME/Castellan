@@ -57,6 +57,9 @@ import {
     sandbox_prune,
     sandbox_create,
     sandbox_delete,
+    sandbox_before_create,
+    sandbox_after_create,
+    sandbox_after_delete,
     sandbox_network_expose,
     sandbox_network_unexpose,
     sandbox_network_list,
@@ -93,12 +96,6 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
 - **STATE MANAGEMENT**: Target the active sandbox for all filesystem and terminal operations.
 - **RESILIENCE**: Monitor background processes and terminate any that become unresponsive.
         `.trim();
-    }
-    public override isCrud(domain: string, action: string): boolean {
-        if (domain === 'sandbox' && (action === 'create' || action === 'delete')) {
-            return false;
-        }
-        return super.isCrud(domain, action);
     }
 
 
@@ -152,8 +149,13 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
 
         // 3. Environment Management (CRUD)
         this.mountCrud(sandboxCrud);
-        this.mountTool(sandboxCrud.create, sandbox_create);
-        this.mountTool(sandboxCrud.delete, sandbox_delete);
+        this.mountCrudHook(this.domain, 'create', {
+            before: sandbox_before_create,
+            after: sandbox_after_create
+        });
+        this.mountCrudHook(this.domain, 'delete', {
+            after: sandbox_after_delete
+        });
 
         // 2. Environment Tools
         this.mountTool(sandboxSetActiveContract, sandbox_set_active);
@@ -262,7 +264,8 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
                 }
 
                 const newSandbox = new Sandbox(this.docker, this.fs, this.sandboxesRoot);
-                await newSandbox.initialize(doc.image || 'node:18', doc.hostPath!, 512, true, []);
+                const hostPath = path.join(this.sandboxesRoot, id);
+                await newSandbox.initialize(doc.image || 'node:18', hostPath, 512, true, []);
                 this.sandboxes.set(id, newSandbox);
                 return newSandbox;
             } finally {
@@ -275,19 +278,26 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
     }
 
     public async registerSandboxInMemory(item: SandboxModel & { id: string }): Promise<void> {
+        console.log(`[SandboxSkill] Initializing sandbox ${item.id} in memory...`);
         const sandbox = new Sandbox(this.docker, this.fs, this.sandboxesRoot);
-        await sandbox.initialize(item.image || 'node:18', item.hostPath!, 512, true, []);
+        const hostPath = path.join(this.sandboxesRoot, item.id);
+        await sandbox.initialize(item.image || 'node:18', hostPath, 512, true, []);
         this.sandboxes.set(item.id, sandbox);
         console.log(`[SandboxSkill] Sandbox ${item.id} registered and active in memory.`);
     }
 
     public async createSandbox(id: string, gitUrl: string): Promise<string> {
         const sandboxPath = path.join(this.sandboxesRoot, id);
+        console.log(`[SandboxSkill] Creating directory ${sandboxPath}...`);
         await this.fs.mkdir(sandboxPath, { recursive: true });
 
         try {
             console.log(`[SandboxSkill] Cloning ${gitUrl} into ${sandboxPath}...`);
-            await this.fs.execOnHost(`git clone ${gitUrl} .`, sandboxPath);
+            const result = await this.fs.execOnHost(`git clone ${gitUrl} .`, sandboxPath);
+            if (result.exitCode !== 0) {
+                console.error(`[SandboxSkill] Git clone failed: ${result.stderr}`);
+                throw new Error(`Git clone failed: ${result.stderr}`);
+            }
             console.log(`[SandboxSkill] Clone successful.`);
         } catch (err) {
             console.error(`[SandboxSkill] Failed to clone ${gitUrl}:`, err);
@@ -327,15 +337,13 @@ Direct interaction with isolated Linux environments and Node.js runtimes.
         this.sandboxes.delete(id);
     }
 
-    public async listSandboxes(): Promise<{ id: string, hostPath: string, createdAt: Date }[]> {
+    public async listSandboxes(): Promise<{ id: string, createdAt: Date }[]> {
         const entries = await this.fs.readdir(this.sandboxesRoot);
         const sandboxes = [];
         for (const entry of entries) {
             if (entry.isDirectory) {
-                const fullPath = path.join(this.sandboxesRoot, entry.name);
                 sandboxes.push({
                     id: entry.name,
-                    hostPath: fullPath,
                     createdAt: entry.lastModified || new Date()
                 });
             }

@@ -53,16 +53,20 @@ export class Sandbox implements ISandbox {
     // ─── 2. Domain: Container Lifecycle & State (The Quarters) ──────────────
 
     public async initialize(imageTag: string, hostPath: string, memoryLimitMB: number, networkEnabled: boolean, exposedPorts: number[] = []): Promise<string> {
+        console.log(`[Sandbox] Initializing with image: ${imageTag}, hostPath: ${hostPath}`);
         // Ensure image exists
         try {
+            console.log(`[Sandbox] Inspecting image: ${imageTag}`);
             await this.docker.getImage(imageTag).inspect();
+            console.log(`[Sandbox] Image ${imageTag} found locally.`);
         } catch (_err) {
-            console.log(`[Sandbox] Pulling image: ${imageTag}`);
+            console.log(`[Sandbox] Image ${imageTag} not found. Pulling...`);
             try {
                 const stream = await this.docker.pull(imageTag);
                 await new Promise((resolve, reject) => {
                     this.docker.modem.followProgress(stream, (err: Error | null, res: unknown) => err ? reject(err) : resolve(res));
                 });
+                console.log(`[Sandbox] Image ${imageTag} pull complete.`);
             } catch (pullErr: unknown) {
                 const message = pullErr instanceof Error ? pullErr.message : String(pullErr);
                 console.error(`[Sandbox] Failed to pull ${imageTag}: ${message}`);
@@ -102,8 +106,11 @@ export class Sandbox implements ISandbox {
             },
         };
 
+        console.log(`[Sandbox] Creating container...`);
         const container = await this.docker.createContainer(containerParams);
+        console.log(`[Sandbox] Container created: ${container.id}. Starting...`);
         await container.start();
+        console.log(`[Sandbox] Container ${container.id} started.`);
 
         const inspectData = await container.inspect();
         this.portMappings = {};
@@ -240,11 +247,14 @@ export class Sandbox implements ISandbox {
     public async listDirectory(relativePath: string, recursive: boolean = false): Promise<FileStat[]> {
         const fullPath = this.resolvePath(relativePath);
         const results: FileStat[] = [];
+        const IGNORE_DIRS = new Set(['.git', 'node_modules', 'dist', 'build', '.DS_Store']);
 
         const walk = async (dirPath: string, currentRelativePath: string) => {
             const entries = await this.fs.readdir(dirPath);
 
             for (const entry of entries) {
+                if (IGNORE_DIRS.has(entry.name)) continue;
+
                 const entryRelativePath = currentRelativePath
                     ? path.join(currentRelativePath, entry.name)
                     : entry.name;
@@ -353,14 +363,32 @@ export class Sandbox implements ISandbox {
 
         let stdout = '';
         let stderr = '';
+        const MAX_OUTPUT = 50000;
 
         stream.on('data', (chunk: any) => {
             if (chunk.length >= 8 && (chunk[0] === 1 || chunk[0] === 2)) {
                 const payload = chunk.slice(8).toString('utf-8');
-                if (chunk[0] === 1) stdout += payload;
-                if (chunk[0] === 2) stderr += payload;
+                if (chunk[0] === 1) {
+                    stdout += payload;
+                    if (stdout.length > MAX_OUTPUT) {
+                        stdout = '...[Output Truncated]...\n' + stdout.slice(-MAX_OUTPUT);
+                    }
+                    process.stdout.write(payload);
+                }
+                if (chunk[0] === 2) {
+                    stderr += payload;
+                    if (stderr.length > MAX_OUTPUT) {
+                        stderr = '...[Output Truncated]...\n' + stderr.slice(-MAX_OUTPUT);
+                    }
+                    process.stderr.write(payload);
+                }
             } else {
-                stdout += chunk.toString('utf-8');
+                const payload = chunk.toString('utf-8');
+                stdout += payload;
+                if (stdout.length > MAX_OUTPUT) {
+                    stdout = '...[Output Truncated]...\n' + stdout.slice(-MAX_OUTPUT);
+                }
+                process.stdout.write(payload);
             }
         });
 
@@ -379,7 +407,10 @@ export class Sandbox implements ISandbox {
         let timeoutHandle: NodeJS.Timeout;
         const timeoutPromise = new Promise<number>((_, reject) => {
             timeoutHandle = setTimeout(() => {
-                reject(new Error(`Command timed out after ${timeoutMs}ms`));
+                const err = new Error(`Command timed out after ${timeoutMs}ms`);
+                (err as any).stdout = stdout;
+                (err as any).stderr = stderr;
+                reject(err);
             }, timeoutMs);
         });
 
@@ -389,6 +420,10 @@ export class Sandbox implements ISandbox {
             return { exitCode, stdout, stderr };
         } catch (error) {
             clearTimeout(timeoutHandle!);
+            if (error instanceof Error && !(error as any).stdout) {
+                (error as any).stdout = stdout;
+                (error as any).stderr = stderr;
+            }
             throw error;
         }
     }

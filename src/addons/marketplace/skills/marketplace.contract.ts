@@ -9,7 +9,16 @@ export const marketplaceListContract = defineContract({
     inputSchema: z.object({}),
     outputSchema: z.array(AddonSchema),
     rest: { method: 'GET', path: '/marketplace/list' },
-    print: (output) => `Found ${output.length} addons in marketplace.`
+    print: (output) => {
+        if (output.length === 0) return "No addons found in the marketplace.";
+        const rows = output.map(a => `| ${a.name} | ${a.installed ? '✅ Yes' : '❌ No'} | ${a.description || 'No description'} |`).join('\n');
+        return `
+### Marketplace Addons
+| Name | Installed | Description |
+| :--- | :--- | :--- |
+${rows}
+        `.trim();
+    }
 });
 
 export const marketplaceInstallContract = defineContract({
@@ -19,5 +28,5 @@ export const marketplaceInstallContract = defineContract({
     inputSchema: AddonInstallInputSchema,
     outputSchema: AddonInstallOutputSchema,
     rest: { method: 'POST', path: '/marketplace/install' },
-    print: (output) => output.success ? `Successfully installed addon: ${output.message || 'Success'}` : `Failed to install addon: ${output.message || 'Failure'}`
+    print: (output) => output.success ? `✅ **Successfully installed addon**: ${output.message || 'Complete'}` : `❌ **Failed to install addon**: ${output.message || 'Unknown error'}`
 });

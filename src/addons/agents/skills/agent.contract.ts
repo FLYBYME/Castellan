@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud } from 'castellan/core';
+import { defineContract, defineCrud, defaultPrint } from 'castellan/core';
 import { AgentSchema, AgentRunSchema } from './agent.schema.js';
 
 /**
@@ -35,7 +35,7 @@ export const agentRunContract = defineContract({
     inputSchema: AgentRunInputSchema,
     outputSchema: AgentRunOutputSchema,
     rest: { method: 'POST', path: '/agent/run' },
-    print: (output) => `Agent run started. Run ID: ${output.runId}`
+    print: (output) => `Autonomous agent run started. Run ID: **${output.runId}**`
 });
 
 export const AgentStructuredInferInputSchema = z.object({
@@ -55,5 +55,10 @@ export const agentStructuredInferContract = defineContract({
     inputSchema: AgentStructuredInferInputSchema,
     outputSchema: AgentStructuredInferOutputSchema,
     rest: { method: 'POST', path: '/agent/structured' },
-    print: (output) => `Structured inference completed. Data: ${JSON.stringify(output.data, null, 2)}`
+    print: (output) => `
+### Structured Inference Result
+\`\`\`json
+${JSON.stringify(output.data, null, 2)}
+\`\`\`
+    `.trim()
 });

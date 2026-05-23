@@ -125,6 +125,8 @@ declare module '../core/api.js' {
             readonly structured_chat: (args: z.input<typeof Contract_3.inferStructuredChatContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>;
             /** Reject a pending tool call for execution. */
             readonly reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>;
+            /** Get the current statistics/counts of the inference queue. */
+            readonly queue_status: (args: z.input<typeof Contract_3.inferQueueStatusContract['inputSchema']>) => Promise<z.infer<typeof Contract_3.inferQueueStatusContract['outputSchema']>>;
         };
         readonly ollama: {
             /** CRUD create for ollama (ollamaCrud) */
@@ -261,41 +263,75 @@ declare module '../core/api.js' {
             readonly delete: (args: z.input<typeof Contract_4.directiveCrud['delete']['inputSchema']>) => Promise<z.infer<typeof Contract_4.directiveCrud['delete']['outputSchema']>>;
         };
         readonly kanban: {
-            /** Transition a mission through the Kanban lifecycle. */
+            /** Transition a WorkItem or Feature through the Kanban lifecycle. */
             readonly move: (args: z.input<typeof Contract_5.kanbanMoveContract['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanMoveContract['outputSchema']>>;
-            /** CRUD create for kanban (kanbanCrud) */
-            readonly create: (args: z.input<typeof Contract_5.kanbanCrud['create']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['create']['outputSchema']>>;
-            /** CRUD find for kanban (kanbanCrud) */
-            readonly find: (args: z.input<typeof Contract_5.kanbanCrud['find']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['find']['outputSchema']>>;
-            /** CRUD findOne for kanban (kanbanCrud) */
-            readonly find_one: (args: z.input<typeof Contract_5.kanbanCrud['findOne']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['findOne']['outputSchema']>>;
-            /** CRUD count for kanban (kanbanCrud) */
-            readonly count: (args: z.input<typeof Contract_5.kanbanCrud['count']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['count']['outputSchema']>>;
-            /** CRUD get for kanban (kanbanCrud) */
-            readonly get: (args: z.input<typeof Contract_5.kanbanCrud['get']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['get']['outputSchema']>>;
-            /** CRUD update for kanban (kanbanCrud) */
-            readonly update: (args: z.input<typeof Contract_5.kanbanCrud['update']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['update']['outputSchema']>>;
-            /** CRUD delete for kanban (kanbanCrud) */
-            readonly delete: (args: z.input<typeof Contract_5.kanbanCrud['delete']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanCrud['delete']['outputSchema']>>;
+        };
+        readonly kanban_project: {
+            /** CRUD create for kanban_project (kanbanProjectCrud) */
+            readonly create: (args: z.input<typeof Contract_5.kanbanProjectCrud['create']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['create']['outputSchema']>>;
+            /** CRUD find for kanban_project (kanbanProjectCrud) */
+            readonly find: (args: z.input<typeof Contract_5.kanbanProjectCrud['find']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['find']['outputSchema']>>;
+            /** CRUD findOne for kanban_project (kanbanProjectCrud) */
+            readonly find_one: (args: z.input<typeof Contract_5.kanbanProjectCrud['findOne']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['findOne']['outputSchema']>>;
+            /** CRUD count for kanban_project (kanbanProjectCrud) */
+            readonly count: (args: z.input<typeof Contract_5.kanbanProjectCrud['count']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['count']['outputSchema']>>;
+            /** CRUD get for kanban_project (kanbanProjectCrud) */
+            readonly get: (args: z.input<typeof Contract_5.kanbanProjectCrud['get']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['get']['outputSchema']>>;
+            /** CRUD update for kanban_project (kanbanProjectCrud) */
+            readonly update: (args: z.input<typeof Contract_5.kanbanProjectCrud['update']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['update']['outputSchema']>>;
+            /** CRUD delete for kanban_project (kanbanProjectCrud) */
+            readonly delete: (args: z.input<typeof Contract_5.kanbanProjectCrud['delete']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanProjectCrud['delete']['outputSchema']>>;
+        };
+        readonly kanban_feature: {
+            /** CRUD create for kanban_feature (kanbanFeatureCrud) */
+            readonly create: (args: z.input<typeof Contract_5.kanbanFeatureCrud['create']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['create']['outputSchema']>>;
+            /** CRUD find for kanban_feature (kanbanFeatureCrud) */
+            readonly find: (args: z.input<typeof Contract_5.kanbanFeatureCrud['find']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['find']['outputSchema']>>;
+            /** CRUD findOne for kanban_feature (kanbanFeatureCrud) */
+            readonly find_one: (args: z.input<typeof Contract_5.kanbanFeatureCrud['findOne']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['findOne']['outputSchema']>>;
+            /** CRUD count for kanban_feature (kanbanFeatureCrud) */
+            readonly count: (args: z.input<typeof Contract_5.kanbanFeatureCrud['count']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['count']['outputSchema']>>;
+            /** CRUD get for kanban_feature (kanbanFeatureCrud) */
+            readonly get: (args: z.input<typeof Contract_5.kanbanFeatureCrud['get']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['get']['outputSchema']>>;
+            /** CRUD update for kanban_feature (kanbanFeatureCrud) */
+            readonly update: (args: z.input<typeof Contract_5.kanbanFeatureCrud['update']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['update']['outputSchema']>>;
+            /** CRUD delete for kanban_feature (kanbanFeatureCrud) */
+            readonly delete: (args: z.input<typeof Contract_5.kanbanFeatureCrud['delete']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['delete']['outputSchema']>>;
+        };
+        readonly kanban_work_item: {
+            /** CRUD create for kanban_work_item (kanbanWorkItemCrud) */
+            readonly create: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['create']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['create']['outputSchema']>>;
+            /** CRUD find for kanban_work_item (kanbanWorkItemCrud) */
+            readonly find: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['find']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['find']['outputSchema']>>;
+            /** CRUD findOne for kanban_work_item (kanbanWorkItemCrud) */
+            readonly find_one: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['findOne']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['findOne']['outputSchema']>>;
+            /** CRUD count for kanban_work_item (kanbanWorkItemCrud) */
+            readonly count: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['count']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['count']['outputSchema']>>;
+            /** CRUD get for kanban_work_item (kanbanWorkItemCrud) */
+            readonly get: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['get']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['get']['outputSchema']>>;
+            /** CRUD update for kanban_work_item (kanbanWorkItemCrud) */
+            readonly update: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['update']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['update']['outputSchema']>>;
+            /** CRUD delete for kanban_work_item (kanbanWorkItemCrud) */
+            readonly delete: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['delete']['inputSchema']>) => Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['delete']['outputSchema']>>;
         };
         readonly manager: {
-            /** The exclusive entry point for user interaction. Translates intent into agent missions. */
+            /** The exclusive entry point for user interaction. Translates intent into Git Flow missions. */
             readonly chat: (args: z.input<typeof Contract_6.managerChatContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerChatContract['outputSchema']>>;
             /** Autonomous wake-up for system reconciliation and reporting. */
             readonly pulse: (args: z.input<typeof Contract_6.managerPulseContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerPulseContract['outputSchema']>>;
-            /** Ask the inquirer agent to perform a local read-only discovery or analysis on the repository. */
+            /** Ask the inquirer agent to perform a local read-only discovery on a WorkItem. */
             readonly inquire: (args: z.input<typeof Contract_6.managerInquireContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerInquireContract['outputSchema']>>;
-            /** Dispatch the engineer agent to perform mutations, write code, or execute tests within a sandbox. */
+            /** Dispatch the engineer agent to modify code or execute tests for a WorkItem. */
             readonly execute: (args: z.input<typeof Contract_6.managerExecuteContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerExecuteContract['outputSchema']>>;
-            /** Instruct the researcher agent to perform external web searches or fetch technical documentation. */
+            /** Instruct the researcher agent to perform external research for a WorkItem. */
             readonly research: (args: z.input<typeof Contract_6.managerResearchContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerResearchContract['outputSchema']>>;
-            /** Run the Central Directorate Orchestrator on a given mission or task (blocking). */
+            /** Run the Orchestrator on a mission (blocking). */
             readonly run: (args: z.input<typeof Contract_6.managerRunContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>;
-            /** Retrieve the last 50 tool result messages that generated execution errors. */
+            /** Retrieve the last 50 execution errors. */
             readonly list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>;
-            /** Compile system prompts (Operational Mandates) for Castellan specialized sub-agents. */
-            readonly agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>;
-            /** Evaluate a pending tool call via a multi-judge safety ensemble. */
+            /** Sync system prompts from Markdown files. */
+            readonly load_prompts: (args: z.input<typeof Contract_6.managerLoadPromptsContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerLoadPromptsContract['outputSchema']>>;
+            /** Safety audit for a pending tool call. */
             readonly evaluate_approval: (args: z.input<typeof Contract_6.managerEvaluateApprovalContract['inputSchema']>) => Promise<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>>;
         };
         readonly pulse_report: {
@@ -335,7 +371,7 @@ declare module '../core/api.js' {
             readonly fs_read: (args: z.input<typeof Contract_9.sandboxFsReadContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsReadContract['outputSchema']>>;
             /** Write a file to the current sandbox. */
             readonly fs_write: (args: z.input<typeof Contract_9.sandboxFsWriteContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsWriteContract['outputSchema']>>;
-            /** List contents of a directory in the current sandbox. */
+            /** List contents of a directory in the current sandbox. Automatically ignores .git, node_modules, and dist. */
             readonly fs_list: (args: z.input<typeof Contract_9.sandboxFsListContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsListContract['outputSchema']>>;
             /** Apply targeted changes to a file in the current sandbox. */
             readonly fs_patch: (args: z.input<typeof Contract_9.sandboxFsPatchContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsPatchContract['outputSchema']>>;
@@ -345,7 +381,7 @@ declare module '../core/api.js' {
             readonly fs_mkdir: (args: z.input<typeof Contract_9.sandboxFsMkdirContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsMkdirContract['outputSchema']>>;
             /** Move or rename a file/directory in the current sandbox. */
             readonly fs_move: (args: z.input<typeof Contract_9.sandboxFsMoveContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxFsMoveContract['outputSchema']>>;
-            /** Execute a short-lived command in the current sandbox. */
+            /** Execute a short-lived command in the current sandbox. Output (stdout/stderr) is capped at 50,000 chars each (preserving the tail). */
             readonly terminal_execute: (args: z.input<typeof Contract_9.sandboxTerminalExecuteContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxTerminalExecuteContract['outputSchema']>>;
             /** Spawn a background service in the current sandbox. */
             readonly terminal_spawn: (args: z.input<typeof Contract_9.sandboxTerminalSpawnContract['inputSchema']>) => Promise<z.infer<typeof Contract_9.sandboxTerminalSpawnContract['outputSchema']>>;

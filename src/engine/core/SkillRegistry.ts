@@ -50,7 +50,7 @@ export class SkillRegistry<TApi extends ICastellanApi = ICastellanApi> {
         const { domain, action } = parseToolKey(toolName);
         const skill = this.getSkill(domain);
         if (!skill) return undefined;
-        return skill.getContracts().find((tool) => tool.action === action);
+        return skill.getContracts().find((tool) => tool.domain === domain && tool.action === action);
     }
 
     public clear(): void {

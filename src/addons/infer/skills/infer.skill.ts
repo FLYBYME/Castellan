@@ -12,7 +12,8 @@ import {
     inferRefreshInventoryContract,
     inferAcquireOllamaContract,
     inferReleaseOllamaContract,
-    inferRejectToolContract
+    inferRejectToolContract,
+    inferQueueStatusContract
 } from './infer.contract.js';
 import {
     infer_chat,
@@ -21,7 +22,8 @@ import {
     acquire_ollama,
     release_ollama,
     process_infer_queue,
-    reject_tool
+    reject_tool,
+    queue_status
 } from './infer.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
 import { InferScheduler } from './InferScheduler.js';
@@ -59,6 +61,7 @@ export class InferSkill extends BaseSkillModule<ContextApi> {
         this.mountTool(inferRefreshInventoryContract, refresh_inventory);
         this.mountTool(inferAcquireOllamaContract, acquire_ollama);
         this.mountTool(inferReleaseOllamaContract, release_ollama);
+        this.mountTool(inferQueueStatusContract, queue_status);
 
         // 3. Lifecycle Handlers
         this.mountEventHandler('data:created', async (payload) => {

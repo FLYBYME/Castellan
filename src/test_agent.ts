@@ -60,7 +60,7 @@ async function main() {
     console.log('Creating a new thread...');
     const thread = await client.api.threads.create({
         title: 'Agent Test',
-        model: 'gemma4:e4b',
+        model: 'gpt-oss:20b',
         status: 'active'
     });
     console.log('Thread created:', thread.id);

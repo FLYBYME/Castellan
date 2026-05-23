@@ -94,10 +94,16 @@ export class GatewayServer implements IServer {
                             socket.send(JSON.stringify({ type: 'tool_result', requestId, data: result }));
                         }
                     } catch (err) {
+                        const data = message.length > 0 ? (tryParse(message.toString()) as Record<string, unknown>) : null;
                         socket.send(JSON.stringify({
                             type: 'error',
                             error: err instanceof Error ? err.message : String(err),
-                            requestId
+                            requestId,
+                            context: data ? {
+                                domain: data['domain'],
+                                action: data['action'],
+                                input: data['input']
+                            } : undefined
                         }));
                     }
                 });
@@ -111,11 +117,6 @@ export class GatewayServer implements IServer {
 
         // 5. REST API Bridge
         this.fastify.get('/api/health', async () => ({ status: 'ok', engine: 'active' }));
-
-        // Handle favicon.ico to prevent 404 logs
-        this.fastify.get('/favicon.ico', async (_, reply) => {
-            void reply.status(204).send();
-        });
 
         for (const skill of engine.registry.allSkills()) {
             for (const contract of skill.getContracts()) {
@@ -154,5 +155,13 @@ export class GatewayServer implements IServer {
 
     public async stop(): Promise<void> {
         await this.fastify.close();
+    }
+}
+
+function tryParse(str: string): unknown {
+    try {
+        return JSON.parse(str);
+    } catch {
+        return null;
     }
 }

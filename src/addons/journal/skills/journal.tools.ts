@@ -15,7 +15,7 @@ import {
 export async function journal_note(
     input: z.infer<typeof journalNoteContract.inputSchema>,
     ctx: ISkillContext
-): Promise<JournalEntry> {
+): Promise<JournalEntry & { id: string }> {
     const entry = await ctx.api.journal.create({
         timestamp: new Date(),
         type: input.type,
@@ -36,7 +36,7 @@ export async function journal_note(
 export async function journal_resolve(
     input: z.infer<typeof journalResolveContract.inputSchema>,
     ctx: ISkillContext
-): Promise<JournalEntry> {
+): Promise<JournalEntry & { id: string }> {
     const entry = await ctx.api.journal.get({ id: input.entryId });
     if (!entry) throw new Error(`Journal entry not found: ${input.entryId}`);
 

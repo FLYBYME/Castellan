@@ -4,6 +4,7 @@ import { CommandRegistry } from './core/CommandRegistry.js';
 import { StartCommand } from './commands/StartCommand.js';
 import { GenerateCommand } from './commands/GenerateCommand.js';
 import { ChatCommand } from './commands/ChatCommand.js';
+import { ThreadViewCommand } from './commands/ThreadViewCommand.js';
 import { C } from './core/Utils.js';
 import fs from 'fs';
 import path from 'path';
@@ -15,6 +16,8 @@ const registry = new CommandRegistry();
 registry.register(new StartCommand());
 registry.register(new GenerateCommand());
 registry.register(new ChatCommand());
+registry.register(new ThreadViewCommand());
+
 
 program
     .name('castellan')

@@ -13,7 +13,7 @@ declare module '../../../core/events.js' {
         'cron:job_completed': {
             id: string;
             success: boolean;
-            job: CronJob;
+            job: CronJob & { id: string };
             result?: any;
             error?: string;
         };

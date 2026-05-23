@@ -772,6 +772,21 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_infer_inferRejectToolContract_reject_tool, Contract_3.inferRejectToolContract.inputSchema);
+    const cmd_infer_inferQueueStatusContract_queue_status = infer.command('queue_status').description(`Get the current statistics/counts of the inference queue.`);
+    cmd_infer_inferQueueStatusContract_queue_status.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing infer:queue_status...' + C.reset);
+            const res = await client.api.infer.queue_status(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_3.inferQueueStatusContract.inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_infer_inferQueueStatusContract_queue_status, Contract_3.inferQueueStatusContract.inputSchema);
     const ollama = program.command('ollama').description('ollama tools');
     const cmd_ollama_ollamaCrud_create_create = ollama.command('create').description(`CRUD create for ollama (ollamaCrud)`);
     cmd_ollama_ollamaCrud_create_create.action(async (o) => {
@@ -1666,7 +1681,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
     });
     ZodToCliMapper.applyOptions(cmd_directive_directiveCrud_delete_delete, Contract_4.directiveCrud['delete'].inputSchema);
     const kanban = program.command('kanban').description('kanban tools');
-    const cmd_kanban_kanbanMoveContract_move = kanban.command('move').description(`Transition a mission through the Kanban lifecycle.`);
+    const cmd_kanban_kanbanMoveContract_move = kanban.command('move').description(`Transition a WorkItem or Feature through the Kanban lifecycle.`);
     cmd_kanban_kanbanMoveContract_move.action(async (o) => {
         try {
             console.log(C.dim + 'Executing kanban:move...' + C.reset);
@@ -1681,11 +1696,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_kanban_kanbanMoveContract_move, Contract_5.kanbanMoveContract.inputSchema);
-    const cmd_kanban_kanbanCrud_create_create = kanban.command('create').description(`CRUD create for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_create_create.action(async (o) => {
+    const kanban_project = program.command('kanban_project').description('kanban_project tools');
+    const cmd_kanban_project_kanbanProjectCrud_create_create = kanban_project.command('create').description(`CRUD create for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_create_create.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:create...' + C.reset);
-            const res = await client.api.kanban.create(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['create'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:create...' + C.reset);
+            const res = await client.api.kanban_project.create(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['create'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1695,12 +1711,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_create_create, Contract_5.kanbanCrud['create'].inputSchema);
-    const cmd_kanban_kanbanCrud_find_find = kanban.command('find').description(`CRUD find for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_find_find.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_create_create, Contract_5.kanbanProjectCrud['create'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_find_find = kanban_project.command('find').description(`CRUD find for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_find_find.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:find...' + C.reset);
-            const res = await client.api.kanban.find(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['find'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:find...' + C.reset);
+            const res = await client.api.kanban_project.find(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['find'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1710,12 +1726,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_find_find, Contract_5.kanbanCrud['find'].inputSchema);
-    const cmd_kanban_kanbanCrud_findOne_find_one = kanban.command('find_one').description(`CRUD findOne for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_findOne_find_one.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_find_find, Contract_5.kanbanProjectCrud['find'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_findOne_find_one = kanban_project.command('find_one').description(`CRUD findOne for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_findOne_find_one.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:find_one...' + C.reset);
-            const res = await client.api.kanban.find_one(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['findOne'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:find_one...' + C.reset);
+            const res = await client.api.kanban_project.find_one(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['findOne'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1725,12 +1741,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_findOne_find_one, Contract_5.kanbanCrud['findOne'].inputSchema);
-    const cmd_kanban_kanbanCrud_count_count = kanban.command('count').description(`CRUD count for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_count_count.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_findOne_find_one, Contract_5.kanbanProjectCrud['findOne'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_count_count = kanban_project.command('count').description(`CRUD count for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_count_count.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:count...' + C.reset);
-            const res = await client.api.kanban.count(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['count'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:count...' + C.reset);
+            const res = await client.api.kanban_project.count(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['count'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1740,12 +1756,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_count_count, Contract_5.kanbanCrud['count'].inputSchema);
-    const cmd_kanban_kanbanCrud_get_get = kanban.command('get').description(`CRUD get for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_get_get.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_count_count, Contract_5.kanbanProjectCrud['count'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_get_get = kanban_project.command('get').description(`CRUD get for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_get_get.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:get...' + C.reset);
-            const res = await client.api.kanban.get(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['get'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:get...' + C.reset);
+            const res = await client.api.kanban_project.get(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['get'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1755,12 +1771,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_get_get, Contract_5.kanbanCrud['get'].inputSchema);
-    const cmd_kanban_kanbanCrud_update_update = kanban.command('update').description(`CRUD update for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_update_update.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_get_get, Contract_5.kanbanProjectCrud['get'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_update_update = kanban_project.command('update').description(`CRUD update for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_update_update.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:update...' + C.reset);
-            const res = await client.api.kanban.update(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['update'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:update...' + C.reset);
+            const res = await client.api.kanban_project.update(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['update'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1770,12 +1786,12 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_update_update, Contract_5.kanbanCrud['update'].inputSchema);
-    const cmd_kanban_kanbanCrud_delete_delete = kanban.command('delete').description(`CRUD delete for kanban (kanbanCrud)`);
-    cmd_kanban_kanbanCrud_delete_delete.action(async (o) => {
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_update_update, Contract_5.kanbanProjectCrud['update'].inputSchema);
+    const cmd_kanban_project_kanbanProjectCrud_delete_delete = kanban_project.command('delete').description(`CRUD delete for kanban_project (kanbanProjectCrud)`);
+    cmd_kanban_project_kanbanProjectCrud_delete_delete.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing kanban:delete...' + C.reset);
-            const res = await client.api.kanban.delete(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanCrud['delete'].inputSchema));
+            console.log(C.dim + 'Executing kanban_project:delete...' + C.reset);
+            const res = await client.api.kanban_project.delete(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanProjectCrud['delete'].inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1785,9 +1801,221 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_kanban_kanbanCrud_delete_delete, Contract_5.kanbanCrud['delete'].inputSchema);
+    ZodToCliMapper.applyOptions(cmd_kanban_project_kanbanProjectCrud_delete_delete, Contract_5.kanbanProjectCrud['delete'].inputSchema);
+    const kanban_feature = program.command('kanban_feature').description('kanban_feature tools');
+    const cmd_kanban_feature_kanbanFeatureCrud_create_create = kanban_feature.command('create').description(`CRUD create for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_create_create.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:create...' + C.reset);
+            const res = await client.api.kanban_feature.create(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['create'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_create_create, Contract_5.kanbanFeatureCrud['create'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_find_find = kanban_feature.command('find').description(`CRUD find for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_find_find.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:find...' + C.reset);
+            const res = await client.api.kanban_feature.find(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['find'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_find_find, Contract_5.kanbanFeatureCrud['find'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_findOne_find_one = kanban_feature.command('find_one').description(`CRUD findOne for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_findOne_find_one.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:find_one...' + C.reset);
+            const res = await client.api.kanban_feature.find_one(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['findOne'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_findOne_find_one, Contract_5.kanbanFeatureCrud['findOne'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_count_count = kanban_feature.command('count').description(`CRUD count for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_count_count.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:count...' + C.reset);
+            const res = await client.api.kanban_feature.count(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['count'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_count_count, Contract_5.kanbanFeatureCrud['count'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_get_get = kanban_feature.command('get').description(`CRUD get for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_get_get.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:get...' + C.reset);
+            const res = await client.api.kanban_feature.get(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['get'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_get_get, Contract_5.kanbanFeatureCrud['get'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_update_update = kanban_feature.command('update').description(`CRUD update for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_update_update.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:update...' + C.reset);
+            const res = await client.api.kanban_feature.update(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['update'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_update_update, Contract_5.kanbanFeatureCrud['update'].inputSchema);
+    const cmd_kanban_feature_kanbanFeatureCrud_delete_delete = kanban_feature.command('delete').description(`CRUD delete for kanban_feature (kanbanFeatureCrud)`);
+    cmd_kanban_feature_kanbanFeatureCrud_delete_delete.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_feature:delete...' + C.reset);
+            const res = await client.api.kanban_feature.delete(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanFeatureCrud['delete'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_feature_kanbanFeatureCrud_delete_delete, Contract_5.kanbanFeatureCrud['delete'].inputSchema);
+    const kanban_work_item = program.command('kanban_work_item').description('kanban_work_item tools');
+    const cmd_kanban_work_item_kanbanWorkItemCrud_create_create = kanban_work_item.command('create').description(`CRUD create for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_create_create.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:create...' + C.reset);
+            const res = await client.api.kanban_work_item.create(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['create'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_create_create, Contract_5.kanbanWorkItemCrud['create'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_find_find = kanban_work_item.command('find').description(`CRUD find for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_find_find.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:find...' + C.reset);
+            const res = await client.api.kanban_work_item.find(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['find'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_find_find, Contract_5.kanbanWorkItemCrud['find'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_findOne_find_one = kanban_work_item.command('find_one').description(`CRUD findOne for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_findOne_find_one.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:find_one...' + C.reset);
+            const res = await client.api.kanban_work_item.find_one(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['findOne'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_findOne_find_one, Contract_5.kanbanWorkItemCrud['findOne'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_count_count = kanban_work_item.command('count').description(`CRUD count for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_count_count.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:count...' + C.reset);
+            const res = await client.api.kanban_work_item.count(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['count'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_count_count, Contract_5.kanbanWorkItemCrud['count'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_get_get = kanban_work_item.command('get').description(`CRUD get for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_get_get.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:get...' + C.reset);
+            const res = await client.api.kanban_work_item.get(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['get'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_get_get, Contract_5.kanbanWorkItemCrud['get'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_update_update = kanban_work_item.command('update').description(`CRUD update for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_update_update.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:update...' + C.reset);
+            const res = await client.api.kanban_work_item.update(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['update'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_update_update, Contract_5.kanbanWorkItemCrud['update'].inputSchema);
+    const cmd_kanban_work_item_kanbanWorkItemCrud_delete_delete = kanban_work_item.command('delete').description(`CRUD delete for kanban_work_item (kanbanWorkItemCrud)`);
+    cmd_kanban_work_item_kanbanWorkItemCrud_delete_delete.action(async (o) => {
+        try {
+            console.log(C.dim + 'Executing kanban_work_item:delete...' + C.reset);
+            const res = await client.api.kanban_work_item.delete(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_5.kanbanWorkItemCrud['delete'].inputSchema));
+            console.log(JSON.stringify(res, null, 2));
+            client.close();
+            process.exit(0);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(C.red + 'Error:' + C.reset, message);
+            process.exit(1);
+        }
+    });
+    ZodToCliMapper.applyOptions(cmd_kanban_work_item_kanbanWorkItemCrud_delete_delete, Contract_5.kanbanWorkItemCrud['delete'].inputSchema);
     const manager = program.command('manager').description('manager tools');
-    const cmd_manager_managerChatContract_chat = manager.command('chat').description(`The exclusive entry point for user interaction. Translates intent into agent missions.`);
+    const cmd_manager_managerChatContract_chat = manager.command('chat').description(`The exclusive entry point for user interaction. Translates intent into Git Flow missions.`);
     cmd_manager_managerChatContract_chat.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:chat...' + C.reset);
@@ -1817,7 +2045,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerPulseContract_pulse, Contract_6.managerPulseContract.inputSchema);
-    const cmd_manager_managerInquireContract_inquire = manager.command('inquire').description(`Ask the inquirer agent to perform a local read-only discovery or analysis on the repository.`);
+    const cmd_manager_managerInquireContract_inquire = manager.command('inquire').description(`Ask the inquirer agent to perform a local read-only discovery on a WorkItem.`);
     cmd_manager_managerInquireContract_inquire.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:inquire...' + C.reset);
@@ -1832,7 +2060,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerInquireContract_inquire, Contract_6.managerInquireContract.inputSchema);
-    const cmd_manager_managerExecuteContract_execute = manager.command('execute').description(`Dispatch the engineer agent to perform mutations, write code, or execute tests within a sandbox.`);
+    const cmd_manager_managerExecuteContract_execute = manager.command('execute').description(`Dispatch the engineer agent to modify code or execute tests for a WorkItem.`);
     cmd_manager_managerExecuteContract_execute.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:execute...' + C.reset);
@@ -1847,7 +2075,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerExecuteContract_execute, Contract_6.managerExecuteContract.inputSchema);
-    const cmd_manager_managerResearchContract_research = manager.command('research').description(`Instruct the researcher agent to perform external web searches or fetch technical documentation.`);
+    const cmd_manager_managerResearchContract_research = manager.command('research').description(`Instruct the researcher agent to perform external research for a WorkItem.`);
     cmd_manager_managerResearchContract_research.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:research...' + C.reset);
@@ -1862,7 +2090,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerResearchContract_research, Contract_6.managerResearchContract.inputSchema);
-    const cmd_manager_managerRunContract_run = manager.command('run').description(`Run the Central Directorate Orchestrator on a given mission or task (blocking).`);
+    const cmd_manager_managerRunContract_run = manager.command('run').description(`Run the Orchestrator on a mission (blocking).`);
     cmd_manager_managerRunContract_run.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:run...' + C.reset);
@@ -1877,7 +2105,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerRunContract_run, Contract_6.managerRunContract.inputSchema);
-    const cmd_manager_managerListToolErrorsContract_list_tool_errors = manager.command('list_tool_errors').description(`Retrieve the last 50 tool result messages that generated execution errors.`);
+    const cmd_manager_managerListToolErrorsContract_list_tool_errors = manager.command('list_tool_errors').description(`Retrieve the last 50 execution errors.`);
     cmd_manager_managerListToolErrorsContract_list_tool_errors.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:list_tool_errors...' + C.reset);
@@ -1892,11 +2120,11 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_manager_managerListToolErrorsContract_list_tool_errors, Contract_6.managerListToolErrorsContract.inputSchema);
-    const cmd_manager_managerAgentBootstrapContract_agent_bootstrap = manager.command('agent_bootstrap').description(`Compile system prompts (Operational Mandates) for Castellan specialized sub-agents.`);
-    cmd_manager_managerAgentBootstrapContract_agent_bootstrap.action(async (o) => {
+    const cmd_manager_managerLoadPromptsContract_load_prompts = manager.command('load_prompts').description(`Sync system prompts from Markdown files.`);
+    cmd_manager_managerLoadPromptsContract_load_prompts.action(async (o) => {
         try {
-            console.log(C.dim + 'Executing manager:agent_bootstrap...' + C.reset);
-            const res = await client.api.manager.agent_bootstrap(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_6.managerAgentBootstrapContract.inputSchema));
+            console.log(C.dim + 'Executing manager:load_prompts...' + C.reset);
+            const res = await client.api.manager.load_prompts(ZodToCliMapper.parseOptions(o as Record<string, unknown>, Contract_6.managerLoadPromptsContract.inputSchema));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -1906,8 +2134,8 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
             process.exit(1);
         }
     });
-    ZodToCliMapper.applyOptions(cmd_manager_managerAgentBootstrapContract_agent_bootstrap, Contract_6.managerAgentBootstrapContract.inputSchema);
-    const cmd_manager_managerEvaluateApprovalContract_evaluate_approval = manager.command('evaluate_approval').description(`Evaluate a pending tool call via a multi-judge safety ensemble.`);
+    ZodToCliMapper.applyOptions(cmd_manager_managerLoadPromptsContract_load_prompts, Contract_6.managerLoadPromptsContract.inputSchema);
+    const cmd_manager_managerEvaluateApprovalContract_evaluate_approval = manager.command('evaluate_approval').description(`Safety audit for a pending tool call.`);
     cmd_manager_managerEvaluateApprovalContract_evaluate_approval.action(async (o) => {
         try {
             console.log(C.dim + 'Executing manager:evaluate_approval...' + C.reset);
@@ -2151,7 +2379,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_sandbox_sandboxFsWriteContract_fs_write, Contract_9.sandboxFsWriteContract.inputSchema);
-    const cmd_sandbox_sandboxFsListContract_fs_list = sandbox.command('fs_list').description(`List contents of a directory in the current sandbox.`);
+    const cmd_sandbox_sandboxFsListContract_fs_list = sandbox.command('fs_list').description(`List contents of a directory in the current sandbox. Automatically ignores .git, node_modules, and dist.`);
     cmd_sandbox_sandboxFsListContract_fs_list.action(async (o) => {
         try {
             console.log(C.dim + 'Executing sandbox:fs_list...' + C.reset);
@@ -2226,7 +2454,7 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         }
     });
     ZodToCliMapper.applyOptions(cmd_sandbox_sandboxFsMoveContract_fs_move, Contract_9.sandboxFsMoveContract.inputSchema);
-    const cmd_sandbox_sandboxTerminalExecuteContract_terminal_execute = sandbox.command('terminal_execute').description(`Execute a short-lived command in the current sandbox.`);
+    const cmd_sandbox_sandboxTerminalExecuteContract_terminal_execute = sandbox.command('terminal_execute').description(`Execute a short-lived command in the current sandbox. Output (stdout/stderr) is capped at 50,000 chars each (preserving the tail).`);
     cmd_sandbox_sandboxTerminalExecuteContract_terminal_execute.action(async (o) => {
         try {
             console.log(C.dim + 'Executing sandbox:terminal_execute...' + C.reset);

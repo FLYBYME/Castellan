@@ -6,10 +6,10 @@ import { z } from 'zod';
 export const SandboxSchema = z.object({
     name: z.string().describe("Human-readable name for the sandbox"),
     description: z.string().nullish().describe("Detailed description of the sandbox purpose"),
-    hostPath: z.string().nullish().describe("Absolute path to the workspace on the host filesystem (Populated by system)"),
+    containerPath: z.string().default("/workspace").describe("Absolute path to the workspace inside the container (Jailed)"),
     gitUrl: z.string().describe("The Git URL to clone into the sandbox upon creation. This is mandatory."),
     status: z.enum(['active', 'archived', 'orphaned']),
-    image: z.string().describe("Docker image used for this sandbox"),
+    image: z.string().default("node:25").describe("Docker image used for this sandbox"),
     agentId: z.string().nullish().describe("The agent associated with this sandbox"),
     threadId: z.string().nullish().describe("The thread associated with this sandbox"),
     createdAt: z.coerce.date(),

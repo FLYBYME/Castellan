@@ -18,7 +18,14 @@ export const notificationsSendContract = defineContract({
     inputSchema: NotificationSendInputSchema,
     outputSchema: NotificationSchema,
     rest: { method: 'POST', path: '/notifications/send' },
-    print: (output) => `Notification sent [${output.id}]: ${output.message}`
+    print: (output) => `
+### Notification Sent
+- **ID**: ${output.id}
+- **Type**: ${output.type}
+
+**Message**:
+> ${output.message}
+    `.trim()
 });
 
 export const notificationsListContract = defineContract({
@@ -30,5 +37,14 @@ export const notificationsListContract = defineContract({
     }),
     outputSchema: z.array(NotificationSchema),
     rest: { method: 'GET', path: '/notifications/list' },
-    print: (output) => `Retrieved ${output.length} notifications.`
+    print: (output) => {
+        if (output.length === 0) return "No recent notifications.";
+        const rows = output.map(n => `| ${new Date(n.timestamp!).toISOString()} | ${n.type} | ${n.message.substring(0, 50)}${n.message.length > 50 ? '...' : ''} |`).join('\n');
+        return `
+### Notification History
+| Timestamp | Type | Message |
+| :--- | :--- | :--- |
+${rows}
+        `.trim();
+    }
 });

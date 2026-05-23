@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud } from 'castellan/core';
+import { defineContract, defineCrud, defaultPrint } from 'castellan/core';
 import {
     OllamaInstanceSchema,
     ModelSchema,
@@ -70,7 +70,7 @@ export const inferChatContract = defineContract({
     inputSchema: ChatInputSchema,
     outputSchema: ChatOutputSchema,
     rest: { method: 'POST', path: '/infer/chat' },
-    print: (output) => `Inference started. Created message: ${output.messageId}`
+    print: (output) => `Inference turn started. Created message: **${output.messageId}**`
 });
 
 export const inferApproveToolContract = defineContract({
@@ -82,7 +82,7 @@ export const inferApproveToolContract = defineContract({
     }),
     outputSchema: z.object({ success: z.boolean() }),
     rest: { method: 'POST', path: '/infer/approve' },
-    print: (output) => `Tool call approval status: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => output.success ? `Tool call approved successfully.` : `Failed to approve tool call.`
 });
 
 export const inferRefreshInventoryContract = defineContract({
@@ -94,7 +94,7 @@ export const inferRefreshInventoryContract = defineContract({
     }),
     outputSchema: z.object({ success: z.boolean(), updatedInstances: z.number() }),
     rest: { method: 'POST', path: '/infer/refresh' },
-    print: (output) => `Model inventory refresh status: ${output.success ? 'Success' : 'Failed'} (${output.updatedInstances} instances updated)`
+    print: (output) => output.success ? `Model inventory refreshed. Updated **${output.updatedInstances}** instances.` : `Failed to refresh model inventory.`
 });
 
 export const inferAcquireOllamaContract = defineContract({
@@ -109,7 +109,15 @@ export const inferAcquireOllamaContract = defineContract({
     }),
     rest: { method: 'POST', path: '/infer/ollama/acquire' },
     destructive: true,
-    print: (output) => `Ollama Acquisition: ${output.message}`
+    print: (output) => {
+        if (!output.success || !output.instance) return `Ollama Acquisition Failed: ${output.message}`;
+        return `
+### Ollama Instance Acquired
+- **Instance ID**: ${output.instance.id}
+- **URL**: ${output.instance.url}
+- **Status Message**: ${output.message}
+        `.trim();
+    }
 });
 
 export const inferReleaseOllamaContract = defineContract({
@@ -124,7 +132,7 @@ export const inferReleaseOllamaContract = defineContract({
     }),
     rest: { method: 'POST', path: '/infer/ollama/release' },
     destructive: true,
-    print: (output) => `Ollama instance release status: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => output.success ? `Ollama instance released.` : `Failed to release Ollama instance.`
 });
 
 export const StructuredChatInputSchema = z.object({
@@ -144,7 +152,12 @@ export const inferStructuredChatContract = defineContract({
     inputSchema: StructuredChatInputSchema,
     outputSchema: StructuredChatOutputSchema,
     rest: { method: 'POST', path: '/infer/structured' },
-    print: (output) => `Structured Inference Result: ${JSON.stringify(output.data, null, 2)}`
+    print: (output) => `
+### Structured Inference Result
+\`\`\`json
+${JSON.stringify(output.data, null, 2)}
+\`\`\`
+    `.trim()
 });
 
 export const inferRejectToolContract = defineContract({
@@ -157,6 +170,37 @@ export const inferRejectToolContract = defineContract({
     }),
     outputSchema: z.object({ success: z.boolean() }),
     rest: { method: 'POST', path: '/infer/reject' },
-    print: (output) => `Tool call rejection status: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => output.success ? `Tool call rejected successfully.` : `Failed to reject tool call.`
 });
+
+export const QueueStatusInputSchema = z.object({});
+export type QueueStatusInput = z.infer<typeof QueueStatusInputSchema>;
+
+export const QueueStatusOutputSchema = z.object({
+    queued: z.number().describe("Number of items currently queued"),
+    processing: z.number().describe("Number of items currently processing"),
+    completed: z.number().describe("Number of items completed"),
+    failed: z.number().describe("Number of items failed"),
+    total: z.number().describe("Total number of items in the queue")
+});
+export type QueueStatusOutput = z.infer<typeof QueueStatusOutputSchema>;
+
+export const inferQueueStatusContract = defineContract({
+    domain: 'infer',
+    action: 'queue_status',
+    description: 'Get the current statistics/counts of the inference queue.',
+    inputSchema: QueueStatusInputSchema,
+    outputSchema: QueueStatusOutputSchema,
+    rest: { method: 'GET', path: '/infer/queue/status' },
+    destructive: false,
+    print: (output) => `
+### Inference Queue Status
+- **Queued**: \`${output.queued}\`
+- **Processing**: \`${output.processing}\`
+- **Completed**: \`${output.completed}\`
+- **Failed**: \`${output.failed}\`
+- **Total**: \`${output.total}\`
+    `.trim()
+});
+
 

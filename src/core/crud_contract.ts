@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, ToolContract } from './tool_contract.js';
+import { defineContract, ToolContract, defaultPrint } from './tool_contract.js';
 
 // --- Type Helpers ---
 type Prettify<T> = { [K in keyof T]: T[K] } & { [K in keyof T as never]: T[K] };
@@ -164,10 +164,6 @@ export function defineCrud<
         find: false, findOne: false, count: false, get: false, resolve: false,
         create: true, createMany: true, update: true, replace: true, delete: true,
         ...options.destructive
-    };
-
-    const defaultPrint = (output: unknown): string => {
-        return typeof output === 'string' ? output : JSON.stringify(output, null, 2);
     };
 
     // --- Input Schemas ---

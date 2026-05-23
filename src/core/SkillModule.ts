@@ -44,9 +44,14 @@ export interface ISkillModule<TApi extends ICastellanApi = ICastellanApi> {
     readonly domain: string;
     getContracts(): ToolContract<z.ZodTypeAny, z.ZodTypeAny>[];
     execute<T>(domain: string, action: string, args: unknown, context: ISkillContext<TApi>): Promise<T>;
+    executeStream<T>(domain: string, action: string, args: unknown, context: ISkillContext<TApi>): AsyncIterable<T>;
     postInit?(context: ISkillContext<TApi>): Promise<void>;
     isCrud(domain: string, action: string): boolean;
     getEventHandlers(): Map<keyof EventRegistry, EventHandler<keyof EventRegistry>>;
+
+    // CRUD Hooks
+    beforeCrud?(domain: string, action: string, input: unknown, context: ISkillContext<TApi>): Promise<unknown>;
+    afterCrud?(domain: string, action: string, output: unknown, context: ISkillContext<TApi>): Promise<unknown>;
 }
 
 /**
@@ -60,6 +65,11 @@ export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi
     protected handlers: Map<string, {
         contract: ToolContract<z.ZodTypeAny, z.ZodTypeAny>;
         handler: SkillActionHandler<unknown, unknown, TApi>;
+    }> = new Map();
+
+    protected crudHooks: Map<string, {
+        before?: (input: any, ctx: ISkillContext<TApi>) => Promise<any>;
+        after?: (output: any, ctx: ISkillContext<TApi>) => Promise<any>;
     }> = new Map();
 
     public getContracts(): ToolContract<z.ZodTypeAny, z.ZodTypeAny>[] {
@@ -80,6 +90,20 @@ export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi
         throw new Error(`Execution Error: Action '${action}' in '${domain}' of skill '${this.domain}' returned a stream.`);
     }
 
+    public async *executeStream<T>(domain: string, action: string, args: unknown, context: ISkillContext<TApi>): AsyncIterable<T> {
+        const binding = this.handlers.get(`${domain}:${action}`);
+        if (!binding) {
+            throw new Error(`Execution Error: Action '${action}' not found in domain '${domain}' of skill '${this.domain}'.`);
+        }
+
+        const result = binding.handler(args, context);
+        if (result instanceof Promise) {
+            throw new Error(`Execution Error: Action '${action}' in '${domain}' of skill '${this.domain}' returned a promise but was called as a stream.`);
+        }
+
+        yield* result as AsyncIterable<T>;
+    }
+
     public isCrud(domain: string, action: string): boolean {
         const binding = this.handlers.get(`${domain}:${action}`);
         return !!binding?.contract.isCrud;
@@ -87,6 +111,38 @@ export abstract class BaseSkillModule<TApi extends ICastellanApi = ICastellanApi
 
     public getEventHandlers(): Map<keyof EventRegistry, EventHandler<keyof EventRegistry>> {
         return this.eventHandlers;
+    }
+
+    // --- CRUD Hooks Implementation ---
+
+    public async beforeCrud(domain: string, action: string, input: unknown, context: ISkillContext<TApi>): Promise<unknown> {
+        const hook = this.crudHooks.get(`${domain}:${action}`);
+        if (hook?.before) {
+            return await hook.before(input, context);
+        }
+        return input;
+    }
+
+    public async afterCrud(domain: string, action: string, output: unknown, context: ISkillContext<TApi>): Promise<unknown> {
+        const hook = this.crudHooks.get(`${domain}:${action}`);
+        if (hook?.after) {
+            return await hook.after(output, context);
+        }
+        return output;
+    }
+
+    /**
+     * mountCrudHook: Register before/after logic for a CRUD action.
+     */
+    protected mountCrudHook<TIn = any, TOut = any>(
+        domain: string,
+        action: string,
+        hooks: {
+            before?: (input: TIn, ctx: ISkillContext<TApi>) => Promise<TIn>;
+            after?: (output: TOut, ctx: ISkillContext<TApi>) => Promise<TOut>;
+        }
+    ): void {
+        this.crudHooks.set(`${domain}:${action}`, hooks);
     }
 
     /**

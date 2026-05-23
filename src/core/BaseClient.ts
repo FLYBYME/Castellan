@@ -97,7 +97,15 @@ export abstract class BaseClient {
 
                     if (data.type === 'error' && data.requestId === requestId) {
                         this.messageListeners.delete(listener);
-                        reject(new Error(String(data.error)));
+                        const serverError = String(data.error);
+                        const context = data.context as any;
+                        let fullMessage = serverError;
+                        if (context && context.domain && context.action) {
+                            fullMessage = `[${context.domain}:${context.action}] ${serverError}`;
+                        }
+                        const err = new Error(fullMessage);
+                        (err as any).serverContext = context;
+                        reject(err);
                         return;
                     }
 
@@ -143,7 +151,14 @@ export abstract class BaseClient {
                 const data = JSON.parse(msg) as Record<string, unknown>;
 
                 if (data.type === 'error' && data.requestId === requestId) {
-                    error = new Error(String(data.error));
+                    const serverError = String(data.error);
+                    const context = data.context as any;
+                    let fullMessage = serverError;
+                    if (context && context.domain && context.action) {
+                        fullMessage = `[${context.domain}:${context.action}] ${serverError}`;
+                    }
+                    error = new Error(fullMessage);
+                    (error as any).serverContext = context;
                     if (resolveNext) resolveNext({ value: undefined as never, done: true });
                     return;
                 }

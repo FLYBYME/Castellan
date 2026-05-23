@@ -113,6 +113,7 @@ export class CastellanClient extends BaseClient {
             release_ollama: Contract_3.inferReleaseOllamaContract,
             structured_chat: Contract_3.inferStructuredChatContract,
             reject_tool: Contract_3.inferRejectToolContract,
+            queue_status: Contract_3.inferQueueStatusContract,
         },
         ollama: {
             create: Contract_3.ollamaCrud['create'],
@@ -191,13 +192,33 @@ export class CastellanClient extends BaseClient {
         },
         kanban: {
             move: Contract_5.kanbanMoveContract,
-            create: Contract_5.kanbanCrud['create'],
-            find: Contract_5.kanbanCrud['find'],
-            find_one: Contract_5.kanbanCrud['findOne'],
-            count: Contract_5.kanbanCrud['count'],
-            get: Contract_5.kanbanCrud['get'],
-            update: Contract_5.kanbanCrud['update'],
-            delete: Contract_5.kanbanCrud['delete'],
+        },
+        kanban_project: {
+            create: Contract_5.kanbanProjectCrud['create'],
+            find: Contract_5.kanbanProjectCrud['find'],
+            find_one: Contract_5.kanbanProjectCrud['findOne'],
+            count: Contract_5.kanbanProjectCrud['count'],
+            get: Contract_5.kanbanProjectCrud['get'],
+            update: Contract_5.kanbanProjectCrud['update'],
+            delete: Contract_5.kanbanProjectCrud['delete'],
+        },
+        kanban_feature: {
+            create: Contract_5.kanbanFeatureCrud['create'],
+            find: Contract_5.kanbanFeatureCrud['find'],
+            find_one: Contract_5.kanbanFeatureCrud['findOne'],
+            count: Contract_5.kanbanFeatureCrud['count'],
+            get: Contract_5.kanbanFeatureCrud['get'],
+            update: Contract_5.kanbanFeatureCrud['update'],
+            delete: Contract_5.kanbanFeatureCrud['delete'],
+        },
+        kanban_work_item: {
+            create: Contract_5.kanbanWorkItemCrud['create'],
+            find: Contract_5.kanbanWorkItemCrud['find'],
+            find_one: Contract_5.kanbanWorkItemCrud['findOne'],
+            count: Contract_5.kanbanWorkItemCrud['count'],
+            get: Contract_5.kanbanWorkItemCrud['get'],
+            update: Contract_5.kanbanWorkItemCrud['update'],
+            delete: Contract_5.kanbanWorkItemCrud['delete'],
         },
         manager: {
             chat: Contract_6.managerChatContract,
@@ -207,7 +228,7 @@ export class CastellanClient extends BaseClient {
             research: Contract_6.managerResearchContract,
             run: Contract_6.managerRunContract,
             list_tool_errors: Contract_6.managerListToolErrorsContract,
-            agent_bootstrap: Contract_6.managerAgentBootstrapContract,
+            load_prompts: Contract_6.managerLoadPromptsContract,
             evaluate_approval: Contract_6.managerEvaluateApprovalContract,
         },
         pulse_report: {
@@ -384,6 +405,8 @@ export class CastellanClient extends BaseClient {
                 this.request<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>('infer_structured_chat', args, Contract_3.inferStructuredChatContract.outputSchema),
             reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>('infer_reject_tool', args, Contract_3.inferRejectToolContract.outputSchema),
+            queue_status: (args: z.input<typeof Contract_3.inferQueueStatusContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferQueueStatusContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_3.inferQueueStatusContract['outputSchema']>>('infer_queue_status', args, Contract_3.inferQueueStatusContract.outputSchema),
         },
         ollama: {
             create: (args: z.input<typeof Contract_3.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_3.ollamaCrud['create']['outputSchema']>> => 
@@ -522,20 +545,54 @@ export class CastellanClient extends BaseClient {
         kanban: {
             move: (args: z.input<typeof Contract_5.kanbanMoveContract['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanMoveContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_5.kanbanMoveContract['outputSchema']>>('kanban_move', args, Contract_5.kanbanMoveContract.outputSchema),
-            create: (args: z.input<typeof Contract_5.kanbanCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['create']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['create']['outputSchema']>>('kanban_create', args, Contract_5.kanbanCrud['create'].outputSchema),
-            find: (args: z.input<typeof Contract_5.kanbanCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['find']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['find']['outputSchema']>>('kanban_find', args, Contract_5.kanbanCrud['find'].outputSchema),
-            find_one: (args: z.input<typeof Contract_5.kanbanCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['findOne']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['findOne']['outputSchema']>>('kanban_find_one', args, Contract_5.kanbanCrud['findOne'].outputSchema),
-            count: (args: z.input<typeof Contract_5.kanbanCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['count']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['count']['outputSchema']>>('kanban_count', args, Contract_5.kanbanCrud['count'].outputSchema),
-            get: (args: z.input<typeof Contract_5.kanbanCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['get']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['get']['outputSchema']>>('kanban_get', args, Contract_5.kanbanCrud['get'].outputSchema),
-            update: (args: z.input<typeof Contract_5.kanbanCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['update']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['update']['outputSchema']>>('kanban_update', args, Contract_5.kanbanCrud['update'].outputSchema),
-            delete: (args: z.input<typeof Contract_5.kanbanCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['delete']['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_5.kanbanCrud['delete']['outputSchema']>>('kanban_delete', args, Contract_5.kanbanCrud['delete'].outputSchema),
+        },
+        kanban_project: {
+            create: (args: z.input<typeof Contract_5.kanbanProjectCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['create']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['create']['outputSchema']>>('kanban_project_create', args, Contract_5.kanbanProjectCrud['create'].outputSchema),
+            find: (args: z.input<typeof Contract_5.kanbanProjectCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['find']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['find']['outputSchema']>>('kanban_project_find', args, Contract_5.kanbanProjectCrud['find'].outputSchema),
+            find_one: (args: z.input<typeof Contract_5.kanbanProjectCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['findOne']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['findOne']['outputSchema']>>('kanban_project_find_one', args, Contract_5.kanbanProjectCrud['findOne'].outputSchema),
+            count: (args: z.input<typeof Contract_5.kanbanProjectCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['count']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['count']['outputSchema']>>('kanban_project_count', args, Contract_5.kanbanProjectCrud['count'].outputSchema),
+            get: (args: z.input<typeof Contract_5.kanbanProjectCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['get']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['get']['outputSchema']>>('kanban_project_get', args, Contract_5.kanbanProjectCrud['get'].outputSchema),
+            update: (args: z.input<typeof Contract_5.kanbanProjectCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['update']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['update']['outputSchema']>>('kanban_project_update', args, Contract_5.kanbanProjectCrud['update'].outputSchema),
+            delete: (args: z.input<typeof Contract_5.kanbanProjectCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['delete']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanProjectCrud['delete']['outputSchema']>>('kanban_project_delete', args, Contract_5.kanbanProjectCrud['delete'].outputSchema),
+        },
+        kanban_feature: {
+            create: (args: z.input<typeof Contract_5.kanbanFeatureCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['create']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['create']['outputSchema']>>('kanban_feature_create', args, Contract_5.kanbanFeatureCrud['create'].outputSchema),
+            find: (args: z.input<typeof Contract_5.kanbanFeatureCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['find']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['find']['outputSchema']>>('kanban_feature_find', args, Contract_5.kanbanFeatureCrud['find'].outputSchema),
+            find_one: (args: z.input<typeof Contract_5.kanbanFeatureCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['findOne']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['findOne']['outputSchema']>>('kanban_feature_find_one', args, Contract_5.kanbanFeatureCrud['findOne'].outputSchema),
+            count: (args: z.input<typeof Contract_5.kanbanFeatureCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['count']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['count']['outputSchema']>>('kanban_feature_count', args, Contract_5.kanbanFeatureCrud['count'].outputSchema),
+            get: (args: z.input<typeof Contract_5.kanbanFeatureCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['get']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['get']['outputSchema']>>('kanban_feature_get', args, Contract_5.kanbanFeatureCrud['get'].outputSchema),
+            update: (args: z.input<typeof Contract_5.kanbanFeatureCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['update']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['update']['outputSchema']>>('kanban_feature_update', args, Contract_5.kanbanFeatureCrud['update'].outputSchema),
+            delete: (args: z.input<typeof Contract_5.kanbanFeatureCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['delete']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanFeatureCrud['delete']['outputSchema']>>('kanban_feature_delete', args, Contract_5.kanbanFeatureCrud['delete'].outputSchema),
+        },
+        kanban_work_item: {
+            create: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['create']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['create']['outputSchema']>>('kanban_work_item_create', args, Contract_5.kanbanWorkItemCrud['create'].outputSchema),
+            find: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['find']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['find']['outputSchema']>>('kanban_work_item_find', args, Contract_5.kanbanWorkItemCrud['find'].outputSchema),
+            find_one: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['findOne']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['findOne']['outputSchema']>>('kanban_work_item_find_one', args, Contract_5.kanbanWorkItemCrud['findOne'].outputSchema),
+            count: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['count']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['count']['outputSchema']>>('kanban_work_item_count', args, Contract_5.kanbanWorkItemCrud['count'].outputSchema),
+            get: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['get']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['get']['outputSchema']>>('kanban_work_item_get', args, Contract_5.kanbanWorkItemCrud['get'].outputSchema),
+            update: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['update']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['update']['outputSchema']>>('kanban_work_item_update', args, Contract_5.kanbanWorkItemCrud['update'].outputSchema),
+            delete: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['delete']['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_5.kanbanWorkItemCrud['delete']['outputSchema']>>('kanban_work_item_delete', args, Contract_5.kanbanWorkItemCrud['delete'].outputSchema),
         },
         manager: {
             chat: (args: z.input<typeof Contract_6.managerChatContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerChatContract['outputSchema']>> => 
@@ -552,8 +609,8 @@ export class CastellanClient extends BaseClient {
                 this.request<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>('manager_run', args, Contract_6.managerRunContract.outputSchema),
             list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>('manager_list_tool_errors', args, Contract_6.managerListToolErrorsContract.outputSchema),
-            agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>> => 
-                this.request<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>('manager_agent_bootstrap', args, Contract_6.managerAgentBootstrapContract.outputSchema),
+            load_prompts: (args: z.input<typeof Contract_6.managerLoadPromptsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerLoadPromptsContract['outputSchema']>> => 
+                this.request<z.infer<typeof Contract_6.managerLoadPromptsContract['outputSchema']>>('manager_load_prompts', args, Contract_6.managerLoadPromptsContract.outputSchema),
             evaluate_approval: (args: z.input<typeof Contract_6.managerEvaluateApprovalContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>> => 
                 this.request<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>>('manager_evaluate_approval', args, Contract_6.managerEvaluateApprovalContract.outputSchema),
         },

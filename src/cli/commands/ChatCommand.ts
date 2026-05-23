@@ -107,153 +107,114 @@ export class ChatCommand extends BaseCommand {
 
     protected async execute(options: { thread?: string; prompt?: string; judgeApprovals?: boolean; rules?: string; loop?: string; rounds?: string }, program: Command): Promise<void> {
         const client = new CastellanClient(program.opts().apiUrl || 'http://localhost:3000/api/v2');
-        const rawThreadId = options.thread || `directorate_${nanoid(8)}`;
-        const threadId = toObjectId(rawThreadId);
-        const judgeApprovals = !!options.judgeApprovals;
-        const rules = options.rules || undefined;
-        const loopGoal = options.loop || undefined;
-        const maxRounds = parseInt(options.rounds || '5', 10);
 
-        try {
-            console.log(`${C.cyan}${C.bold}Establishing connection to Central Directorate...${C.reset}`);
-            console.log(`\n${C.bold}--- CASTELLAN DIRECTORATE INTERACTIVE ---${C.reset}`);
+        await this.attachEvents(client);
 
-            if (loopGoal) {
-                await this.startAutonomousLoop(client, threadId, loopGoal, maxRounds, judgeApprovals, rules);
-                process.exit(0);
-            } else if (options.prompt) {
-                await this.sendMessage(client, threadId, options.prompt, judgeApprovals, rules);
-                process.exit(0);
-            } else {
-                await this.startInteractiveLoop(client, threadId, judgeApprovals, rules);
+        const agent = await client.api.agent.find_one({
+            query: {
+                name: 'Castellan Orchestrator'
             }
-        } catch (err: unknown) {
-            const error = err as Error;
-            console.error(`\n${C.red}${C.bold}✖ Error:${C.reset} ${error.message}`);
+        })
+        if (!agent || !agent.id) {
+            throw new Error('Castellan Orchestrator agent not found');
         }
-    }
+        const thread = options.thread ? await client.api.threads.get({ id: options.thread }) : await client.api.threads.create({
+            title: options.prompt || 'New thread',
+            model: 'gpt-oss:20b',
+            status: 'active'
+        });
 
-    private async startAutonomousLoop(
-        client: CastellanClient,
-        threadId: string,
-        goal: string,
-        maxRounds: number,
-        judgeApprovals: boolean,
-        rules?: string
-    ) {
-        console.log(`\n${C.cyan}${C.bold}🤖 Starting Autonomous Auto-Operator Closed-Loop...${C.reset}`);
-        console.log(`${C.bold}Overall Goal:${C.reset} ${goal}`);
-        console.log(`${C.bold}Max Rounds:${C.reset} ${maxRounds}\n`);
-
-        let nudgerAgentId = `nudger_${nanoid(8)}`;
-        const nudgerThreadId = toObjectId(`${threadId}_nudger`);
-
-        const nudgerSystemPrompt = `You are working with the manager to achieve the following goal: ${goal}
-`;
-
-        console.log(`${C.cyan}Registering stateful Nudger agent in the database...${C.reset}`);
-        try {
-            const res = await client.api.agent.create({
-                name: 'Nudger',
-                systemPrompt: nudgerSystemPrompt,
-                model: process.env.OLLAMA_MODEL_MEDIUM || 'gemma4:e4b',
-                tools: []
+        if (options.prompt) {
+            await client.api.manager.chat({
+                threadId: thread.id,
+                prompt: options.prompt,
+                wait: true
             });
-            nudgerAgentId = res.id || nudgerAgentId;
-            console.log(`${C.green}✅ Nudger agent registered:${C.reset} ${nudgerAgentId}`);
-        } catch (err: unknown) {
-            const error = err as Error;
-            console.error(`${C.red}✖ Failed to register Nudger agent:${C.reset} ${error.message}`);
-            throw err;
-        }
-
-        let currentRound = 1;
-        const isDone = false;
-
-        while (currentRound <= maxRounds && !isDone) {
-            console.log(`\n${C.magenta}${C.bold}=== ROUND ${currentRound} of ${maxRounds} ===${C.reset}`);
-
-            // 1. Gather Context (Manager's latest message)
-            const messages = await client.api.messages.find({
-                query: { threadId },
-                limit: 1,
-                sort: ['-createdAt']
-            }) || [];
-            const lastMessage = messages[0];
-            const content = lastMessage?.content;
-
-            let decision: string;
-            try {
-                const runResponse = await client.api.agent.run({
-                    threadId: nudgerThreadId,
-                    agentId: nudgerAgentId,
-                    prompt: content || 'Continue the operation.',
-                    autoApprove: true
-                });
-
-                // Wait for the run to complete
-                await new Promise<void>((resolveRun, rejectRun) => {
-                    const runHandler = (name: string, payload: unknown) => {
-                        if (name === 'data:updated') {
-                            const p = payload as { domain?: string; id?: string; patch?: Record<string, unknown> };
-                            if (p.domain === 'agent_run' && p.id === runResponse.runId) {
-                                const status = p.patch?.status;
-                                if (status === 'finished') {
-                                    client.offEvent(runHandler);
-                                    resolveRun();
-                                } else if (status === 'failed') {
-                                    client.offEvent(runHandler);
-                                    rejectRun(new Error(`Agent run failed: ${String(p.patch?.error || 'Unknown error')}`));
-                                }
-                            }
-                        }
-                    };
-                    client.onEvent(runHandler);
-                });
-
-                // Get run response message from nudger thread
-                const nudgerMessages = await client.api.messages.find({
-                    query: { threadId: nudgerThreadId },
-                    limit: 1,
-                    sort: ['-createdAt']
-                }) || [];
-                const nudgerMessage = nudgerMessages[0];
-
-                if (!nudgerMessage || !nudgerMessage.content) {
-                    throw new Error("No response message returned from the Nudger agent run.");
-                }
-                decision = nudgerMessage.content;
-                if (decision.trim() === '') {
-                    console.log(`${C.yellow}Nudger returned empty response. Exiting.${C.reset}`);
-                    break;
-                }
-            } catch (err: unknown) {
-                const error = err as Error;
-                console.error(`${C.red}✖ Nudger Run Failed:${C.reset} ${error.message}`);
-                break;
-            }
-
-            console.log(`${C.green}${C.bold}Nudging Manager with instruction:${C.reset} ${decision}`);
-
-            // 3. Send Prompt and execute manager turn
-            try {
-                await this.sendMessage(client, threadId, decision, judgeApprovals, rules);
-            } catch (err: unknown) {
-                const error = err as Error;
-                console.error(`\n${C.red}✖ Error in Round ${currentRound}:${C.reset} ${error.message}`);
-            }
-
-            currentRound++;
-        }
-
-        if (!isDone) {
-            console.log(`\n${C.red}${C.bold}✖ Reached maximum rounds limit (${maxRounds}) without completing the goal.${C.reset}\n`);
+            client.close();
         } else {
-            console.log(`\n${C.green}${C.bold}🎉 Autonomous loop completed successfully!${C.reset}\n`);
+            await this.startInteractiveLoop(client, thread.id);
         }
     }
 
-    private async startInteractiveLoop(client: CastellanClient, threadId: string, judgeApprovals: boolean, rules?: string) {
+    private async attachEvents(client: CastellanClient) {
+        const state = {
+            thinking: false,
+            content: false,
+            threadId: null
+        }
+        // Attach event listeners to the WebSocket manager
+        client.onEvent(async (name, payload: any, correlationId) => {
+            try {
+                switch (name) {
+                    case 'infer:thinking_chunk':
+                        if (!state.thinking) {
+                            state.thinking = true;
+                            state.content = false;
+                            process.stdout.write(`\n${C.cyan}[thinking]:${C.reset} ${payload.threadId}\n`);
+                        }
+                        if (state.threadId != payload.threadId) {
+                            state.threadId = payload.threadId;
+                            console.log(`${C.cyan}${C.bold}[Thread]:${C.reset} ${payload.threadId}`);
+                        }
+                        process.stdout.write(payload.delta);
+                        break;
+                    case 'infer:content_chunk':
+                        if (!state.content) {
+                            state.thinking = false;
+                            state.content = true;
+                            process.stdout.write(`\n${C.cyan}[response]:${C.reset} ${payload.threadId}\n`);
+                        }
+                        if (state.threadId != payload.threadId) {
+                            state.threadId = payload.threadId;
+                            console.log(`${C.cyan}${C.bold}[Thread]:${C.reset} ${payload.threadId}`);
+                        }
+                        process.stdout.write(payload.delta);
+                        break;
+                    case 'infer:completed':
+                        state.thinking = false;
+                        state.content = false;
+                        state.threadId = null;
+                        process.stdout.write(`\n`);
+                        break;
+                    case 'infer:tool_call_requested':
+                        console.log(name, payload);
+                        const toolCall = await client.api.tool_calls.get({ id: payload.toolCallId });
+                        if (!toolCall) {
+                            console.log(`Tool call ${payload.toolCallId} not found.`);
+                            return;
+                        }
+                        console.log(`[Manager] Approving tool call ${payload.toolCallId}`, toolCall);
+                        await client.api.infer.approve_tool({ toolCallId: payload.toolCallId });
+                        break;
+                    case 'infer:tool_call_completed':
+                        console.log(name, payload);
+                        const tc_compl = await client.api.tool_calls.get({ id: payload.id });
+                        if (!tc_compl) {
+                            console.log(`Tool call ${payload.id} not found.`);
+                            return;
+                        }
+                        console.log(`[Manager] Tool call completed ${payload.id}`, tc_compl);
+                        break;
+                    default:
+                        if (state.thinking || state.content) {
+                            state.thinking = false;
+                            state.content = false;
+                            process.stdout.write(`\n`);
+                        }
+                        if (name.startsWith('data:')) {
+                            console.log(`${C.magenta} ${name} ${payload.domain} ${payload.id} ${C.reset}`);
+                            return;
+                        }
+                        console.log(name, payload);
+                        break;
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        });
+    }
+
+    private async startInteractiveLoop(client: CastellanClient, threadId: string) {
         let currentThreadId = threadId;
 
         let active = true;
@@ -274,35 +235,15 @@ export class ChatCommand extends BaseCommand {
             }
 
             try {
-                currentThreadId = await this.sendMessage(client, currentThreadId, prompt, judgeApprovals, rules);
+                await client.api.manager.chat({
+                    threadId: currentThreadId,
+                    prompt,
+                    wait: true
+                });
             } catch (err: unknown) {
                 const error = err as Error;
                 console.error(`\n${C.red}✖ Command Error:${C.reset} ${error.message}`);
             }
-        }
-    }
-
-    private async sendMessage(client: CastellanClient, threadId: string, prompt: string, judgeApprovals: boolean, rules?: string): Promise<string> {
-        const streamManager = new DirectorateStreamManager(client, judgeApprovals, rules, async (toolCall) => {
-            await this.handleApprovalRequest(client, {
-                id: toolCall.id,
-                toolName: toolCall.toolName,
-                arguments: toolCall.arguments,
-                reason: undefined
-            }, judgeApprovals, rules);
-        });
-
-        client.onEvent(streamManager.handleEvent);
-
-        try {
-            await client.api.manager.chat({
-                threadId,
-                prompt,
-                wait: true
-            });
-            return threadId;
-        } finally {
-            client.offEvent(streamManager.handleEvent);
         }
     }
 

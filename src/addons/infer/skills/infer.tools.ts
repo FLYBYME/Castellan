@@ -9,7 +9,8 @@ import {
     inferReleaseOllamaContract,
     inferStructuredChatContract,
     inferRejectToolContract,
-    toolCallCrud
+    toolCallCrud,
+    inferQueueStatusContract
 } from './infer.contract.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { agentStructuredInferContract } from 'src/addons/agents/skills/agent.contract.js';
@@ -427,7 +428,7 @@ export async function acquire_ollama(
     console.log("instances", instances);
     for (const inst of instances) {
         const active = inst.activeRequests || 0;
-        if (active < 1) {
+        if (active < 10) {
             // Attempt to claim the node by updating its activeRequests count
             const updated = await ctx.api.ollama.update({
                 id: inst.id,
@@ -506,4 +507,26 @@ export async function process_infer_queue(
             error: err instanceof Error ? err.message : String(err)
         });
     }
+}
+
+/**
+ * queue_status: Returns the status counts of the inference queue.
+ */
+export async function queue_status(
+    _input: z.infer<typeof inferQueueStatusContract.inputSchema>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof inferQueueStatusContract.outputSchema>> {
+    const queuedCount = await ctx.api.infer_queue.count({ query: { status: 'queued' } });
+    const processingCount = await ctx.api.infer_queue.count({ query: { status: 'processing' } });
+    const completedCount = await ctx.api.infer_queue.count({ query: { status: 'completed' } });
+    const failedCount = await ctx.api.infer_queue.count({ query: { status: 'failed' } });
+    const totalCount = await ctx.api.infer_queue.count({ query: {} });
+
+    return {
+        queued: queuedCount,
+        processing: processingCount,
+        completed: completedCount,
+        failed: failedCount,
+        total: totalCount
+    };
 }

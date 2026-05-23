@@ -8,91 +8,17 @@ import {
     managerResearchContract,
     managerRunContract,
     managerListToolErrorsContract,
-    managerAgentBootstrapContract,
-    managerEvaluateApprovalContract
+    managerLoadPromptsContract,
+    managerEvaluateApprovalContract,
+    DefaultAgents
 } from './manager.contract.js';
 import { PulseReport } from './manager.schema.js';
 import { agentCrud } from '../../agents/skills/agent.contract.js';
 import zodToJsonSchema from 'zod-to-json-schema';
+import fs from 'fs/promises';
+import path from 'path';
 
 
-
-export const DefaultAgents = [
-    {
-        name: 'Castellan Orchestrator',
-        description: '',
-        tools: [
-            "kanban_create",
-            "kanban_find",
-            "kanban_get",
-            "kanban_move",
-            "github_list_repos",
-            "manager_inquire",
-            "manager_execute",
-            "manager_research",
-            "journal_find",
-            "journal_note",
-            "journal_resolve",
-            "sandbox_get",
-            "sandbox_create",
-            "sandbox_find",
-            "sandbox_delete",
-            "sandbox_set_active",
-            "sandbox_fs_list",
-            "sandbox_fs_read"
-        ]
-    },
-    {
-        name: 'Castellan Inquirer',
-        description: '',
-        tools: [
-            "kanban_get",
-            "sandbox_fs_list",
-            "sandbox_fs_read",
-            "github_list_repos",
-            "github_get_repo",
-            "journal_find",
-            "journal_note",
-            "journal_resolve"
-        ]
-    },
-    {
-        name: 'Castellan Engineer',
-        description: '',
-        tools: [
-            "kanban_get",
-            "sandbox_fs_read",
-            "sandbox_fs_write",
-            "sandbox_fs_list",
-            "sandbox_fs_mkdir",
-            "sandbox_fs_move",
-            "sandbox_fs_remove",
-            "sandbox_terminal_execute",
-            "github_status",
-            "journal_find",
-            "journal_note",
-            "journal_resolve"
-        ]
-    },
-    {
-        name: 'Castellan Researcher',
-        description: '',
-        tools: [
-            "kanban_get",
-            "sandbox_fs_read",
-            "sandbox_fs_list",
-            "web_list",
-            "web_get",
-            "web_create",
-            "web_fetch_feed",
-            "web_searxng_search",
-            "journal_find",
-            "journal_note",
-            "journal_resolve"
-        ]
-    },
-
-]
 
 export const DefaultJudges = [
     {
@@ -141,7 +67,7 @@ async function getOrCreateThread(title: string, ctx: ISkillContext, threadId?: s
     }
     return await ctx.api.threads.create({
         title,
-        model: 'gemma4:e4b',
+        model: 'gpt-oss:20b',
         status: 'active'
     });
 }
@@ -156,15 +82,27 @@ export async function manager_chat(
     const thread = await getOrCreateThread(`Directorate: ${input.prompt.substring(0, 30)}...`, ctx, input.threadId);
     const orchestrator = await getAgentByName('Castellan Orchestrator', ctx);
 
-    const result = await ctx.api.agent.run({
+    await ctx.api.agent.run({
         threadId: thread.id,
         agentId: orchestrator.id,
         prompt: input.prompt,
         wait: input.wait
     });
 
+    if (input.wait) {
+        const messages = await ctx.api.messages.find({
+            query: { threadId: thread.id, role: 'assistant' },
+            sort: ['-createdAt'],
+            limit: 1
+        });
+        return {
+            response: messages[0]?.content || "Directorate mission completed, but no response was captured.",
+            threadId: thread.id
+        };
+    }
+
     return {
-        response: `Directorate mission initialized (Run ID: ${result.runId}). Follow the thread for SITREP updates.`,
+        response: `Directorate mission initialized. Follow the thread for SITREP updates.`,
         threadId: thread.id
     };
 }
@@ -180,25 +118,25 @@ export async function manager_pulse(
     console.log(`[manager_pulse] Initiating ${pulseType} autonomous reconciliation...`);
 
     // 1. Telemetry Collection
-    const [allTasks, allSandboxes] = await Promise.all([
-        ctx.api.kanban.find({}),
-        ctx.api.sandbox.find({})
+    const [allWorkItems, allSandboxes] = await Promise.all([
+        ctx.api.kanban_work_item.find({ limit: 100 }),
+        ctx.api.sandbox.find({ limit: 100 })
     ]);
 
-    const activeTasks = allTasks.filter(t => t.status === 'In Progress');
-    const failedTasks = allTasks.filter(t => t.status === 'Backlog' && (t as { errorLog?: string[] }).errorLog?.length);
+    const activeMissions = allWorkItems.filter(w => w.status === 'In Progress');
+    const failedCount = allWorkItems.filter(w => (w as any).errorLog?.length).length;
 
     // 2. Kanban Snapshot
     const kanbanSnapshot: Record<string, string[]> = {
-        "Backlog": allTasks.filter(t => t.status === 'Backlog').map(t => t.title),
-        "Ready": allTasks.filter(t => t.status === 'Ready').map(t => t.title),
-        "In Progress": activeTasks.map(t => t.title),
-        "Done": allTasks.filter(t => t.status === 'Done').map(t => t.title)
+        "Backlog": allWorkItems.filter(t => t.status === 'Backlog').map(t => t.title),
+        "Ready": allWorkItems.filter(t => t.status === 'Ready').map(t => t.title),
+        "In Progress": activeMissions.map(t => t.title),
+        "Done": allWorkItems.filter(t => t.status === 'Done').map(t => t.title)
     };
 
     // 3. Active Missions
-    const activeMissions = activeTasks.map(t => ({
-        threadId: (t as { threadId?: string }).threadId || 'unknown',
+    const reportMissions = activeMissions.map(t => ({
+        threadId: t.threadId || 'unknown',
         agentId: 'unknown',
         objective: t.title,
         status: t.status
@@ -208,12 +146,12 @@ export async function manager_pulse(
     const report: PulseReport = {
         timestamp: new Date(),
         summary: `Autonomous Pulse (${pulseType}) completed. System is stable.`,
-        activeMissions,
+        activeMissions: reportMissions,
         kanbanSnapshot,
         systemHealth: {
             sandboxes: allSandboxes.length,
-            activeTasks: activeTasks.length,
-            failedTasks: failedTasks.length
+            activeTasks: activeMissions.length,
+            failedTasks: failedCount
         }
     };
 
@@ -224,90 +162,133 @@ export async function manager_pulse(
 }
 
 /**
- * manager_inquire: Discovery dispatch.
+ * manager_inquire: Discovery dispatch with auto-sandbox.
  */
 export async function manager_inquire(
     input: z.infer<typeof managerInquireContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const thread = await getOrCreateThread(`Discovery Mission for Kanban ID ${input.kanbanId}`, ctx);
+    // 1. Resolve WorkItem & Sandbox
+    const workItem = await ctx.api.kanban_work_item.get({ id: input.workItemId });
+    if (!workItem) throw new Error(`WorkItem '${input.workItemId}' not found.`);
+
+    if (workItem.sandboxId) {
+        console.log(`[Manager] Auto-switching to Sandbox: ${workItem.sandboxId}`);
+        await ctx.api.settings.update({ key: 'active_sandbox', value: workItem.sandboxId });
+    }
+
+    const thread = await getOrCreateThread(`Inquiry: ${workItem.title}`, ctx, workItem.threadId || undefined);
     const inquirer = await getAgentByName('Castellan Inquirer', ctx);
 
-    const result = await ctx.api.agent.run({
+    await ctx.api.agent.run({
         threadId: thread.id,
         agentId: inquirer.id,
-        prompt: `Discovery Mission for Kanban ID ${input.kanbanId}: ${input.question}`
+        prompt: `Inquiry for WorkItem ${input.workItemId} [${workItem.title}]: ${input.question}`,
+        wait: true
+    });
+
+    const messages = await ctx.api.messages.find({
+        query: { threadId: thread.id, role: 'assistant' },
+        sort: ['-createdAt'],
+        limit: 1
     });
 
     return {
         threadId: thread.id,
-        answer: `Inquirer dispatched (Run ID: ${result.runId}). Findings will be recorded in thread ${thread.id}.`
+        answer: messages[0]?.content || "Inquirer mission completed, but no response was captured."
     };
 }
 
 /**
- * manager_execute: Mutation dispatch.
+ * manager_execute: Mutation dispatch with auto-sandbox.
  */
 export async function manager_execute(
     input: z.infer<typeof managerExecuteContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const task = await ctx.api.kanban.get({ id: input.kanbanId });
-    if (!task) throw new Error(`Kanban task '${input.kanbanId}' not found.`);
+    // 1. Resolve WorkItem & Sandbox
+    const workItem = await ctx.api.kanban_work_item.get({ id: input.workItemId });
+    if (!workItem) throw new Error(`WorkItem '${input.workItemId}' not found.`);
 
-    const thread = await getOrCreateThread(`Execution Mission for Kanban ID ${input.kanbanId}`, ctx);
+    if (workItem.sandboxId) {
+        console.log(`[Manager] Auto-switching to Sandbox: ${workItem.sandboxId}`);
+        await ctx.api.settings.update({ key: 'active_sandbox', value: workItem.sandboxId });
+    }
 
-    await ctx.api.kanban.update({
-        id: input.kanbanId,
+    const thread = await getOrCreateThread(`Execution: ${workItem.title}`, ctx, workItem.threadId || undefined);
+
+    // Ensure status is In Progress
+    await ctx.api.kanban_work_item.update({
+        id: input.workItemId,
         status: 'In Progress',
         threadId: thread.id,
     });
 
     const engineer = await getAgentByName('Castellan Engineer', ctx);
 
-    const result = await ctx.api.agent.run({
+    await ctx.api.agent.run({
         threadId: thread.id,
         agentId: engineer.id,
-        prompt: `Execution Mission for Kanban ID ${input.kanbanId}: ${input.instruction}`
+        prompt: `Execution for WorkItem ${input.workItemId} [${workItem.title}]: ${input.instruction}`,
+        wait: true
+    });
+
+    const messages = await ctx.api.messages.find({
+        query: { threadId: thread.id, role: 'assistant' },
+        sort: ['-createdAt'],
+        limit: 1
     });
 
     return {
         threadId: thread.id,
-        status: 'Mission started.',
-        response: `Engineer dispatched (Run ID: ${result.runId}). Progress tracked in thread ${thread.id}.`
+        status: 'Mission completed.',
+        response: messages[0]?.content || "Engineer mission completed, but no response was captured."
     };
 }
 
 /**
- * manager_research: External research dispatch.
+ * manager_research: Research dispatch with auto-sandbox.
  */
 export async function manager_research(
     input: z.infer<typeof managerResearchContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    const task = await ctx.api.kanban.get({ id: input.kanbanId });
-    if (!task) throw new Error(`Kanban task '${input.kanbanId}' not found.`);
+    // 1. Resolve WorkItem & Sandbox
+    const workItem = await ctx.api.kanban_work_item.get({ id: input.workItemId });
+    if (!workItem) throw new Error(`WorkItem '${input.workItemId}' not found.`);
 
-    const thread = await getOrCreateThread(`Research Mission for Kanban ID ${input.kanbanId}`, ctx);
+    if (workItem.sandboxId) {
+        console.log(`[Manager] Auto-switching to Sandbox: ${workItem.sandboxId}`);
+        await ctx.api.settings.update({ key: 'active_sandbox', value: workItem.sandboxId });
+    }
 
-    await ctx.api.kanban.update({
-        id: input.kanbanId,
+    const thread = await getOrCreateThread(`Research: ${workItem.title}`, ctx, workItem.threadId || undefined);
+
+    await ctx.api.kanban_work_item.update({
+        id: input.workItemId,
         status: 'In Progress',
         threadId: thread.id,
     });
 
     const researcher = await getAgentByName('Castellan Researcher', ctx);
 
-    const result = await ctx.api.agent.run({
+    await ctx.api.agent.run({
         threadId: thread.id,
         agentId: researcher.id,
-        prompt: `Research Mission for Kanban ID ${input.kanbanId}: ${input.topic}`
+        prompt: `Research for WorkItem ${input.workItemId} [${workItem.title}]: ${input.topic}`,
+        wait: true
+    });
+
+    const messages = await ctx.api.messages.find({
+        query: { threadId: thread.id, role: 'assistant' },
+        sort: ['-createdAt'],
+        limit: 1
     });
 
     return {
         threadId: thread.id,
-        status: 'Research started.',
-        response: `Researcher dispatched (Run ID: ${result.runId}). Findings will be in thread ${thread.id}.`
+        status: 'Research completed.',
+        response: messages[0]?.content || "Researcher mission completed, but no response was captured."
     };
 }
 
@@ -321,15 +302,22 @@ export async function manager_run(
     const thread = await getOrCreateThread(`Directorate Mission`, ctx, input.threadId);
     const orchestrator = await getAgentByName('Castellan Orchestrator', ctx);
 
-    const result = await ctx.api.agent.run({
+    await ctx.api.agent.run({
         threadId: thread.id,
         agentId: orchestrator.id,
-        prompt: input.prompt
+        prompt: input.prompt,
+        wait: true
+    });
+
+    const messages = await ctx.api.messages.find({
+        query: { threadId: thread.id, role: 'assistant' },
+        sort: ['-createdAt'],
+        limit: 1
     });
 
     return {
         threadId: thread.id,
-        response: `Directorate mission started (Run ID: ${result.runId}).`
+        response: messages[0]?.content || "Directorate mission completed, but no response was captured."
     };
 }
 
@@ -370,233 +358,58 @@ const GeneratedAgentSchema = z.object({
     })).describe('The generated agents')
 })
 
+
 /**
- * Agent bootstrapper
+ * manager_load_prompts: Loads system prompts from Markdown files in config/prompts and update/create agents in the database.
  */
-/**
- * Agent bootstrapper (Two Passes: Pass 1 for normal agents, Pass 2 for safety judges)
- */
-export async function manager_agent_bootstrap(
-    input: z.infer<typeof managerAgentBootstrapContract.inputSchema>,
+export async function manager_load_prompts(
+    _input: z.infer<typeof managerLoadPromptsContract.inputSchema>,
     ctx: ISkillContext
 ) {
-    // 1. Core Agents creation/lookup
-    const coreAgents: Array<AgentSchemaType> = [];
-    for (const agent of DefaultAgents) {
-        const foundAgent = await ctx.api.agent.find_one({ query: { name: agent.name } });
-        if (!foundAgent) {
-            console.log(`Creating core agent: ${agent.name}`);
-            const createdAgent = await ctx.api.agent.create({
-                name: agent.name,
-                systemPrompt: 'Agent cold and deterministic. Operate strictly within tools.',
-                tools: agent.tools,
-                model: 'gpt-oss:120b'
-            });
-            coreAgents.push(createdAgent);
-        } else {
-            coreAgents.push(foundAgent);
+    const promptsDir = path.resolve('config/prompts');
+    const files = await fs.readdir(promptsDir);
+    const loaded = [];
+
+    const allDefinitions = [...DefaultAgents, ...DefaultJudges];
+
+    for (const def of allDefinitions) {
+        const fileName = def.name.replace(/\s+/g, '-') + '.md';
+        const filePath = path.join(promptsDir, fileName);
+
+        let content = '';
+        try {
+            content = await fs.readFile(filePath, 'utf-8');
+        } catch (err) {
+            // Fallback: check for files without hyphens or other variations if needed
+            // But we created them with hyphens.
+            console.warn(`[manager_load_prompts] No markdown file found for ${def.name} at ${filePath}`);
+            continue;
         }
-    }
 
-    // 2. Safety Judges creation/lookup
-    const safetyJudges: Array<AgentSchemaType> = [];
-    for (const judge of DefaultJudges) {
-        const foundJudge = await ctx.api.agent.find_one({ query: { name: judge.name } });
-        if (!foundJudge) {
-            console.log(`Creating safety judge agent: ${judge.name}`);
-            const createdJudge = await ctx.api.agent.create({
-                name: judge.name,
-                systemPrompt: 'Safety Judge cold and analytical. Audit destructive tools.',
-                tools: [],
-                model: 'gpt-oss:120b'
-            });
-            safetyJudges.push(createdJudge);
-        } else {
-            safetyJudges.push(foundJudge);
-        }
-    }
+        // Find existing agent
+        const agents = await ctx.api.agent.find({ query: {} });
+        const agent = agents.find(a => a.name.toLowerCase() === def.name.toLowerCase());
 
-    // Create a shared thread for both Passes
-    const thread = await ctx.api.threads.create({
-        title: `Two-Pass Agent Bootstrap: ${input.name}`,
-        model: 'gemma4:e4b',
-        status: 'active',
-        format: zodToJsonSchema(GeneratedAgentSchema as any),
-        options: {
-            num_ctx: 10 * 1024
-        }
-    });
-
-    const updatedAgents: Array<AgentSchemaType> = [];
-
-    // ==========================================
-    // PASS 1: NORMAL CORE AGENTS
-    // ==========================================
-    const ARCHITECT_SYSTEM_PROMPT = `
-You are the Principal Systems Architect for the Castellan cognitive architecture.
-Your task is to compile a rigid, high-fidelity Operational Mandate (System Prompt) for multiple specialized sub-agents at once.
-
-Adhere to the Castellan philosophy: the agent is cold, deterministic, state-machine-driven, and must strictly operate within its authorized tools.
-
-Below is the complete catalog of all available tools in the Castellan system:
-
-${DefaultAgents.map(agent => `Name: ${agent.name}\nDescription: ${agent.description}\nTools: ${agent.tools.join(', ')}`).join('\n')}
-
-Format each agent's system prompt EXACTLY according to the template guidelines:
-
-# OPERATIONAL MANDATE: [Friendly Name]
-Domain: [Archetype]
-Archetype: [Archetype]
-
-## 1. Core Directive
-[A single, ruthless paragraph defining the exact purpose of this agent based on its tools.]
-
-## 2. Rules of Engagement
-- **Constraint 1:** Strictly operate only within your authorized tools: [List of Tools].
-- **Constraint 2:** Never assume actions outside your domain.
-- **Constraint 3:** Adhere strictly to clean execution and standard protocols.
-
-## 3. Tool Utilization Strategy
-[Sequence your tools appropriately. If the agent is the Orchestrator, explicitly mandate that it MUST use \`kanban_find\` to check for existing relevant tasks BEFORE defaulting to \`kanban_create\`.]
-
-## 4. Failure Protocols
-[Instructions on what to do when a tool fails or an invariant is breached.]
-
-## 5. Kanban Governance & Coordination
-[If the agent has 'kanban_create' and 'kanban_move' (e.g., the Orchestrator), include strict rules:
-- **Kanban Board Authority:** All work, task flows, and operational goals MUST be managed, tracked, and synchronized through Kanban tasks. No modifications or systemic actions should occur outside this framework.
-- **Task Discovery First:** The Orchestrator MUST use \`kanban_find\` to search the backlog and active boards for existing tasks matching the user's intent BEFORE creating a new one. Do not duplicate existing work.
-- **Kanban Comes First Rule:** The Orchestrator is STRICTLY FORBIDDEN from calling delegation tools (\`manager_inquire\`, \`manager_execute\`, \`manager_research\`) using temporary, invalid, or placeholder Task IDs (like 'N/A', 'placeholder', or 'testing'). If a requested operation does not have a corresponding Kanban task, the Orchestrator MUST first find an existing one or create a valid Kanban task using \`kanban_create\`, move it to \`Ready\` or \`In Progress\` via \`kanban_move\`, and then pass the valid real task ID to the delegation tools!
-- **Task ID Propagation:** The Orchestrator must pass the Kanban Task ID when it dispatches missions via \`manager_inquire\`, \`manager_execute\`, or \`manager_research\` to any sub-agent that has access to the \`kanban_get\` tool. This allows the receiving agent to execute \`kanban_get\` and fetch the complete task requirements.]
-[If the agent only has 'kanban_get' (e.g., Researcher, Inquirer, Engineer), include strict instructions:
-- Retrieve operational parameters using the Kanban ID provided to you via \`kanban_get\` and NEVER attempt to alter task states.]
-[If the agent has no Kanban tools, include a brief note explaining that they operate under Kanban-driven instructions provided in their prompt, but do not have tools to manipulate or read the board directly.]
-
-## 6. System Architecture Guidelines
-- The Orchestrator must use manager_inquire to read local files/discovery, manager_research for external/web search, and manager_execute to execute changes in the sandbox.
-- If the agent is the Orchestrator, explicitly map its delegation tools to the corresponding sub-agents in the Tool Utilization Strategy (e.g., "To delegate to the Engineer, use manager_execute. To delegate to the Researcher, use manager_research. To delegate to the Inquirer, use manager_inquire").
-`.trim();
-
-    await ctx.api.messages.create({
-        threadId: thread.id,
-        role: 'system',
-        content: ARCHITECT_SYSTEM_PROMPT
-    });
-
-    const userPromptPass1 = `
-Please compile the mandates for the following agents:
-${coreAgents.map(a => `- Agent ID: ${a.id}
-- Name: ${a.name}
-- Tools: ${a.tools.join(', ')}`).join('\n\n')}
-`.trim();
-
-    await ctx.api.messages.create({
-        threadId: thread.id,
-        role: 'user',
-        content: userPromptPass1
-    });
-
-    const runPass1 = await ctx.api.infer.chat({
-        threadId: thread.id
-    });
-
-    const messagePass1 = await ctx.api.messages.get({
-        id: runPass1.messageId
-    });
-
-    try {
-        const jsonPass1 = JSON.parse(messagePass1?.content as string);
-        const agentsListPass1 = GeneratedAgentSchema.parse(jsonPass1).agents;
-
-        for (const agent of agentsListPass1) {
-            const agentTools = DefaultAgents.find((a) => a.name === agent.name)?.tools || [];
-            const updated = await ctx.api.agent.update({
+        if (agent) {
+            await ctx.api.agent.update({
                 id: agent.id,
-                systemPrompt: agent.systemPrompt,
-                tools: agentTools
+                systemPrompt: content,
+                tools: def.tools
             });
-            updatedAgents.push(updated);
-        }
-    } catch (err) {
-        console.error("Failed compiling/parsing Pass 1 agents:", err);
-    }
-
-    // ==========================================
-    // PASS 2: SAFETY JUDGES
-    // ==========================================
-    const JUDGES_ARCHITECT_SYSTEM_PROMPT = `
-You are the Principal Security & Safety Architect for the Castellan cognitive architecture.
-Your task is to compile a rigid, high-fidelity Safety Audit Mandate (System Prompt) for Safety Ensemble Judges.
-
-Adhere to the Castellan safety philosophy: the safety judge is cold, analytical, deterministic, and highly focused on its specific safety domain.
-
-Below is the catalog of safety judges to compile:
-${DefaultJudges.map(j => `Name: ${j.name}\nFocus/Description: ${j.description}`).join('\n')}
-
-Format each judge's system prompt EXACTLY according to the template guidelines:
-
-# SAFETY AUDIT MANDATE: [Friendly Name]
-Domain: Safety Ensemble Judge
-Audit Focus: [Specific Safety focus area described in the catalog]
-
-## 1. Safety Directive
-[A single, ruthless paragraph defining the safety mission and specific focus area of this judge.]
-
-## 2. Risk Assessment Invariants
-- **Invariant 1: [Domain Isolation]** You are checking exclusively for risks in your specific focus area.
-- **Invariant 2: [Domain Specific Constraint]** [Write a strict negative constraint specific to this judge's focus. e.g., for Security, 'Never approve path traversal.']
-- **Invariant 3: [Fail-Safe Rule]** [Write a strict rule on when to automatically reject the call based on this judge's criteria.]
-
-## 3. Evaluation Strategy
-[Instructions on how to analyze the pending tool call's name, arguments, and optional custom rules to evaluate its safety.]
-`.trim();
-
-    await ctx.api.messages.create({
-        threadId: thread.id,
-        role: 'system',
-        content: JUDGES_ARCHITECT_SYSTEM_PROMPT
-    });
-
-    const userPromptPass2 = `
-Please compile the safety mandates for the following safety judges:
-${safetyJudges.map(j => `- Agent ID: ${j.id}
-- Name: ${j.name}`).join('\n\n')}
-`.trim();
-
-    await ctx.api.messages.create({
-        threadId: thread.id,
-        role: 'user',
-        content: userPromptPass2
-    });
-
-    const runPass2 = await ctx.api.infer.chat({
-        threadId: thread.id
-    });
-
-    const messagePass2 = await ctx.api.messages.get({
-        id: runPass2.messageId
-    });
-
-    try {
-        const jsonPass2 = JSON.parse(messagePass2?.content as string);
-        const agentsListPass2 = GeneratedAgentSchema.parse(jsonPass2).agents;
-
-        for (const judge of agentsListPass2) {
-            const updated = await ctx.api.agent.update({
-                id: judge.id,
-                systemPrompt: judge.systemPrompt,
-                tools: []
+        } else {
+            await ctx.api.agent.create({
+                name: def.name,
+                systemPrompt: content,
+                tools: def.tools,
+                model: 'gpt-oss:20b'
             });
-            updatedAgents.push(updated);
         }
-    } catch (err) {
-        console.error("Failed compiling/parsing Pass 2 judges:", err);
+        loaded.push(def.name);
     }
 
     return {
-        threadId: thread.id,
-        agents: updatedAgents,
-        response: `Two-Pass agent and judge bootstrap session completed successfully.`
+        success: true,
+        loaded
     };
 }
 
@@ -641,7 +454,7 @@ export async function manager_evaluate_approval(
 
             const thread = await ctx.api.threads.create({
                 title: `Safety Audit: ${judge.name}`,
-                model: 'gemma4:e4b',
+                model: 'gpt-oss:20b',
                 status: 'active',
                 format: zodToJsonSchema(JudgeFeedbackSchema)
             });
@@ -694,7 +507,7 @@ Decide if this action is safe to execute without human manual review.`
     try {
         const consensusThread = await ctx.api.threads.create({
             title: `Consensus Safety Audit: ${toolName}`,
-            model: 'gemma4:e4b',
+            model: 'gpt-oss:20b',
             status: 'active',
             format: zodToJsonSchema(ConsensusFeedbackSchema)
         });

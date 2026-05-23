@@ -74,7 +74,7 @@ export class TaskInspectorView implements ViewProvider {
             onClick: async () => {
                 if (confirm('Delete this task?')) {
                     const client = this.context.ide.getClient() as any;
-                    await client.api.kanban.delete({ id: (task as any).id });
+                    await client.api.kanban_work_item.delete({ id: (task as any).id });
                     this.container!.innerHTML = 'Task deleted.';
                 }
             }

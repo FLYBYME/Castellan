@@ -128,6 +128,8 @@ export class ContextApi implements ICastellanApi {
             this.executor.execute<z.infer<typeof Contract_3.inferStructuredChatContract['outputSchema']>>('infer', 'structured_chat', args, this.context),
         reject_tool: (args: z.input<typeof Contract_3.inferRejectToolContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_3.inferRejectToolContract['outputSchema']>>('infer', 'reject_tool', args, this.context),
+        queue_status: (args: z.input<typeof Contract_3.inferQueueStatusContract['inputSchema']>): Promise<z.infer<typeof Contract_3.inferQueueStatusContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_3.inferQueueStatusContract['outputSchema']>>('infer', 'queue_status', args, this.context),
     };
     public readonly ollama = {
         create: (args: z.input<typeof Contract_3.ollamaCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_3.ollamaCrud['create']['outputSchema']>> => 
@@ -266,20 +268,54 @@ export class ContextApi implements ICastellanApi {
     public readonly kanban = {
         move: (args: z.input<typeof Contract_5.kanbanMoveContract['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanMoveContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_5.kanbanMoveContract['outputSchema']>>('kanban', 'move', args, this.context),
-        create: (args: z.input<typeof Contract_5.kanbanCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['create']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['create']['outputSchema']>>('kanban', 'create', args, this.context),
-        find: (args: z.input<typeof Contract_5.kanbanCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['find']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['find']['outputSchema']>>('kanban', 'find', args, this.context),
-        find_one: (args: z.input<typeof Contract_5.kanbanCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['findOne']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['findOne']['outputSchema']>>('kanban', 'find_one', args, this.context),
-        count: (args: z.input<typeof Contract_5.kanbanCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['count']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['count']['outputSchema']>>('kanban', 'count', args, this.context),
-        get: (args: z.input<typeof Contract_5.kanbanCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['get']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['get']['outputSchema']>>('kanban', 'get', args, this.context),
-        update: (args: z.input<typeof Contract_5.kanbanCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['update']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['update']['outputSchema']>>('kanban', 'update', args, this.context),
-        delete: (args: z.input<typeof Contract_5.kanbanCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanCrud['delete']['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_5.kanbanCrud['delete']['outputSchema']>>('kanban', 'delete', args, this.context),
+    };
+    public readonly kanban_project = {
+        create: (args: z.input<typeof Contract_5.kanbanProjectCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['create']['outputSchema']>>('kanban_project', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.kanbanProjectCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['find']['outputSchema']>>('kanban_project', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.kanbanProjectCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['findOne']['outputSchema']>>('kanban_project', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.kanbanProjectCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['count']['outputSchema']>>('kanban_project', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.kanbanProjectCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['get']['outputSchema']>>('kanban_project', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.kanbanProjectCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['update']['outputSchema']>>('kanban_project', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.kanbanProjectCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanProjectCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanProjectCrud['delete']['outputSchema']>>('kanban_project', 'delete', args, this.context),
+    };
+    public readonly kanban_feature = {
+        create: (args: z.input<typeof Contract_5.kanbanFeatureCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['create']['outputSchema']>>('kanban_feature', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.kanbanFeatureCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['find']['outputSchema']>>('kanban_feature', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.kanbanFeatureCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['findOne']['outputSchema']>>('kanban_feature', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.kanbanFeatureCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['count']['outputSchema']>>('kanban_feature', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.kanbanFeatureCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['get']['outputSchema']>>('kanban_feature', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.kanbanFeatureCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['update']['outputSchema']>>('kanban_feature', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.kanbanFeatureCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanFeatureCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanFeatureCrud['delete']['outputSchema']>>('kanban_feature', 'delete', args, this.context),
+    };
+    public readonly kanban_work_item = {
+        create: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['create']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['create']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['create']['outputSchema']>>('kanban_work_item', 'create', args, this.context),
+        find: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['find']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['find']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['find']['outputSchema']>>('kanban_work_item', 'find', args, this.context),
+        find_one: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['findOne']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['findOne']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['findOne']['outputSchema']>>('kanban_work_item', 'find_one', args, this.context),
+        count: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['count']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['count']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['count']['outputSchema']>>('kanban_work_item', 'count', args, this.context),
+        get: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['get']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['get']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['get']['outputSchema']>>('kanban_work_item', 'get', args, this.context),
+        update: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['update']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['update']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['update']['outputSchema']>>('kanban_work_item', 'update', args, this.context),
+        delete: (args: z.input<typeof Contract_5.kanbanWorkItemCrud['delete']['inputSchema']>): Promise<z.infer<typeof Contract_5.kanbanWorkItemCrud['delete']['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_5.kanbanWorkItemCrud['delete']['outputSchema']>>('kanban_work_item', 'delete', args, this.context),
     };
     public readonly manager = {
         chat: (args: z.input<typeof Contract_6.managerChatContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerChatContract['outputSchema']>> => 
@@ -296,8 +332,8 @@ export class ContextApi implements ICastellanApi {
             this.executor.execute<z.infer<typeof Contract_6.managerRunContract['outputSchema']>>('manager', 'run', args, this.context),
         list_tool_errors: (args: z.input<typeof Contract_6.managerListToolErrorsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_6.managerListToolErrorsContract['outputSchema']>>('manager', 'list_tool_errors', args, this.context),
-        agent_bootstrap: (args: z.input<typeof Contract_6.managerAgentBootstrapContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>> => 
-            this.executor.execute<z.infer<typeof Contract_6.managerAgentBootstrapContract['outputSchema']>>('manager', 'agent_bootstrap', args, this.context),
+        load_prompts: (args: z.input<typeof Contract_6.managerLoadPromptsContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerLoadPromptsContract['outputSchema']>> => 
+            this.executor.execute<z.infer<typeof Contract_6.managerLoadPromptsContract['outputSchema']>>('manager', 'load_prompts', args, this.context),
         evaluate_approval: (args: z.input<typeof Contract_6.managerEvaluateApprovalContract['inputSchema']>): Promise<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>> => 
             this.executor.execute<z.infer<typeof Contract_6.managerEvaluateApprovalContract['outputSchema']>>('manager', 'evaluate_approval', args, this.context),
     };

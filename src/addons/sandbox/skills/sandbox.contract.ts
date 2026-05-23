@@ -84,7 +84,7 @@ export const sandboxSetActiveContract = defineContract({
     rest: { method: 'POST', path: '/sandboxes/active' },
     destructive: false,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Successfully stepped into sandbox.` : `Failed to activate sandbox.`
 });
 
 export const sandboxPruneContract = defineContract({
@@ -98,7 +98,7 @@ export const sandboxPruneContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/prune' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Pruning complete. Managed resources synchronized.` : `Pruning failed.`
 });
 
 
@@ -113,7 +113,15 @@ export const sandboxFsReadContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/fs/read' },
     destructive: false,
     event: true,
-    print: (output) => `Read file successful (${output.size} bytes).`
+    print: (output) => `
+### File Content
+- **Size**: ${output.size} bytes
+- **Last Modified**: ${output.lastModified.toISOString()}
+
+\`\`\`
+${output.content}
+\`\`\`
+    `.trim()
 });
 
 export const sandboxFsWriteContract = defineContract({
@@ -125,19 +133,28 @@ export const sandboxFsWriteContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/fs/write' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `File written successfully.` : `Failed to write file.`
 });
 
 export const sandboxFsListContract = defineContract({
     domain: 'sandbox',
     action: 'fs_list',
-    description: 'List contents of a directory in the current sandbox.',
+    description: 'List contents of a directory in the current sandbox. Automatically ignores .git, node_modules, and dist.',
     inputSchema: FsListInputSchema,
     outputSchema: z.array(z.object({ name: z.string(), isDirectory: z.boolean(), size: z.number() })),
     rest: { method: 'GET', path: '/sandbox/fs/list' },
     destructive: false,
     event: true,
-    print: (output) => `Found ${output.length} filesystem items.`
+    print: (output) => {
+        if (output.length === 0) return "Directory is empty.";
+        const rows = output.map(f => `| ${f.name}${f.isDirectory ? '/' : ''} | ${f.isDirectory ? 'DIR' : 'FILE'} | ${f.size} |`).join('\n');
+        return `
+### Directory Listing
+| Name | Type | Size (Bytes) |
+| :--- | :--- | :----------- |
+${rows}
+        `.trim();
+    }
 });
 
 export const sandboxFsPatchContract = defineContract({
@@ -149,7 +166,7 @@ export const sandboxFsPatchContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/fs/patch' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `File patched successfully.` : `Failed to patch file.`
 });
 
 export const sandboxFsRemoveContract = defineContract({
@@ -161,7 +178,7 @@ export const sandboxFsRemoveContract = defineContract({
     rest: { method: 'DELETE', path: '/sandbox/fs/remove' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Resource removed successfully.` : `Failed to remove resource.`
 });
 
 export const sandboxFsMkdirContract = defineContract({
@@ -173,7 +190,7 @@ export const sandboxFsMkdirContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/fs/mkdir' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Directory created successfully.` : `Failed to create directory.`
 });
 
 export const sandboxFsMoveContract = defineContract({
@@ -185,7 +202,7 @@ export const sandboxFsMoveContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/fs/move' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Resource moved successfully.` : `Failed to move resource.`
 });
 
 // ─── Terminal Contracts ──────────────────────────────────────────────────────
@@ -193,13 +210,26 @@ export const sandboxFsMoveContract = defineContract({
 export const sandboxTerminalExecuteContract = defineContract({
     domain: 'sandbox',
     action: 'terminal_execute',
-    description: 'Execute a short-lived command in the current sandbox.',
+    description: 'Execute a short-lived command in the current sandbox. Output (stdout/stderr) is capped at 50,000 chars each (preserving the tail).',
     inputSchema: TerminalExecuteInputSchema,
     outputSchema: z.object({ exitCode: z.number(), stdout: z.string(), stderr: z.string() }),
     rest: { method: 'POST', path: '/sandbox/terminal/execute' },
     destructive: true,
     event: true,
-    print: (output) => `Command completed with exit code ${output.exitCode}. stdout: ${output.stdout.substring(0, 100)}`
+    print: (output) => `
+### Command Execution Result
+- **Exit Code**: ${output.exitCode}
+
+#### STDOUT
+\`\`\`
+${output.stdout || '(empty)'}
+\`\`\`
+
+#### STDERR
+\`\`\`
+${output.stderr || '(empty)'}
+\`\`\`
+    `.trim()
 });
 
 export const sandboxTerminalSpawnContract = defineContract({
@@ -211,7 +241,7 @@ export const sandboxTerminalSpawnContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/terminal/spawn' },
     destructive: true,
     event: true,
-    print: (output) => `Process spawned. Process ID: ${output.processId}`
+    print: (output) => `Background service spawned. Process ID: ${output.processId}`
 });
 
 export const sandboxTerminalListContract = defineContract({
@@ -223,7 +253,16 @@ export const sandboxTerminalListContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/terminal/spawn' },
     destructive: false,
     event: true,
-    print: (output) => `Found ${output.length} running background processes.`
+    print: (output) => {
+        if (output.length === 0) return "No background services running.";
+        const rows = output.map(s => `| ${s.id} | ${s.serviceName} | ${s.status} | ${s.startTime.toISOString()} |`).join('\n');
+        return `
+### Background Services
+| ID | Name | Status | Started At |
+| :--- | :--- | :--- | :--- |
+${rows}
+        `.trim();
+    }
 });
 
 export const sandboxTerminalKillContract = defineContract({
@@ -235,7 +274,7 @@ export const sandboxTerminalKillContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/terminal/kill' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Service terminated successfully.` : `Failed to terminate service.`
 });
 
 export const sandboxTerminalLogsContract = defineContract({
@@ -247,7 +286,12 @@ export const sandboxTerminalLogsContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/terminal/logs' },
     destructive: false,
     event: true,
-    print: (output) => `Fetched logs (${output.logs.length} chars).`
+    print: (output) => `
+### Background Service Logs
+\`\`\`
+${output.logs || '(no logs available)'}
+\`\`\`
+    `.trim()
 });
 
 export const sandboxTerminalSessionOpenContract = defineContract({
@@ -271,7 +315,16 @@ export const sandboxTerminalSessionListContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/terminal/sessions' },
     destructive: false,
     event: true,
-    print: (output) => `Found ${output.length} active PTY sessions.`
+    print: (output) => {
+        if (output.length === 0) return "No active PTY sessions.";
+        const rows = output.map(s => `| ${s.id} | ${s.shell} |`).join('\n');
+        return `
+### Active PTY Sessions
+| ID | Shell |
+| :--- | :--- |
+${rows}
+        `.trim();
+    }
 });
 
 export const sandboxTerminalSessionWriteContract = defineContract({
@@ -283,7 +336,7 @@ export const sandboxTerminalSessionWriteContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/terminal/sessions/:sessionId/write' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Data written to PTY session.` : `Failed to write to PTY session.`
 });
 
 export const sandboxTerminalSessionResizeContract = defineContract({
@@ -295,7 +348,7 @@ export const sandboxTerminalSessionResizeContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/terminal/sessions/:sessionId/resize' },
     destructive: false,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `PTY session resized.` : `Failed to resize PTY session.`
 });
 
 // ─── Networking & Port Forwarding Contracts ──────────────────────────────────
@@ -309,7 +362,7 @@ export const sandboxNetworkExposeContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/network/expose' },
     destructive: true,
     event: true,
-    print: (output) => `Port exposed. Mapped URL: ${output.mappedUrl}`
+    print: (output) => output.success ? `Port exposed successfully. Mapped URL: ${output.mappedUrl}` : `Failed to expose port.`
 });
 
 export const sandboxNetworkUnexposeContract = defineContract({
@@ -321,7 +374,7 @@ export const sandboxNetworkUnexposeContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/network/unexpose' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Port mapping removed.` : `Failed to remove port mapping.`
 });
 
 export const sandboxNetworkListContract = defineContract({
@@ -333,7 +386,16 @@ export const sandboxNetworkListContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/network/list' },
     destructive: false,
     event: true,
-    print: (output) => `Found ${output.length} exposed ports.`
+    print: (output) => {
+        if (output.length === 0) return "No ports are currently exposed.";
+        const rows = output.map(n => `| ${n.port} | ${n.protocol} | ${n.mappedUrl} |`).join('\n');
+        return `
+### Exposed Ports
+| Container Port | Protocol | Mapped URL |
+| :--- | :--- | :--- |
+${rows}
+        `.trim();
+    }
 });
 
 export const sandboxNetworkSetPolicyContract = defineContract({
@@ -345,7 +407,7 @@ export const sandboxNetworkSetPolicyContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/network/policy' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Network policy updated.` : `Failed to update network policy.`
 });
 
 // ─── Environment Variables Contracts ────────────────────────────────────────
@@ -359,7 +421,7 @@ export const sandboxEnvSetContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/env' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Environment variable set.` : `Failed to set environment variable.`
 });
 
 export const sandboxEnvSetSecretContract = defineContract({
@@ -371,7 +433,7 @@ export const sandboxEnvSetSecretContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/env/secret' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Secret set successfully (hidden from logs).` : `Failed to set secret.`
 });
 
 export const sandboxEnvListContract = defineContract({
@@ -383,7 +445,17 @@ export const sandboxEnvListContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/env' },
     destructive: false,
     event: true,
-    print: (output) => `Found ${output.variables.length} environment variables.`
+    print: (output) => {
+        const keys = Object.keys(output);
+        if (keys.length === 0) return "No environment variables defined.";
+        const rows = keys.map(k => `| ${k} | ${output[k]} |`).join('\n');
+        return `
+### Environment Variables
+| Key | Value |
+| :--- | :--- |
+${rows}
+        `.trim();
+    }
 });
 
 // ─── Resource Management & Telemetry Contracts ──────────────────────────────
@@ -397,7 +469,7 @@ export const sandboxResourceUpdateLimitsContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/resources/limits' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Resource limits updated.` : `Failed to update resource limits.`
 });
 
 export const sandboxResourceGetStatsContract = defineContract({
@@ -409,7 +481,12 @@ export const sandboxResourceGetStatsContract = defineContract({
     rest: { method: 'GET', path: '/sandbox/resources/stats' },
     destructive: false,
     event: true,
-    print: (output) => `Stats retrieved. CPU: ${output.cpuPercent}%, Memory: ${output.memoryMb} MB (Limit: ${output.memoryLimitMb} MB)`
+    print: (output) => `
+### Resource Usage
+- **CPU Usage**: ${output.cpuPercent}%
+- **Memory Usage**: ${output.memoryMb} MB
+- **Memory Limit**: ${output.memoryLimitMb} MB
+    `.trim()
 });
 
 // ─── Snapshot & State Management Contracts ──────────────────────────────────
@@ -423,7 +500,7 @@ export const sandboxStateCommitContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/state/commit' },
     destructive: true,
     event: true,
-    print: (output) => `State committed. Image ID: ${output.imageId}`
+    print: (output) => output.success ? `State committed. Image ID: ${output.imageId}` : `Failed to commit state.`
 });
 
 export const sandboxStateCloneContract = defineContract({
@@ -435,6 +512,6 @@ export const sandboxStateCloneContract = defineContract({
     rest: { method: 'POST', path: '/sandbox/state/clone' },
     destructive: true,
     event: true,
-    print: successPrint
+    print: (output) => output.success ? `Sandbox cloned successfully.` : `Failed to clone sandbox.`
 });
 

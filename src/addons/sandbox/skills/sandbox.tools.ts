@@ -40,7 +40,12 @@ import { nanoid } from 'nanoid';
  * getActiveSandbox: Helper to resolve the focused sandbox from context.
  */
 async function getActiveSandbox(ctx: ISkillContext) {
-    const id = ctx.sandboxId;
+    const id = await ctx.api.settings.get({
+        key: 'active_sandbox'
+    })
+
+    console.log('Active sandbox ID: ', id);
+
     if (!id) {
         throw new Error("Validation Failed: You are not currently inside a sandbox. Use 'sandbox_set_active' to step into one.");
     }
@@ -63,10 +68,7 @@ export async function sandbox_set_active(
 
     // 2. Persist the choice globally
     await ctx.api.settings.update({ key: 'active_sandbox', value: input.id });
-
-    // 3. IMPORTANT: Update the current execution context immediately!
-    // This ensures subsequent tools in the same turn use the correct ID.
-    (ctx as any).sandboxId = input.id;
+    console.log('Sandboz set to active: ', input.id);
 
     return { success: true };
 }
@@ -156,9 +158,9 @@ export async function sandbox_terminal_spawn(
 ) {
     const sandbox = await getActiveSandbox(ctx);
     const processId = await sandbox.spawnBackgroundService(
-        input.name, 
-        input.command, 
-        input.env || {}, 
+        input.name,
+        input.command,
+        input.env || {},
         {},
         (type, data, exitCode) => {
             // Dispatch real-time chunks to the event stream
@@ -285,10 +287,10 @@ export async function sandbox_prune(
     return { success: true };
 }
 
-export async function sandbox_create(
+export async function sandbox_before_create(
     input: z.infer<typeof sandboxCrud['create']['inputSchema']>,
     ctx: ISkillContext
-): Promise<z.infer<typeof sandboxCrud['create']['outputSchema']>> {
+) {
     const gitUrl = input.gitUrl;
     if (!gitUrl || typeof gitUrl !== 'string') {
         throw new Error("Validation Failed: gitUrl is required and must be a valid string.");
@@ -321,47 +323,50 @@ export async function sandbox_create(
         throw new Error(`Conflict: A sandbox is already provisioned for repository ${gitUrl}`);
     }
 
-    // 1. Create database record using Dynamic Database repository through the context API
-    const item = await ctx.api.sandbox.create({
-        name: input.name,
-        description: input.description || null,
-        gitUrl,
-        image: input.image || 'node:18',
-        status: 'active',
-        agentId: input.agentId || null,
-        threadId: input.threadId || null
-    });
+    return input;
+}
 
-    // 2. Provision host filesystem using the generated database ID
-    const hostPath = await SandboxSkill.instance.createSandbox(item.id, gitUrl);
+export async function sandbox_after_create(
+    item: z.infer<typeof sandboxCrud['create']['outputSchema']>,
+    ctx: ISkillContext
+): Promise<z.infer<typeof sandboxCrud['create']['outputSchema']>> {
+    console.log(`[sandbox_after_create] Provisioning host filesystem for ${item.id}...`);
+    // 1. Provision host filesystem using the generated database ID
+    await SandboxSkill.instance.createSandbox(item.id, item.gitUrl);
 
-    // 3. Update the database record with the hostPath
-    const updatedItem = await ctx.api.sandbox.update({
-        id: item.id,
-        hostPath
-    });
-
-    // 4. Pre-initialize and register immediately in memory to bypass DB lag
+    // 2. Pre-initialize and register immediately in memory to bypass DB lag
     try {
-        await SandboxSkill.instance.registerSandboxInMemory(updatedItem);
+        await SandboxSkill.instance.registerSandboxInMemory(item);
     } catch (err) {
-        console.error(`[SandboxSkill] Immediate initialization failed for ${updatedItem.id}:`, err);
+        console.error(`[SandboxSkill] Immediate initialization failed for ${item.id}:`, err);
     }
 
-    return updatedItem;
+    return item;
+}
+
+export async function sandbox_after_delete(
+    output: z.infer<typeof sandboxCrud['delete']['outputSchema']> & { id?: string },
+    _ctx: ISkillContext
+): Promise<z.infer<typeof sandboxCrud['delete']['outputSchema']>> {
+    if (output.id) {
+        console.log(`[sandbox_after_delete] Cleaning up resources for sandbox ${output.id}...`);
+        await SandboxSkill.instance.deleteSandbox(output.id);
+    }
+    return output;
+}
+
+export async function sandbox_create(
+    _input: z.infer<typeof sandboxCrud['create']['inputSchema']>,
+    _ctx: ISkillContext
+): Promise<z.infer<typeof sandboxCrud['create']['outputSchema']>> {
+    throw new Error("This tool is deprecated in favor of CRUD hooks.");
 }
 
 export async function sandbox_delete(
-    input: z.infer<typeof sandboxCrud['delete']['inputSchema']>,
-    ctx: ISkillContext
+    _input: z.infer<typeof sandboxCrud['delete']['inputSchema']>,
+    _ctx: ISkillContext
 ): Promise<z.infer<typeof sandboxCrud['delete']['outputSchema']>> {
-    // 1. Clean up sandbox containers and host folder
-    await SandboxSkill.instance.deleteSandbox(input.id);
-
-    // 2. Delete database record
-    await ctx.api.sandbox.delete({ id: input.id });
-
-    return { success: true };
+    throw new Error("This tool is deprecated in favor of CRUD hooks.");
 }
 
 // ─── Networking & Port Forwarding Tool Handlers ─────────────────────────────
@@ -466,7 +471,7 @@ export async function sandbox_state_clone(
     const activeId = ctx.sandboxId;
     if (!activeId) throw new Error("No active sandbox. Call sandbox_set_active first.");
     const sourceSandbox = await SandboxSkill.instance.getSandbox(activeId, ctx);
-    
+
     const imageId = await sourceSandbox.commitState(input.snapshotName);
 
     const doc = await ctx.api.sandbox.find_one({ query: { id: activeId } });
@@ -482,13 +487,9 @@ export async function sandbox_state_clone(
         threadId: doc.threadId || null
     });
 
-    const hostPath = await SandboxSkill.instance.createSandbox(item.id, doc.gitUrl);
-    const updatedItem = await ctx.api.sandbox.update({
-        id: item.id,
-        hostPath
-    });
+    await SandboxSkill.instance.createSandbox(item.id, doc.gitUrl);
 
-    await SandboxSkill.instance.registerSandboxInMemory(updatedItem);
+    await SandboxSkill.instance.registerSandboxInMemory(item);
 
     return { success: true };
 }

@@ -60,6 +60,14 @@ export interface ToolContract<
 }
 
 /**
+ * defaultPrint: A robust, shared helper to format tool output for AI agents.
+ * Ensures that agents receive full JSON context rather than summarized strings.
+ */
+export const defaultPrint = (output: unknown): string => {
+    return typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+};
+
+/**
  * defineContract: Type-safe factory for creating tool contracts.
  * Ensures all contracts are structurally identical and inferred correctly.
  * Automatically registers the contract in the globalContractRegistry.

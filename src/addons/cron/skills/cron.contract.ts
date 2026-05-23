@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud } from 'castellan/core';
+import { defineContract, defineCrud, defaultPrint } from 'castellan/core';
 import { CronJobSchema, CronJobRunSchema } from './cron.schema.js';
 
 /**
@@ -29,14 +29,29 @@ export const cronTriggerContract = defineContract({
     }),
     outputSchema: z.object({
         success: z.boolean().describe("Whether the job was successfully triggered"),
-        job: CronJobSchema.optional().describe("The final state of the job if wait was true"),
+        job: CronJobSchema.extend({ id: z.string() }).optional().describe("The final state of the job if wait was true"),
         run: CronJobRunSchema.optional().describe("The metrics for this specific run if wait was true"),
         result: z.unknown().optional().describe("The result data returned by the tool (if wait was true)"),
         error: z.string().optional().describe("The error message if the tool failed (if wait was true)")
     }),
     rest: { method: 'POST', path: '/cron/:id/trigger' },
     destructive: true,
-    print: (output) => `Cron triggered: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => {
+        if (!output.success) return `❌ Failed to trigger cron job.`;
+        if (!output.job) return `✅ Cron job triggered successfully (Async).`;
+        
+        const status = output.error ? '❌ FAILED' : '✅ SUCCESS';
+        return `
+### Cron Execution Result: ${status}
+- **Job Name**: ${output.job.name}
+- **Duration**: ${output.run?.durationMs || 0}ms
+
+#### Result Data
+\`\`\`json
+${JSON.stringify(output.result || output.error || {}, null, 2)}
+\`\`\`
+        `.trim();
+    }
 });
 
 /**
@@ -56,7 +71,7 @@ export const cronResetContract = defineContract({
     }),
     rest: { method: 'POST', path: '/cron/:id/reset' },
     destructive: true,
-    print: (output) => `Cron reset status: ${output.success ? 'Success' : 'Failed'}`
+    print: (output) => output.success ? `✅ Cron job **${output.job.name}** reset to **${output.job.status}**.` : `❌ Failed to reset cron job.`
 });
 
 /**
@@ -75,5 +90,18 @@ export const cronStatusContract = defineContract({
     }),
     rest: { method: 'GET', path: '/cron/status' },
     destructive: false,
-    print: (output) => `Cron Scheduler Status: Running=${output.runningCount}, Queued=${output.queuedCount}, Failed=${output.failedCount}`
+    print: (output) => {
+        const concurrencyRows = Object.entries(output.groupConcurrency).map(([group, count]) => `| ${group} | ${count} |`).join('\n');
+        return `
+### Cron Scheduler Status
+- **Running Jobs**: ${output.runningCount}
+- **Queued Jobs**: ${output.queuedCount}
+- **Failed Jobs**: ${output.failedCount}
+
+#### Group Concurrency
+| Group | Active Count |
+| :--- | :--- |
+${concurrencyRows || '| (none) | 0 |'}
+        `.trim();
+    }
 });

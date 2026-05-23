@@ -1,25 +1,25 @@
 import { BaseSkillModule } from 'castellan/core';
-import { 
-    managerChatContract, 
-    managerPulseContract, 
+import {
+    managerChatContract,
+    managerPulseContract,
     pulseReportCrud,
     managerInquireContract,
     managerExecuteContract,
     managerResearchContract,
     managerRunContract,
     managerListToolErrorsContract,
-    managerAgentBootstrapContract,
+    managerLoadPromptsContract,
     managerEvaluateApprovalContract
 } from './manager.contract.js';
-import { 
-    manager_chat, 
-    manager_pulse, 
-    manager_inquire, 
-    manager_execute, 
-    manager_research, 
+import {
+    manager_chat,
+    manager_pulse,
+    manager_inquire,
+    manager_execute,
+    manager_research,
     manager_run,
     manager_list_tool_errors,
-    manager_agent_bootstrap,
+    manager_load_prompts,
     manager_evaluate_approval
 } from './manager.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';
@@ -41,7 +41,7 @@ export class ManagerSkill extends BaseSkillModule<ContextApi> {
         this.mountTool(managerResearchContract, manager_research);
         this.mountTool(managerRunContract, manager_run);
         this.mountTool(managerListToolErrorsContract, manager_list_tool_errors);
-        this.mountTool(managerAgentBootstrapContract, manager_agent_bootstrap);
+        this.mountTool(managerLoadPromptsContract, manager_load_prompts);
         this.mountTool(managerEvaluateApprovalContract, manager_evaluate_approval);
     }
 }

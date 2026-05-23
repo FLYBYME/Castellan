@@ -1,6 +1,5 @@
 export interface SandboxMeta {
     id: string;
-    hostPath: string;
     createdAt: Date;
     lastModified: Date;
     sizeMB: number;
@@ -60,7 +59,7 @@ export interface ISandboxManager {
     /**
      * listSandboxes: Returns all sandbox directories on the host.
      */
-    listSandboxes(): Promise<{ id: string, hostPath: string, createdAt: Date }[]>;
+    listSandboxes(): Promise<{ id: string, createdAt: Date }[]>;
 
     /**
      * listContainers: Returns all containers on the Docker host.

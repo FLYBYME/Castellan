@@ -68,7 +68,7 @@ export class KanbanBoardView implements ViewProvider {
     private async refreshData() {
         try {
             const client = this.context.ide.getClient() as any;
-            this.tasks = await client.api.kanban.find({});
+            this.tasks = await client.api.kanban_work_item.find({});
             this.renderBoard();
         } catch (err) {
             console.error('[KanbanExtension] Failed to fetch tasks', err);
@@ -229,11 +229,20 @@ export class KanbanBoardView implements ViewProvider {
         
         try {
             const client = this.context.ide.getClient() as any;
-            await client.api.kanban.create({ 
+            // Feature ID is required now. We'll try to find a default feature.
+            const features = await client.api.kanban_feature.find({ limit: 1 });
+            if (features.length === 0) {
+                alert("Please create a Project and Feature first via CLI.");
+                return;
+            }
+
+            await client.api.kanban_work_item.create({ 
+                featureId: (features[0] as any).id,
                 title, 
                 description, 
                 status: 'Backlog',
                 priority: 'Medium',
+                branchName: `feature/${title.toLowerCase().replace(/\s+/g, '-')}`,
                 acceptanceCriteria: [],
                 dependencies: []
             });
@@ -243,10 +252,10 @@ export class KanbanBoardView implements ViewProvider {
         }
     }
 
-    private async moveTask(taskId: string, stage: KanbanStage) {
+    private async moveTask(id: string, stage: KanbanStage) {
         try {
             const client = this.context.ide.getClient() as any;
-            await client.api.kanban.move({ taskId, stage });
+            await client.api.kanban.move({ id, type: 'work_item', stage });
             await this.refreshData();
         } catch (err) {
             console.error('[KanbanExtension] Failed to move task', err);

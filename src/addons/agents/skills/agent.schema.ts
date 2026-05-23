@@ -6,7 +6,7 @@ import { z } from 'zod';
 export const AgentSchema = z.object({
     name: z.string().describe("Friendly name of the agent"),
     systemPrompt: z.string().describe("The operational mandate for the LLM"),
-    model: z.string().describe("Model name or identifier to use (e.g. gemma4:e4b)"),
+    model: z.string().describe("Model name or identifier to use (e.g. gpt-oss:20b)"),
     config: z.object({
         temperature: z.number().optional().default(0.1),
         maxTokens: z.number().optional().default(4096),
