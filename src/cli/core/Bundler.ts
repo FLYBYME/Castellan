@@ -7,17 +7,21 @@ const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname)
 const castellanResolverPlugin = {
     name: 'castellan-resolver',
     setup(build: any) {
-        build.onResolve({ filter: /^@sdk\// }, (args: any) => {
-            return { path: path.resolve(process.cwd(), 'src/generated/client', args.path.replace('@sdk/', '').replace(/\.js$/, '.ts')) };
+        build.onResolve({ filter: /^@sdk/ }, (args: any) => {
+            const relPath = args.path.replace('@sdk', '').replace(/^\//, '').replace(/\.js$/, '.ts');
+            return { path: path.resolve(process.cwd(), 'src/generated/client', relPath || 'index.ts') };
         });
-        build.onResolve({ filter: /^@castellan\/api\// }, (args: any) => {
-            return { path: path.resolve(process.cwd(), 'src/generated', args.path.replace('@castellan/api/', '').replace(/\.js$/, '.ts')) };
+        build.onResolve({ filter: /^@castellan\/api/ }, (args: any) => {
+            const relPath = args.path.replace('@castellan/api', '').replace(/^\//, '').replace(/\.js$/, '.ts');
+            return { path: path.resolve(process.cwd(), 'src/generated', relPath || 'index.ts') };
         });
-        build.onResolve({ filter: /^@castellan\/client\// }, (args: any) => {
-            return { path: path.resolve(packageRoot, 'src/client/core', args.path.replace('@castellan/client/', '').replace(/\.js$/, '.ts')) };
+        build.onResolve({ filter: /^@castellan\/client/ }, (args: any) => {
+            const relPath = args.path.replace('@castellan/client', '').replace(/^\//, '').replace(/\.js$/, '.ts');
+            return { path: path.resolve(packageRoot, 'src/client/core', relPath || 'index.ts') };
         });
-        build.onResolve({ filter: /^@ui-lib\// }, (args: any) => {
-            return { path: path.resolve(packageRoot, 'src/client/ui-lib', args.path.replace('@ui-lib/', '').replace(/\.js$/, '.ts')) };
+        build.onResolve({ filter: /^@ui-lib/ }, (args: any) => {
+            const relPath = args.path.replace('@ui-lib', '').replace(/^\//, '').replace(/\.js$/, '.ts');
+            return { path: path.resolve(packageRoot, 'src/client/ui-lib', relPath || 'index.ts') };
         });
     }
 };
