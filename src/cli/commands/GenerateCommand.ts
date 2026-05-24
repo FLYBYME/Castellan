@@ -146,12 +146,12 @@ export class GenerateCommand extends BaseCommand {
         const aliasMap = this.getAliasMap(files, this.artifactRoot, builtInDir);
 
         let code = `import { z } from 'zod';\n`;
-        code += `import { ICastellanApi } from '@flybyme/castellan/core/index.js';\n`;
+        code += `import { ICastellanApi } from '@flybyme/castellan/core';\n`;
         Object.values(aliasMap).forEach(m => {
             code += `import * as ${m.alias} from '${m.path}';\n`;
         });
 
-        code += `\ndeclare module '@flybyme/castellan/core/index.js' {\n`;
+        code += `\ndeclare module '@flybyme/castellan/core' {\n`;
         code += `    interface ICastellanApi {\n`;
 
         const byDomain: Record<string, ContractDiscovery[]> = {};

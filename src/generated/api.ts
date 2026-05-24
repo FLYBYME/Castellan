@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ICastellanApi } from '@flybyme/castellan/core/index.js';
+import { ICastellanApi } from '@flybyme/castellan/core';
 import * as Contract_0 from '@flybyme/castellan/addons/agents/skills/agent.contract.js';
 import * as Contract_1 from '@flybyme/castellan/addons/cron/skills/cron.contract.js';
 import * as Contract_2 from '@flybyme/castellan/addons/demo/skills/demo.contract.js';
@@ -12,7 +12,7 @@ import * as Contract_8 from '@flybyme/castellan/addons/notifications/skills/noti
 import * as Contract_9 from '@flybyme/castellan/addons/sandbox/skills/sandbox.contract.js';
 import * as Contract_10 from '@flybyme/castellan/addons/settings/skills/settings.contract.js';
 
-declare module '@flybyme/castellan/core/index.js' {
+declare module '@flybyme/castellan/core' {
     interface ICastellanApi {
         readonly agent: {
             /** Start an autonomous execution turn for a specific agent. */

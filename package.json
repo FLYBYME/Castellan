@@ -10,7 +10,9 @@
   "exports": {
     ".": "./src/engine/CastellanEngine.ts",
     "./core": "./src/core/index.ts",
+    "./core/*": "./src/core/*",
     "./engine": "./src/engine/CastellanEngine.ts",
+    "./engine/*": "./src/engine/*",
     "./api": "./src/generated/api.ts",
     "./addons/*": "./src/addons/*"
   },
