@@ -49,7 +49,8 @@ export class StartCommand extends BaseCommand {
 
             // 2. Boot the Engine
             // Load built-in addons first
-            const builtInDir = path.resolve('./src/addons');
+            const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../..');
+            const builtInDir = path.resolve(packageRoot, 'src/addons');
             const userSkillsDir = path.resolve(skillsPath);
             
             const contextApi = new ContextApi(engine.executor, engine.createContext(undefined, 'boot'));
