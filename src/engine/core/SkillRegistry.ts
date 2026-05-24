@@ -1,4 +1,4 @@
-import { ToolContract, parseToolKey } from '../@flybyme/castellan/core';
+import { ToolContract, parseToolKey } from '../../core/index.js';
 import { ICastellanApi } from '../../core/api.js';
 import { ISkillModule } from '../../core/SkillModule.js';
 import z from 'zod';
