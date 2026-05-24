@@ -2,6 +2,26 @@ import * as esbuild from 'esbuild';
 import path from 'path';
 import fs from 'fs';
 
+const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../..');
+
+const castellanResolverPlugin = {
+    name: 'castellan-resolver',
+    setup(build: any) {
+        build.onResolve({ filter: /^@sdk\// }, (args: any) => {
+            return { path: path.resolve(process.cwd(), 'src/generated/client', args.path.replace('@sdk/', '')) };
+        });
+        build.onResolve({ filter: /^@castellan\/api\// }, (args: any) => {
+            return { path: path.resolve(process.cwd(), 'src/generated', args.path.replace('@castellan/api/', '')) };
+        });
+        build.onResolve({ filter: /^@castellan\/client\// }, (args: any) => {
+            return { path: path.resolve(packageRoot, 'src/client/core', args.path.replace('@castellan/client/', '')) };
+        });
+        build.onResolve({ filter: /^@ui-lib\// }, (args: any) => {
+            return { path: path.resolve(packageRoot, 'src/client/ui-lib', args.path.replace('@ui-lib/', '')) };
+        });
+    }
+};
+
 export class Bundler {
     /**
      * Bundle a frontend extension
@@ -14,6 +34,7 @@ export class Bundler {
             platform: 'browser',
             outfile: path.join(outDir, `${name}.bundle.js`),
             external: ['react', 'react-dom', 'monaco-editor'],
+            plugins: [castellanResolverPlugin],
             loader: {
                 '.ts': 'ts',
                 '.tsx': 'tsx',
@@ -42,6 +63,7 @@ export class Bundler {
             format: 'esm',
             platform: 'browser',
             outfile: path.join(outDir, 'bundle.js'),
+            plugins: [castellanResolverPlugin],
             loader: {
                 '.ts': 'ts',
                 '.tsx': 'tsx',
