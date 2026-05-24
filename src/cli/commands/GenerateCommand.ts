@@ -32,7 +32,7 @@ export class GenerateCommand extends BaseCommand {
             .command(this.name)
             .description(this.description)
             .option('--skip-tsc', 'Skip the TypeScript compiler diagnostics check')
-            .option('--addons <dir>', 'Directory to load addons from', '')
+            .option('--addons <dir>', 'Directory to load addons from', 'src/addons')
             .action(async (options: { skipTsc?: boolean; addons?: string }) => {
                 await this.execute(options);
             });

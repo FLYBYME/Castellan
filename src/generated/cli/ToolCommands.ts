@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { CastellanClient } from '../client/CastellanClient.js';
-import { ZodToCliMapper } from '../../cli/core/ZodToCliMapper.js';
-import { C } from '../../cli/core/Utils.js';
+import { ZodToCliMapper } from '@flybyme/castellan/cli/core/ZodToCliMapper.js';
+import { C } from '@flybyme/castellan/cli/core/Utils.js';
 import * as Contract_0 from '@flybyme/castellan/addons/agents/skills/agent.contract.js';
 import * as Contract_1 from '@flybyme/castellan/addons/cron/skills/cron.contract.js';
 import * as Contract_2 from '@flybyme/castellan/addons/demo/skills/demo.contract.js';
