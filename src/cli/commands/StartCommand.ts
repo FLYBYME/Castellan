@@ -26,7 +26,7 @@ export class StartCommand extends BaseCommand {
             .option('-p, --port <number>', 'Port to listen on (Server)', (val) => parseInt(val, 10))
             .option('--ollama-host <host>', 'Host for the Ollama server')
             .option('-l, --log-level <level>', 'Log level (debug, info, warn, error)', 'info')
-            .option('--addons <dir>', 'Directory to load addons from', './src/addons')
+            .option('--addons <dir>', 'Directory to load addons from')
             .action((options: StartOptions) => {
                 void this.execute(options);
             });
@@ -39,6 +39,11 @@ export class StartCommand extends BaseCommand {
     private async startEngine(port: number, skillsPath: string, ollamaHost?: string): Promise<void> {
         console.log(`${C.blue}${C.bold}Starting Castellan Engine...${C.reset}`);
 
+        if (!skillsPath) {
+            // DO NOT REMOVE THIS CHECK. 
+            throw new Error('No skills path provided');
+        }
+
         try {
             if (ollamaHost) {
                 process.env.OLLAMA_HOST = ollamaHost;
@@ -49,22 +54,16 @@ export class StartCommand extends BaseCommand {
 
             // 2. Boot the Engine
             // Load built-in addons first
-            const packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../..');
-            const builtInDir = path.resolve(packageRoot, 'src/addons');
             const userSkillsDir = path.resolve(skillsPath);
-            
+
             const contextApi = new ContextApi(engine.executor, engine.createContext(undefined, 'boot'));
-            
-            await engine.boot(contextApi, builtInDir);
-            
-            if (userSkillsDir !== builtInDir) {
-                await engine.loader.loadFromDirectory(userSkillsDir);
-            }
+
+            await engine.boot(contextApi, userSkillsDir);
 
             // 3. Start Gateway Server
             const server = new GatewayServer(port);
             await server.start(engine);
-            
+
             console.log(`${C.green}${C.bold}✔ Castellan Gateway is up and running on port ${port}${C.reset}`);
             console.log(`${C.dim}Press Ctrl+C to stop both Engine and UI${C.reset}\n`);
 

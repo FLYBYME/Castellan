@@ -32,13 +32,20 @@ export class GenerateCommand extends BaseCommand {
             .command(this.name)
             .description(this.description)
             .option('--skip-tsc', 'Skip the TypeScript compiler diagnostics check')
-            .option('--addons <dir>', 'Directory to load addons from', 'src/addons')
+            .option('--addons <dir>', 'Directory to load addons from')
             .action(async (options: { skipTsc?: boolean; addons?: string }) => {
                 await this.execute(options);
             });
     }
 
     protected async execute(options: { skipTsc?: boolean; addons?: string } = {}): Promise<void> {
+
+
+        if (!options.addons) {
+            // DO NOT REMOVE THIS CHECK. 
+            throw new Error('No addons directory provided');
+        }
+
         console.log('--- Generating Castellan Artifacts ---');
         const start = Date.now();
 
@@ -46,24 +53,17 @@ export class GenerateCommand extends BaseCommand {
             fs.mkdirSync(this.artifactRoot, { recursive: true });
         }
 
-        const isCoreBuild = path.resolve('.') === this.packageRoot;
-        const builtInDir = path.join(this.packageRoot, 'src/addons');
-        const customDir = options.addons ? path.resolve(options.addons) : undefined;
-        
-        // If we are building the core engine itself, scan builtInDir. 
-        // If we are in a consumer project, strictly scan only the provided addons directory to prevent cross-contamination.
-        const dirsToScan = isCoreBuild ? [builtInDir] : (customDir ? [customDir] : []);
 
-        const { discovery, files } = this.discoverAllContracts(dirsToScan);
+        const { discovery, files } = this.discoverAllContracts([options.addons]);
 
-        await this.generateApiInterface(discovery, files, builtInDir);
-        await this.generateContextApi(discovery, files, builtInDir);
-        await this.generateSDK(discovery, files, builtInDir);
-        await this.generateCLI(discovery, files, builtInDir);
+        await this.generateApiInterface(discovery, files, options.addons);
+        await this.generateContextApi(discovery, files, options.addons);
+        await this.generateSDK(discovery, files, options.addons);
+        await this.generateCLI(discovery, files, options.addons);
 
         console.log('\n--- Bundling UI and Extensions ---');
         await this.bundleCore();
-        await this.bundleAllAddons(dirsToScan);
+        await this.bundleAllAddons([options.addons]);
 
         console.log('\n--- Generation Complete ---');
 
