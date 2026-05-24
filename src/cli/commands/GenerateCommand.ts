@@ -42,25 +42,20 @@ export class GenerateCommand extends BaseCommand {
         console.log('--- Generating Castellan Artifacts ---');
         const start = Date.now();
 
-        const customAddonsDir = options.addons ? path.resolve(options.addons) : undefined;
-        const builtInAddonsDir = path.join(this.packageRoot, 'src/addons');
+        if (!options.addons) {
+            throw new Error('Addons directory not specified');
+        }
 
-        [this.artifactRoot, this.bundleRoot].forEach(dir => {
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true });
-            }
-        });
+        const { discovery, files } = this.discoverAllContracts(options.addons);
 
-        const { discovery, files } = this.discoverAllContracts(builtInAddonsDir, customAddonsDir);
-
-        await this.generateApiInterface(discovery, files, builtInAddonsDir);
-        await this.generateContextApi(discovery, files, builtInAddonsDir);
-        await this.generateSDK(discovery, files, builtInAddonsDir);
-        await this.generateCLI(discovery, files, builtInAddonsDir);
+        await this.generateApiInterface(discovery, files, options.addons);
+        await this.generateContextApi(discovery, files, options.addons);
+        await this.generateSDK(discovery, files, options.addons);
+        await this.generateCLI(discovery, files, options.addons);
 
         console.log('\n--- Bundling UI and Extensions ---');
         await this.bundleCore();
-        await this.bundleAllAddons(builtInAddonsDir, customAddonsDir);
+        await this.bundleAllAddons(options.addons);
 
         console.log('\n--- Generation Complete ---');
 
