@@ -18,6 +18,13 @@ jobs:
           scope: '@flybyme'
       - run: npm ci
       - run: npm run build
-      - run: npm publish
+      - name: Publish if version is new
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if npm view @flybyme/castellan@$CURRENT_VERSION version --registry=https://npm.pkg.github.com &>/dev/null; then
+            echo "Version $CURRENT_VERSION is already published to GitHub Packages. Skipping publish."
+          else
+            npm publish
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
