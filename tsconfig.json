@@ -46,6 +46,9 @@
       "@flybyme/castellan/core": [
         "src/core/index.ts"
       ],
+      "@flybyme/castellan/core/index.js": [
+        "src/core/index.ts"
+      ],
       "@flybyme/castellan/engine": [
         "src/engine/CastellanEngine.ts"
       ],
@@ -53,6 +56,9 @@
         "src/addons/*"
       ],
       "castellan/core": [
+        "src/core/index.ts"
+      ],
+      "castellan/core/index.js": [
         "src/core/index.ts"
       ],
       "castellan/engine": [
