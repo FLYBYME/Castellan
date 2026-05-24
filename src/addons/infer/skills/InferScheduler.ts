@@ -1,4 +1,4 @@
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext } from '@flybyme/castellan/core';
 import { InferQueue, InferQueueSchema } from './infer.schema.js';
 
 /**

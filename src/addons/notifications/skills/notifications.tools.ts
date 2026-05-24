@@ -1,4 +1,4 @@
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext } from '@flybyme/castellan/core';
 import { z } from 'zod';
 import {
     notificationsSendContract,

@@ -1,4 +1,4 @@
-import { BaseSkillModule } from 'castellan/core';
+import { BaseSkillModule } from '@flybyme/castellan/core';
 import { notificationsSendContract, notificationsListContract } from './notifications.contract.js';
 import { notifications_send, notifications_list } from './notifications.tools.js';
 

@@ -1,5 +1,5 @@
 import parser from 'cron-parser';
-import { ISkillContext, parseToolKey } from 'castellan/core';
+import { ISkillContext, parseToolKey } from '@flybyme/castellan/core';
 import { CronJob, CronJobRun } from './cron.schema.js';
 
 /**

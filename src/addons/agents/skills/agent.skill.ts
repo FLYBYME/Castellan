@@ -1,4 +1,4 @@
-import { BaseSkillModule, ISkillContext, ISkillRegistry, IEventBus } from 'castellan/core';
+import { BaseSkillModule, ISkillContext, ISkillRegistry, IEventBus } from '@flybyme/castellan/core';
 import {
     agentCrud,
     agentRunCrud,

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext } from '@flybyme/castellan/core';
 import * as contract from './kanban.contract.js';
 import { KanbanWorkItem, KanbanFeature, KanbanStage } from './kanban.schema.js';
 

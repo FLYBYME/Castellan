@@ -1,4 +1,4 @@
-import { BaseSkillModule } from 'castellan/core';
+import { BaseSkillModule } from '@flybyme/castellan/core';
 import {
     managerChatContract,
     managerPulseContract,

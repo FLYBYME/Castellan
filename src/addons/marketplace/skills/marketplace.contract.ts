@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract } from 'castellan/core';
+import { defineContract } from '@flybyme/castellan/core';
 import { AddonSchema, AddonInstallInputSchema, AddonInstallOutputSchema } from './marketplace.schema.js';
 
 export const marketplaceListContract = defineContract({

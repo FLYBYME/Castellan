@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud, defaultPrint } from 'castellan/core';
+import { defineContract, defineCrud, defaultPrint } from '@flybyme/castellan/core';
 import { AgentSchema, AgentRunSchema } from './agent.schema.js';
 
 /**

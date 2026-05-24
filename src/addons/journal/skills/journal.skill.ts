@@ -1,4 +1,4 @@
-import { BaseSkillModule, ISkillContext } from 'castellan/core';
+import { BaseSkillModule, ISkillContext } from '@flybyme/castellan/core';
 import {
     journalCrud,
     directiveCrud,

@@ -1,4 +1,4 @@
-import { BaseSkillModule } from 'castellan/core';
+import { BaseSkillModule } from '@flybyme/castellan/core';
 import { marketplaceListContract, marketplaceInstallContract } from './marketplace.contract.js';
 import { marketplace_list, marketplace_install } from './marketplace.tools.js';
 

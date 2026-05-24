@@ -1,4 +1,4 @@
-import { ISkillContext, BaseSkillModule } from 'castellan/core';
+import { ISkillContext, BaseSkillModule } from '@flybyme/castellan/core';
 import * as contract from './kanban.contract.js';
 import * as tools from './kanban.tools.js';
 import { ContextApi } from '../../../generated/server/ContextApi.js';

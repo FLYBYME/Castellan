@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract } from 'castellan/core';
+import { defineContract } from '@flybyme/castellan/core';
 import { NotificationSchema, NotificationSendInputSchema } from './notifications.schema.js';
 
 /**

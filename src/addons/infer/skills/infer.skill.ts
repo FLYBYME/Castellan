@@ -1,4 +1,4 @@
-import { BaseSkillModule, ISkillContext, SkillActionHandler } from 'castellan/core';
+import { BaseSkillModule, ISkillContext, SkillActionHandler } from '@flybyme/castellan/core';
 import { z } from 'zod';
 import {
     ollamaCrud,

@@ -1,4 +1,4 @@
-import { BaseSkillModule } from 'castellan/core';
+import { BaseSkillModule } from '@flybyme/castellan/core';
 import { demoHelloContract, demoStatusContract, demoNotifyContract, demoCrud } from './demo.contract.js';
 import { demo_hello, demo_status, demo_notify } from './demo.tools.js';
 

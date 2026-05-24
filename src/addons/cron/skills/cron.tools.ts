@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ISkillContext } from 'castellan/core';
+import { ISkillContext } from '@flybyme/castellan/core';
 import { cronTriggerContract, cronResetContract, cronStatusContract } from './cron.contract.js';
 
 /**

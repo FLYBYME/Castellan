@@ -1,4 +1,4 @@
-import { ISkillContext, parseToolKey } from 'castellan/core';
+import { ISkillContext, parseToolKey } from '@flybyme/castellan/core';
 import { z } from 'zod';
 import { ChatRequest, Message, Ollama, Tool, ToolCall } from 'ollama';
 import {

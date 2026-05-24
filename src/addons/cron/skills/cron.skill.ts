@@ -1,4 +1,4 @@
-import { BaseSkillModule, ISkillContext } from 'castellan/core';
+import { BaseSkillModule, ISkillContext } from '@flybyme/castellan/core';
 import { cronJobCrud, cronJobRunCrud, cronTriggerContract, cronResetContract, cronStatusContract } from './cron.contract.js';
 import { cron_trigger, cron_reset, cron_status } from './cron.tools.js';
 import { CronJob } from './cron.schema.js';

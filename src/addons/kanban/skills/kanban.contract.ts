@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { defineContract, defineCrud } from 'castellan/core';
+import { defineContract, defineCrud } from '@flybyme/castellan/core';
 import { 
     KanbanProjectSchema, 
     KanbanFeatureSchema, 

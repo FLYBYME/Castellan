@@ -1,4 +1,4 @@
-import { BaseSkillModule, ISkillContext } from 'castellan/core';
+import { BaseSkillModule, ISkillContext } from '@flybyme/castellan/core';
 import { ISandboxManager, ISandbox } from '../core/ISandbox.js';
 import { Sandbox } from '../core/Sandbox.js';
 import { IFileSystem } from '../core/IFileSystem.js';

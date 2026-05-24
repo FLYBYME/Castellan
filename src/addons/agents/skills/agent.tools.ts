@@ -1,4 +1,4 @@
-import { globalContractRegistry, ISkillContext, parseToolKey } from 'castellan/core';
+import { globalContractRegistry, ISkillContext, parseToolKey } from '@flybyme/castellan/core';
 import { z } from 'zod';
 import {
     agentRunContract,

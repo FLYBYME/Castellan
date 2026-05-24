@@ -1,4 +1,4 @@
-import { BaseSkillModule } from 'castellan/core';
+import { BaseSkillModule } from '@flybyme/castellan/core';
 import { settingsGetContract, settingsUpdateContract, settingsGetAllContract } from './settings.contract.js';
 import { settings_get, settings_update, settings_get_all } from './settings.tools.js';
 
