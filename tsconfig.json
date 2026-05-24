@@ -42,6 +42,24 @@
       ],
       "@castellan/api/*": [
         "src/generated/*"
+      ],
+      "@flybyme/castellan/core": [
+        "src/core/index.ts"
+      ],
+      "@flybyme/castellan/engine": [
+        "src/engine/CastellanEngine.ts"
+      ],
+      "@flybyme/castellan/addons/*": [
+        "src/addons/*"
+      ],
+      "castellan/core": [
+        "src/core/index.ts"
+      ],
+      "castellan/engine": [
+        "src/engine/CastellanEngine.ts"
+      ],
+      "castellan/addons/*": [
+        "src/addons/*"
       ]
     },
     "allowJs": true
