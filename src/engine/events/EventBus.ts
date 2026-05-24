@@ -19,7 +19,7 @@ export class EventBus implements IEventBus {
         payload: EventRegistry[K]
     ): Promise<void> {
         const subscribers = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>> | undefined;
-        if (name !== 'infer:thinking_chunk' && name !== 'infer:content_chunk') {
+        if ((name as string) !== 'infer:thinking_chunk' && (name as string) !== 'infer:content_chunk') {
             console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
         }
 
