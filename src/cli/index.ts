@@ -51,6 +51,7 @@ async function loadGeneratedCommands() {
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             console.error(`\n${C.yellow}${C.bold}⚠ Warning:${C.reset} Failed to load generated tool commands: ${message}`);
+            throw err;
         }
     }
 }
