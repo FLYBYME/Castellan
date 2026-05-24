@@ -8,16 +8,16 @@ const castellanResolverPlugin = {
     name: 'castellan-resolver',
     setup(build: any) {
         build.onResolve({ filter: /^@sdk\// }, (args: any) => {
-            return { path: path.resolve(process.cwd(), 'src/generated/client', args.path.replace('@sdk/', '')) };
+            return { path: path.resolve(process.cwd(), 'src/generated/client', args.path.replace('@sdk/', '').replace(/\.js$/, '.ts')) };
         });
         build.onResolve({ filter: /^@castellan\/api\// }, (args: any) => {
-            return { path: path.resolve(process.cwd(), 'src/generated', args.path.replace('@castellan/api/', '')) };
+            return { path: path.resolve(process.cwd(), 'src/generated', args.path.replace('@castellan/api/', '').replace(/\.js$/, '.ts')) };
         });
         build.onResolve({ filter: /^@castellan\/client\// }, (args: any) => {
-            return { path: path.resolve(packageRoot, 'src/client/core', args.path.replace('@castellan/client/', '')) };
+            return { path: path.resolve(packageRoot, 'src/client/core', args.path.replace('@castellan/client/', '').replace(/\.js$/, '.ts')) };
         });
         build.onResolve({ filter: /^@ui-lib\// }, (args: any) => {
-            return { path: path.resolve(packageRoot, 'src/client/ui-lib', args.path.replace('@ui-lib/', '')) };
+            return { path: path.resolve(packageRoot, 'src/client/ui-lib', args.path.replace('@ui-lib/', '').replace(/\.js$/, '.ts')) };
         });
     }
 };
