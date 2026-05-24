@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BaseClient } from '@castellan/core/index.js';
+import { BaseClient } from 'castellan/core';
 import * as Contract_0 from '../../addons/agents/skills/agent.contract.js';
 import * as Contract_1 from '../../addons/cron/skills/cron.contract.js';
 import * as Contract_2 from '../../addons/demo/skills/demo.contract.js';

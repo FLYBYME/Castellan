@@ -1,35 +1,28 @@
-# Addon Review: notifications
+# Notifications Addon Review - Castellan Architect SITREP
 
-## 1. Compliance with GEMINI.md Standards
+## 1. Constraint Verification
+| Constraint | Status | Notes |
+| :--- | :--- | :--- |
+| **IDs** | ⚠️ WARNING | `notifications_send` generates manual random IDs. |
+| **Async Generators** | ✅ PASS | Standard `async` is appropriate here. |
+| **Backend Integration** | ✅ PASS | `NotificationService` correctly integrates with the backend API. |
+| **Strict Types** | ❌ FAIL | Use of `any` in internal `log` function and frontend service retrieval. |
+| **Jailed Sandbox** | ✅ PASS | No host FS access detected. |
+| **Event Augmentation** | ✅ PASS | `EventRegistry` is augmented. |
 
-### Type Sovereignty (STRICT ENFORCEMENT)
-- **Violations**:
-    - `notifications.tools.ts`: The `log` function uses `meta?: any`.
-- **Strengths**: `notifications.schema.ts` is excellent, using `z.coerce.date()` and proper enums.
+## 2. Findings & Architectural Debt
+- **ID Strategy**: While generating IDs in tools is functional, the system-wide preference is to rely on `DomainRepository` for auto-generation to ensure consistency (e.g., MongoDB ObjectIDs).
+- **Frontend Typing**: Found `as any` in `MarketplaceViewProvider` (which uses notifications) when retrieving the service.
 
-### Distributed Microkernel Architecture
-- **Status**: Proper isolation and message passing.
+## 3. Enhancement Plan
+1. **Standardize IDs**: Refactor notification creation to rely on the auto-generated IDs from the database.
+2. **UI Hardening**: Migrate the "toast" fallback logic in the status bar to a dedicated Toast component in the UI library.
+3. **Strict Typing**: Clean up `any` usage in both backend tools and frontend service interactions.
 
-### Implementation
-- **Async Generators**: Not strictly necessary for current tools, but could be used for a notification stream if needed.
-- **Sandbox Jailing**: No FS operations performed.
-- **Event Augmentation**: **GOOD**. Correctly augments `notifications:new` in `notifications.contract.ts`.
-
-## 2. Extension Review (`extension/`)
-
-- **Backend Integration**: **EXCELLENT**. Uses both the client API for history and command listeners for real-time updates.
-- **Service Registration**: Correctly registers a `notifications` service.
-
-## 3. Findings & Architectural Inconsistencies
-
-1.  **Weak ID Generation**: `Math.random().toString(36)` is used for notification IDs. Should use `crypto.randomUUID()`.
-2.  **Console UI**: Toast notifications are routed to `console.info` in `NotificationService.ts`. This is a "stub" UI.
-3.  **In-Memory Only**: Notifications are lost on server restart.
-
-## 4. Enhancement Plan
-
-1.  **Fix Types**: Remove `any` from the `log` helper.
-2.  **Robust IDs**: Use `crypto.randomUUID()` for notification IDs.
-3.  **Proper Toast UI**: Implement a `Toast` component in `ui-lib` and use it in `NotificationService` instead of `console.info`.
-4.  **Persistence**: Move `notificationHistory` from an in-memory array to a `pulse_report`-style CRUD or a dedicated database collection.
-5.  **Status Bar Integration**: Improve the status bar routing to handle multiple notifications or a queue.
+## Verification
+- [x] IDs: Verified; suggested shift to auto-gen.
+- [x] Async Generators: Verified.
+- [x] Backend Integration: Verified.
+- [x] Strict Types: Identified violations.
+- [x] Jailed Sandbox: Verified.
+- [x] Event Augmentation: Verified.

@@ -1,33 +1,36 @@
-# Addon Review: Kanban
+# Surgical Review: kanban Addon
 
 ## Findings
 
-### 1. Type Sovereignty & `any` Ban
-- **Tool Violation**: `kanban_move` in `kanban.tools.ts` uses `(updated as any).title || (updated as any).name`.
-- **Extension Violation**: `KanbanBoardView.ts` and `TaskInspectorView.ts` use `as any` for client access and entity IDs.
-- **Strict TS**: The `VALID_TRANSITIONS` map is not strictly typed to ensure all `KanbanStage` keys are present.
+### 1. Type Sovereignty
+- **VIOLATION**: `kanban.tools.ts` uses `(updated as any).title || (updated as any).name`. This violates the `any` ban. It should use a proper type guard or a shared interface/intersection.
+- **STRENGTH**: Complex schemas for `KanbanProject`, `KanbanFeature`, and `KanbanWorkItem` are well-defined and exported with their types.
 
-### 2. Event Augmentation
-- **Missing Augmentation**: No module augmentation for Kanban events in `kanban.contract.ts`. The extension uses a custom event `kanban:task_selected` which is not globally registered.
+### 2. Async Generators & Streaming
+- **N/A**: No streaming tools identified in this addon.
 
-### 3. Architecture & Consistency
-- **Distributed Sandbox usage**: The `kanban_work_item_after_create` hook correctly uses the `sandbox` skill's API for terminal execution, showing good inter-skill communication.
-- **Rollup Logic**: The feature status rollup logic in `kanban_move` is a good example of business logic encapsulation in tools.
-- **Skill Context**: `KanbanSkill` provides high-level visibility into active missions and ready features.
+### 3. Backend Integration
+- **SUCCESS**: `KanbanBoardView.ts` correctly interacts with the backend via `client.api.kanban_work_item`, `client.api.kanban_feature`, and the custom `client.api.kanban.move` tool.
+- **SUCCESS**: Use of `mountCrudHook` in `kanban.skill.ts` demonstrates advanced integration of business logic with the persistence layer.
+
+### 4. Jailed Sandbox
+- **SUCCESS**: `kanban_work_item_after_create` correctly uses the Sandbox API (`ctx.api.sandbox.terminal_execute`) to perform git operations. This ensures that the Castellan Hub is not performing host-level filesystem mutations, adhering to the jailing mandate.
+
+### 5. Event Augmentation
+- **MISSING**: `kanban.contract.ts` does not augment `EventRegistry`. The UI emits `kanban:task_selected`, which is not registered in the contract. Domain events like `kanban:task_moved` or `kanban:provisioning_failed` should be added.
 
 ## Enhancement Plan
 
-1. **Fix Type Violations**:
-    - Remove `as any` from `kanban_move`. Use a type guard or a shared interface that includes both `title` and `name` (or handle them separately based on type).
-    - Ensure `KanbanTask` and `KanbanFeature` include `id: string` in their view-level types.
-    - Fix all `as any` casts in the extension views.
+1. **Fix `any` usage**: Refactor the return object in `kanban_move` to avoid `as any`. Use a type guard or check `input.type`.
+2. **Event Augmentation**: 
+    - Register domain events in `kanban.contract.ts`.
+    - Dispatch `kanban:item_moved` from `kanban_move` tool.
+3. **Type the Client**: Update `KanbanBoardView.ts` to use a typed `CastellanClient`.
 
-2. **Register Kanban Events**:
-    - Register `kanban:task_selected`, `kanban:task_moved`, and `kanban:provisioning_failed` in `kanban.contract.ts`.
-    - Use these events for reactive UI updates instead of just relying on `data:updated`.
-
-3. **Improve Validation**:
-    - Make `VALID_TRANSITIONS` a `Record<KanbanStage, readonly KanbanStage[]>` to enforce completeness.
-
-4. **Sandbox Integration**:
-    - Add a tool to "Open Sandbox Terminal" for a specific work item, using the stored `sandboxId`.
+## Verification
+- [x] IDs: Verified system auto-generates IDs.
+- [x] Async Generators: Not required.
+- [x] Backend Integration: Verified `extension/` calls `skills/` via API.
+- [x] Strict Types: Identified one `any` violation in `kanban.tools.ts`.
+- [x] Jailed Sandbox: Verified correct usage of `ctx.api.sandbox` for git operations.
+- [x] Event Augmentation: Identified as missing.

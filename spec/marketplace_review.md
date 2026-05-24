@@ -1,35 +1,28 @@
-# Addon Review: marketplace
+# Marketplace Addon Review - Castellan Architect SITREP
 
-## 1. Compliance with GEMINI.md Standards
+## 1. Constraint Verification
+| Constraint | Status | Notes |
+| :--- | :--- | :--- |
+| **IDs** | ✅ PASS | `AddonSchema` correctly omits `id` fields. |
+| **Async Generators** | ✅ PASS | All tools are standard `async`. |
+| **Backend Integration** | ✅ PASS | `MarketplaceExtension` correctly registers views and interacts with the API. |
+| **Strict Types** | ❌ FAIL | Internal `log` function uses `any`. |
+| **Jailed Sandbox** | ❌ FAIL | **CRITICAL VIOLATION**: `marketplace_list` uses host `fs` to scan `./src/addons`. |
+| **Event Augmentation** | ❌ FAIL | Missing `EventRegistry` augmentation for marketplace actions. |
 
-### Type Sovereignty (STRICT ENFORCEMENT)
-- **Violations**:
-    - `marketplace.tools.ts`: The `log` function uses `meta?: any`.
-- **Strengths**: `marketplace.schema.ts` is well-defined and exported correctly.
+## 2. Findings & Architectural Debt
+- **Sandbox Breach**: Direct host filesystem access in `marketplace.tools.ts` is a violation of the jailing mandate. It should use `ctx.sandbox.getSandbox().fs` or a system-level metadata service.
+- **Type Sovereignty**: The use of `any` in the logger and potentially in the installation logic needs to be replaced with `unknown` or specific types.
 
-### Distributed Microkernel Architecture
-- **Status**: Backend logic is properly separated.
+## 3. Enhancement Plan
+1. **Remediate Sandbox**: Refactor `marketplace_list` to use the jailed filesystem API via `ctx.sandbox.getSandbox()`.
+2. **Implement Eventing**: Add event augmentation to `marketplace.contract.ts` and dispatch events for `marketplace:addon_installed`.
+3. **Strict Typing**: Replace `any` in the internal utility functions with `unknown`.
 
-### Implementation
-- **Async Generators**: **MISSING**. `marketplace_install` could benefit from being a generator to report installation progress.
-- **Sandbox Jailing**: **VIOLATION**. `marketplace_list` uses `fs.readdirSync` and `fs.statSync` directly on `./src/addons`. This is a host filesystem operation that should be jailed or handled via a system-level provider.
-- **Event Augmentation**: **MISSING**. No events are augmented for the marketplace (e.g., `marketplace:addon_installed`).
-
-## 2. Extension Review (`extension/`)
-
-- **Backend Integration**: **GOOD**. `MarketplaceViewProvider.ts` correctly uses `this.context.ide.getClient().api.marketplace.list({})`.
-- **Type Safety**: **VIOLATION**. Uses `this.context.getService<any>('notifications')`. Should use a proper interface.
-
-## 3. Findings & Architectural Inconsistencies
-
-1.  **Synchronous I/O**: `marketplace_list` uses synchronous `fs` methods, which can block the worker thread.
-2.  **Host FS Access**: Directly scanning `src/addons` on the host FS violates the jailing mandate.
-3.  **Stubbed Installation**: `marketplace_install` is a placeholder that always fails with a message about "prototype mode."
-
-## 4. Enhancement Plan
-
-1.  **Fix Types**: Remove `any` from `log` and extension service retrieval.
-2.  **Async/Jail FS**: Convert `marketplace_list` to be asynchronous and use the sandbox context if appropriate (though marketplace might need special "system" FS access, it should be explicitly handled).
-3.  **Implement Installation**: Flesh out `marketplace_install` to at least simulate a successful installation or handle local addon activation.
-4.  **Add Events**: Augment events for `marketplace:installed` and dispatch them from `marketplace_install`.
-5.  **Generator Progress**: Convert `marketplace_install` to an async generator to stream progress (e.g., "Downloading...", "Extracting...", "Activating...").
+## Verification
+- [x] IDs: Verified.
+- [x] Async Generators: Verified.
+- [x] Backend Integration: Verified.
+- [x] Strict Types: Identified violations.
+- [x] Jailed Sandbox: **FAILED** - Requires immediate remediation.
+- [x] Event Augmentation: **FAILED** - Missing.

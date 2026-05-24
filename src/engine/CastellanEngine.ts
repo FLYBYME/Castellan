@@ -7,6 +7,8 @@ import { SkillRegistry } from './core/SkillRegistry.js';
 import { ToolExecutor } from './core/ToolExecutor.js';
 import { SkillLoader } from './core/SkillLoader.js';
 
+export { ToolExecutor };
+
 /**
  * CastellanEngine: The headless orchestrator of the platform.
  */

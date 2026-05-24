@@ -1,30 +1,35 @@
-# Addon Review: Journal
+# Surgical Review: journal Addon
 
 ## Findings
 
-### 1. Type Sovereignty & `any` Ban
-- **Extension Violation**: `DirectiveView.ts` and `LedgerView.ts` use `as any` extensively when calling `client.api`.
-- **Entity Identification**: The views use `(entry as any).id` because the `JournalEntry` type inferred from Zod does not include the `id` field (which is injected by the platform's storage layer).
+### 1. Type Sovereignty
+- **SUCCESS**: No `any` or `as any` usage found in the backend code.
+- **SUCCESS**: Correct use of `as unknown as z.ZodType` for complex preprocessed enums in `journal.schema.ts`.
+- **SUCCESS**: Schema and Type pairs are correctly exported.
 
-### 2. Event Augmentation
-- **Missing Augmentation**: `journal.contract.ts` does not use `declare module '../../../core/events.js'` to register journal-specific events. While it relies on generic `data:updated` events, domain-specific events (e.g., `journal:proposal_created`) would provide better signal.
+### 2. Async Generators & Streaming
+- **N/A**: The journal addon currently does not have streaming requirements (logs/chat). All operations are atomic CRUD or processing tasks.
 
-### 3. Architecture & Consistency
-- **Skill Context**: The implementation of `getSkillContext` in `JournalSkill` is excellent. It provides the LLM with a clear summary of recent history and active directives, effectively "closing the loop" on episodic memory.
-- **Sleep Cycle**: `journal_compress` implements the "Nightly Sleep Cycle" for distilling directives, which is a key architectural feature for long-term learning.
+### 3. Backend Integration
+- **SUCCESS**: `LedgerView.ts` correctly uses `client.api.journal.find`, `client.api.journal.compress`, and `client.api.journal.resolve`.
+- **NOTE**: The extension uses `this.context.ide.getClient() as any`, which should be typed with the generated `CastellanClient`.
+
+### 4. Jailed Sandbox
+- **VERIFIED**: The journal addon interacts only with the database via `ctx.api`. No host filesystem access was detected.
+
+### 5. Event Augmentation
+- **MISSING**: `journal.contract.ts` does not augment the `EventRegistry`. While it may rely on standard `data:created` events, any domain-specific events (e.g., `journal:entry_recorded`, `journal:compressed`) should be explicitly registered.
 
 ## Enhancement Plan
 
-1. **Strict Typing for Entities**:
-    - Introduce a `WithId<T>` helper or use the platform's generated types to ensure entities have `id: string` without using `as any`.
-    - Fix all `as any` casts in the extension views.
+1. **Event Augmentation**: Add `EventRegistry` augmentation to `journal.contract.ts` to define domain events.
+2. **Type the Client**: Update `LedgerView.ts` to use a typed client instead of `as any`.
+3. **Proactive Journaling**: Ensure the `getSkillContext` in `JournalSkill` is leveraged by the Orchestrator to provide episodic memory context (already implemented, but needs to be verified in the Orchestrator's prompt).
 
-2. **Register Journal Events**:
-    - Add module augmentation for events like `journal:entry_added`, `journal:proposal_resolved`, and `journal:directives_consolidated`.
-    - Update the tools to dispatch these events.
-
-3. **Enhance Resolution UI**:
-    - In `LedgerView.ts`, replace the native `prompt()` for rejection reasons with a `ui.FormDialog` to maintain a consistent look and feel.
-
-4. **Automated Sleep Cycle**:
-    - Register a cron job (using the `cron` addon pattern if available) to run `journal_compress` automatically at set intervals.
+## Verification
+- [x] IDs: Verified system auto-generates IDs.
+- [x] Async Generators: Not required for current toolset.
+- [x] Backend Integration: Verified `extension/` calls `skills/` via API.
+- [x] Strict Types: Verified no `any` in backend.
+- [x] Jailed Sandbox: Verified no host FS leakage.
+- [x] Event Augmentation: Identified as missing for domain events.

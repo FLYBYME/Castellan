@@ -1,15 +1,30 @@
 {
-  "name": "castellan",
+  "name": "@flybyme/castellan",
   "version": "1.0.0",
   "type": "module",
   "description": "AI Assistant Infrastructure",
+  "bin": {
+    "castellan": "src/cli/index.ts"
+  },
   "main": "src/engine/CastellanEngine.ts",
   "exports": {
     ".": "./src/engine/CastellanEngine.ts",
     "./core": "./src/core/index.ts",
     "./engine": "./src/engine/CastellanEngine.ts",
-    "./api": "./src/generated/api.ts"
+    "./api": "./src/generated/api.ts",
+    "./addons/*": "./src/addons/*"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FLYBYME/Castellan.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "bugs": {
+    "url": "https://github.com/FLYBYME/Castellan/issues"
+  },
+  "homepage": "https://github.com/FLYBYME/Castellan#readme",
   "scripts": {
     "cli": "tsx src/cli/index.ts",
     "start": "npm run build && tsx src/cli/index.ts start",
@@ -49,6 +64,7 @@
     "shell-quote": "^1.8.3",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^12.1.1",
+    "tsx": "^4.7.0",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "ws": "^8.20.1",
@@ -69,7 +85,6 @@
     "@vitest/ui": "^1.5.0",
     "eslint": "^8.57.1",
     "pino-pretty": "^13.1.3",
-    "tsx": "^4.7.0",
     "typescript": "^5.4.0",
     "vitest": "^1.5.0"
   }

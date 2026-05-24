@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ICastellanApi } from '../api.js';
-import { ISkillContext } from '@castellan/core/index.js';
-import { ToolExecutor } from '@castellan/engine/core/ToolExecutor.js';
+import { ISkillContext } from 'castellan/core';
+import { ToolExecutor } from 'castellan/engine';
 import * as Contract_0 from '../../addons/agents/skills/agent.contract.js';
 import * as Contract_1 from '../../addons/cron/skills/cron.contract.js';
 import * as Contract_2 from '../../addons/demo/skills/demo.contract.js';

@@ -1,3 +1,4 @@
+#!/usr/bin/env -S npx tsx
 import 'dotenv/config';
 import { Command } from 'commander';
 import { CommandRegistry } from './core/CommandRegistry.js';

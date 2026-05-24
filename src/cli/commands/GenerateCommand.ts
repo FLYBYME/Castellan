@@ -23,6 +23,7 @@ export class GenerateCommand extends BaseCommand {
     public readonly description = 'Generate strictly-typed artifacts (SDK, CLI, Context API) and bundle UI/Addons using esbuild.';
     public readonly category = 'System Tools';
 
+    private readonly packageRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../..');
     private readonly artifactRoot = path.resolve('./src/generated');
     private readonly bundleRoot = path.resolve('./dist');
 
@@ -31,14 +32,18 @@ export class GenerateCommand extends BaseCommand {
             .command(this.name)
             .description(this.description)
             .option('--skip-tsc', 'Skip the TypeScript compiler diagnostics check')
-            .action(async (options: { skipTsc?: boolean }) => {
+            .option('--addons <dir>', 'Directory to load addons from', '')
+            .action(async (options: { skipTsc?: boolean; addons?: string }) => {
                 await this.execute(options);
             });
     }
 
-    protected async execute(options: { skipTsc?: boolean } = {}): Promise<void> {
+    protected async execute(options: { skipTsc?: boolean; addons?: string } = {}): Promise<void> {
         console.log('--- Generating Castellan Artifacts ---');
         const start = Date.now();
+
+        const customAddonsDir = options.addons ? path.resolve(options.addons) : undefined;
+        const builtInAddonsDir = path.join(this.packageRoot, 'src/addons');
 
         [this.artifactRoot, this.bundleRoot].forEach(dir => {
             if (!fs.existsSync(dir)) {
@@ -46,23 +51,23 @@ export class GenerateCommand extends BaseCommand {
             }
         });
 
-        const { discovery, files } = this.discoverContracts();
+        const { discovery, files } = this.discoverAllContracts(builtInAddonsDir, customAddonsDir);
 
-        await this.generateApiInterface(discovery, files);
-        await this.generateContextApi(discovery, files);
-        await this.generateSDK(discovery, files);
-        await this.generateCLI(discovery, files);
+        await this.generateApiInterface(discovery, files, builtInAddonsDir);
+        await this.generateContextApi(discovery, files, builtInAddonsDir);
+        await this.generateSDK(discovery, files, builtInAddonsDir);
+        await this.generateCLI(discovery, files, builtInAddonsDir);
 
         console.log('\n--- Bundling UI and Extensions ---');
         await this.bundleCore();
-        await this.bundleAddons();
+        await this.bundleAllAddons(builtInAddonsDir, customAddonsDir);
 
         console.log('\n--- Generation Complete ---');
 
         if (!options.skipTsc) {
             console.log('\n--- Running TypeScript compiler ---');
             try {
-                execSync('npx tsc --noEmit', { stdio: 'inherit' });
+                execSync('npx tsc --noEmit', { cwd: path.resolve('.'), stdio: 'inherit' });
             } catch (err) {
                 console.error('✔ Diagnostics complete (errors found).');
             }
@@ -76,7 +81,7 @@ export class GenerateCommand extends BaseCommand {
 
     private async bundleCore(): Promise<void> {
         console.log('Bundling Core UI...');
-        const clientDir = path.resolve('./src/client');
+        const clientDir = path.join(this.packageRoot, 'src/client');
         const outDir = path.join(this.bundleRoot, 'client');
 
         await Bundler.bundleCoreUI(path.join(clientDir, 'index.ts'), outDir);
@@ -84,9 +89,8 @@ export class GenerateCommand extends BaseCommand {
         console.log('✔ Core UI bundled.');
     }
 
-    private async bundleAddons(): Promise<void> {
+    private async bundleAllAddons(builtInDir: string, customDir?: string): Promise<void> {
         console.log('Bundling Addons...');
-        const addonsDir = path.resolve('./src/addons');
         const outDir = path.join(this.bundleRoot, 'extensions');
         const manifestPath = path.join(outDir, 'manifest.json');
 
@@ -94,15 +98,28 @@ export class GenerateCommand extends BaseCommand {
             fs.mkdirSync(outDir, { recursive: true });
         }
 
-        const addonNames = fs.readdirSync(addonsDir).filter(name => {
-            const fullPath = path.join(addonsDir, name);
-            return fs.statSync(fullPath).isDirectory();
-        });
+        const dirsToScan = [builtInDir];
+        if (customDir && fs.existsSync(customDir)) {
+            dirsToScan.push(customDir);
+        }
+
+        let addonDirs: { name: string; path: string }[] = [];
+
+        for (const dir of dirsToScan) {
+            if (fs.existsSync(path.join(dir, 'addon.json'))) {
+                addonDirs.push({ name: path.basename(dir), path: dir });
+            } else {
+                const addonNames = fs.readdirSync(dir).filter(name => {
+                    const fullPath = path.join(dir, name);
+                    return fs.statSync(fullPath).isDirectory();
+                });
+                addonDirs.push(...addonNames.map(name => ({ name, path: path.join(dir, name) })));
+            }
+        }
 
         const masterManifest: any[] = [];
 
-        for (const name of addonNames) {
-            const addonDir = path.join(addonsDir, name);
+        for (const { name, path: addonDir } of addonDirs) {
             const jsonPath = path.join(addonDir, 'addon.json');
             const extensionEntry = path.join(addonDir, 'extension', 'index.ts');
 
@@ -114,7 +131,7 @@ export class GenerateCommand extends BaseCommand {
 
                 // 2. Read the JSON and add it to the master list
                 const addonMetadata = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
-                addonMetadata.entry = `${name}.bundle.js`; // Tell the client where the code is
+                addonMetadata.entry = `${name}.bundle.js`;
                 masterManifest.push(addonMetadata);
             }
         }
@@ -123,18 +140,18 @@ export class GenerateCommand extends BaseCommand {
         console.log('✔ Addons bundled.');
     }
 
-    private async generateApiInterface(discovery: ContractDiscovery[], files: Record<string, string[]>): Promise<void> {
+    private async generateApiInterface(discovery: ContractDiscovery[], files: Record<string, string[]>, builtInDir: string): Promise<void> {
         console.log('Generating ICastellanApi interface...');
         const filePath = path.join(this.artifactRoot, 'api.ts');
-        const aliasMap = this.getAliasMap(files, this.artifactRoot);
+        const aliasMap = this.getAliasMap(files, this.artifactRoot, builtInDir);
 
         let code = `import { z } from 'zod';\n`;
-        code += `import { ICastellanApi } from '../core/api.js';\n`;
+        code += `import { ICastellanApi } from '@flybyme/castellan/core/index.js';\n`;
         Object.values(aliasMap).forEach(m => {
             code += `import * as ${m.alias} from '${m.path}';\n`;
         });
 
-        code += `\ndeclare module '../core/api.js' {\n`;
+        code += `\ndeclare module '@flybyme/castellan/core/index.js' {\n`;
         code += `    interface ICastellanApi {\n`;
 
         const byDomain: Record<string, ContractDiscovery[]> = {};
@@ -174,18 +191,18 @@ export class GenerateCommand extends BaseCommand {
         fs.writeFileSync(filePath, code);
     }
 
-    private async generateContextApi(discovery: ContractDiscovery[], files: Record<string, string[]>): Promise<void> {
+    private async generateContextApi(discovery: ContractDiscovery[], files: Record<string, string[]>, builtInDir: string): Promise<void> {
         console.log('Generating ContextApi implementation...');
         const outDir = path.join(this.artifactRoot, 'server');
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
         const filePath = path.join(outDir, 'ContextApi.ts');
 
-        const aliasMap = this.getAliasMap(files, outDir);
+        const aliasMap = this.getAliasMap(files, outDir, builtInDir);
 
         let code = `import { z } from 'zod';\n`;
         code += `import { ICastellanApi } from '../api.js';\n`;
-        code += `import { ISkillContext } from '@castellan/core/index.js';\n`;
-        code += `import { ToolExecutor } from '@castellan/engine/core/ToolExecutor.js';\n`;
+        code += `import { ISkillContext } from '@flybyme/castellan/core';\n`;
+        code += `import { ToolExecutor } from '@flybyme/castellan/engine';\n`;
         Object.values(aliasMap).forEach(m => {
             code += `import * as ${m.alias} from '${m.path}';\n`;
         });
@@ -229,16 +246,16 @@ export class GenerateCommand extends BaseCommand {
         fs.writeFileSync(filePath, code);
     }
 
-    private async generateSDK(discovery: ContractDiscovery[], files: Record<string, string[]>): Promise<void> {
+    private async generateSDK(discovery: ContractDiscovery[], files: Record<string, string[]>, builtInDir: string): Promise<void> {
         console.log('Generating SDK Client...');
         const outDir = path.join(this.artifactRoot, 'client');
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
         const filePath = path.join(outDir, 'CastellanClient.ts');
 
-        const aliasMap = this.getAliasMap(files, outDir);
+        const aliasMap = this.getAliasMap(files, outDir, builtInDir);
 
         let code = `import { z } from 'zod';\n`;
-        code += `import { BaseClient } from '@castellan/core/index.js';\n`;
+        code += `import { BaseClient } from '@flybyme/castellan/core';\n`;
         Object.values(aliasMap).forEach(m => {
             code += `import * as ${m.alias} from '${m.path}';\n`;
         });
@@ -256,6 +273,7 @@ export class GenerateCommand extends BaseCommand {
         code += `        this.connectingPromise = new Promise(async (resolve, reject) => {\n`;
         code += `            try {\n`;
         code += `                const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;\n`;
+        code += `                // @ts-ignore\n`;
         code += `                const WS = isNode ? (await import('ws')).default : WebSocket;\n`;
         code += `                let url = this.serverUrl.replace(/^http/, 'ws');\n`;
         code += `                if (!url.endsWith('/ws')) url += '/ws';\n`;
@@ -336,13 +354,13 @@ export class GenerateCommand extends BaseCommand {
         console.log('✔ SDK Client generated.');
     }
 
-    private async generateCLI(discovery: ContractDiscovery[], files: Record<string, string[]>): Promise<void> {
+    private async generateCLI(discovery: ContractDiscovery[], files: Record<string, string[]>, builtInDir: string): Promise<void> {
         console.log('Generating V2 CLI Command Tree...');
         const outDir = path.join(this.artifactRoot, 'cli');
         if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
         const filePath = path.join(outDir, 'ToolCommands.ts');
 
-        const aliasMap = this.getAliasMap(files, outDir);
+        const aliasMap = this.getAliasMap(files, outDir, builtInDir);
 
         let importBlock = '';
         Object.values(aliasMap).forEach(m => {
@@ -378,10 +396,10 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
 
                 const safeVarName = `${domain}_${m.exportName}_${m.action}`.replace(/[^a-zA-Z0-9_]/g, '_');
                 code += `    const cmd_${safeVarName} = ${domain}.command('${m.action}').description(\`${m.description}\`);
-    cmd_${safeVarName}.action(async (o) => {
+    cmd_${safeVarName}.action(async (o: Record<string, unknown>) => {
         try {
             console.log(C.dim + 'Executing ${domain}:${m.action}...' + C.reset);
-            const res = await client.api.${domain}.${m.action}(ZodToCliMapper.parseOptions(o as Record<string, unknown>, ${inputSchema}));
+            const res = await client.api.${domain}.${m.action}(ZodToCliMapper.parseOptions(o, ${inputSchema}));
             console.log(JSON.stringify(res, null, 2));
             client.close();
             process.exit(0);
@@ -399,14 +417,19 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         console.log('✔ CLI Tree generated.');
     }
 
-    private discoverContracts(): { discovery: ContractDiscovery[], files: Record<string, string[]> } {
-        const addonsDir = path.resolve('./src/addons');
+    private discoverAllContracts(builtInDir: string, customDir?: string): { discovery: ContractDiscovery[], files: Record<string, string[]> } {
         const allContracts: ContractDiscovery[] = [];
         const domainFiles: Record<string, string[]> = {};
 
-        if (!fs.existsSync(addonsDir)) return { discovery: [], files: {} };
+        const dirsToScan = [builtInDir];
+        if (customDir && fs.existsSync(customDir)) {
+            dirsToScan.push(customDir);
+        }
 
-        const files = this.walkDir(addonsDir).filter(f => f.endsWith('.contract.ts'));
+        const files: string[] = [];
+        for (const dir of dirsToScan) {
+            files.push(...this.walkDir(dir).filter(f => f.endsWith('.contract.ts')));
+        }
 
         for (const file of files) {
             const content = fs.readFileSync(file, 'utf-8');
@@ -562,13 +585,21 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         return results;
     }
 
-    private getAliasMap(files: Record<string, string[]>, baseDir: string): Record<string, { alias: string, path: string }> {
+    private getAliasMap(files: Record<string, string[]>, baseDir: string, builtInDir: string): Record<string, { alias: string, path: string }> {
         const allFiles = Array.from(new Set(Object.values(files).flat()));
         const map: Record<string, { alias: string, path: string }> = {};
         allFiles.forEach((file, idx) => {
+            const isBuiltIn = file.startsWith(builtInDir);
+            let importPath = '';
+            if (isBuiltIn) {
+                const relativeToAddons = path.relative(builtInDir, file).replace(/\\/g, '/');
+                importPath = `@flybyme/castellan/addons/${relativeToAddons}`.replace(/\.ts$/, '.js');
+            } else {
+                importPath = path.relative(baseDir, file).replace(/\\/g, '/').replace(/\.ts$/, '.js');
+            }
             map[file] = {
                 alias: `Contract_${idx}`,
-                path: path.relative(baseDir, file).replace(/\\/g, '/').replace(/\.ts$/, '.js')
+                path: importPath
             };
         });
         return map;
