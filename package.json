@@ -1,6 +1,6 @@
 {
   "name": "@flybyme/castellan",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "description": "AI Assistant Infrastructure",
   "bin": {
@@ -14,7 +14,8 @@
     "./engine": "./src/engine/CastellanEngine.ts",
     "./engine/*": "./src/engine/*",
     "./api": "./src/generated/api.ts",
-    "./addons/*": "./src/addons/*"
+    "./addons/*": "./src/addons/*",
+    "./cli/*": "./src/cli/*"
   },
   "repository": {
     "type": "git",

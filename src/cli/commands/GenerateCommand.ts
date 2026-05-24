@@ -369,8 +369,8 @@ export class GenerateCommand extends BaseCommand {
 
         let code = `import { Command } from 'commander';
 import { CastellanClient } from '../client/CastellanClient.js';
-import { ZodToCliMapper } from '../../cli/core/ZodToCliMapper.js';
-import { C } from '../../cli/core/Utils.js';
+import { ZodToCliMapper } from '@flybyme/castellan/cli/core/ZodToCliMapper.js';
+import { C } from '@flybyme/castellan/cli/core/Utils.js';
 ${importBlock}
 
 export function registerGeneratedCommands(program: Command, client: CastellanClient) {
