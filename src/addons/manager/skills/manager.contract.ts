@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { defineContract, defineCrud } from 'castellan/core';
+import { PulseReportSchema } from './manager.schema.js';
+import { agentCrud } from '../../agents/skills/agent.contract.js';
 
 /**
  * Default Toolsets for Core Agents

@@ -1,16 +1,16 @@
 import { z } from 'zod';
-import { BaseClient } from 'castellan/core';
-import * as Contract_0 from '../../addons/agents/skills/agent.contract.js';
-import * as Contract_1 from '../../addons/cron/skills/cron.contract.js';
-import * as Contract_2 from '../../addons/demo/skills/demo.contract.js';
-import * as Contract_3 from '../../addons/infer/skills/infer.contract.js';
-import * as Contract_4 from '../../addons/journal/skills/journal.contract.js';
-import * as Contract_5 from '../../addons/kanban/skills/kanban.contract.js';
-import * as Contract_6 from '../../addons/manager/skills/manager.contract.js';
-import * as Contract_7 from '../../addons/marketplace/skills/marketplace.contract.js';
-import * as Contract_8 from '../../addons/notifications/skills/notifications.contract.js';
-import * as Contract_9 from '../../addons/sandbox/skills/sandbox.contract.js';
-import * as Contract_10 from '../../addons/settings/skills/settings.contract.js';
+import { BaseClient } from '@flybyme/castellan/core';
+import * as Contract_0 from '@flybyme/castellan/addons/agents/skills/agent.contract.js';
+import * as Contract_1 from '@flybyme/castellan/addons/cron/skills/cron.contract.js';
+import * as Contract_2 from '@flybyme/castellan/addons/demo/skills/demo.contract.js';
+import * as Contract_3 from '@flybyme/castellan/addons/infer/skills/infer.contract.js';
+import * as Contract_4 from '@flybyme/castellan/addons/journal/skills/journal.contract.js';
+import * as Contract_5 from '@flybyme/castellan/addons/kanban/skills/kanban.contract.js';
+import * as Contract_6 from '@flybyme/castellan/addons/manager/skills/manager.contract.js';
+import * as Contract_7 from '@flybyme/castellan/addons/marketplace/skills/marketplace.contract.js';
+import * as Contract_8 from '@flybyme/castellan/addons/notifications/skills/notifications.contract.js';
+import * as Contract_9 from '@flybyme/castellan/addons/sandbox/skills/sandbox.contract.js';
+import * as Contract_10 from '@flybyme/castellan/addons/settings/skills/settings.contract.js';
 
 export class CastellanClient extends BaseClient {
     protected async getWebSocket(): Promise<any> {
@@ -25,6 +25,7 @@ export class CastellanClient extends BaseClient {
         this.connectingPromise = new Promise(async (resolve, reject) => {
             try {
                 const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+                // @ts-ignore
                 const WS = isNode ? (await import('ws')).default : WebSocket;
                 let url = this.serverUrl.replace(/^http/, 'ws');
                 if (!url.endsWith('/ws')) url += '/ws';
