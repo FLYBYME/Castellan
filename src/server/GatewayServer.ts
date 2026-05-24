@@ -19,10 +19,7 @@ export class GatewayServer implements IServer {
 
     constructor(private readonly port: number = 3000, private readonly host: string = '0.0.0.0') {
         this.fastify = Fastify({
-            logger: {
-                level: 'info',
-                transport: { target: 'pino-pretty' }
-            }
+            logger: true
         });
     }
 

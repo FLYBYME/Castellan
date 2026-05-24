@@ -64,7 +64,7 @@ export class Bundler {
      */
     public static copyAssets(srcDir: string, destDir: string): void {
         const filesToCopy = ['index.html', 'css'];
-        
+
         if (!fs.existsSync(destDir)) {
             fs.mkdirSync(destDir, { recursive: true });
         }
@@ -72,7 +72,7 @@ export class Bundler {
         filesToCopy.forEach(file => {
             const src = path.join(srcDir, file);
             const dest = path.join(destDir, file);
-            
+
             if (fs.existsSync(src)) {
                 if (fs.lstatSync(src).isDirectory()) {
                     this.copyDir(src, dest);
@@ -87,7 +87,7 @@ export class Bundler {
         if (!fs.existsSync(dest)) {
             fs.mkdirSync(dest, { recursive: true });
         }
-        
+
         const entries = fs.readdirSync(src, { withFileTypes: true });
 
         for (const entry of entries) {
