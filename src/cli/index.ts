@@ -31,14 +31,19 @@ registry.attachToProgram(program);
 
 // Load Generated Tool Commands if they exist
 async function loadGeneratedCommands() {
-    const generatedPath = path.resolve('./src/generated/cli/ToolCommands.ts');
-    const clientPath = path.resolve('./src/generated/client/CastellanClient.ts');
+    let targetGeneratedPath = path.resolve('./src/generated/cli/ToolCommands.ts');
+    let targetClientPath = path.resolve('./src/generated/client/CastellanClient.ts');
 
-    if (fs.existsSync(generatedPath) && fs.existsSync(clientPath)) {
+    if (!fs.existsSync(targetGeneratedPath)) {
+        targetGeneratedPath = path.resolve('./src/generated/cli/ToolCommands.js');
+        targetClientPath = path.resolve('./src/generated/client/CastellanClient.js');
+    }
+
+    if (fs.existsSync(targetGeneratedPath) && fs.existsSync(targetClientPath)) {
         try {
-            // Use path to file for absolute import
-            const { registerGeneratedCommands } = await import('../generated/cli/ToolCommands.js');
-            const { CastellanClient } = await import('../generated/client/CastellanClient.js');
+            // Use file:// URL to force ESM import to resolve relative to current working directory
+            const { registerGeneratedCommands } = await import('file://' + targetGeneratedPath);
+            const { CastellanClient } = await import('file://' + targetClientPath);
             const options = program.opts();
             const client = new CastellanClient(options.apiUrl || 'http://localhost:3000/api/v2');
             registerGeneratedCommands(program, client);
