@@ -42,17 +42,19 @@ export class GenerateCommand extends BaseCommand {
         console.log('--- Generating Castellan Artifacts ---');
         const start = Date.now();
 
-        const builtInDir = path.join(this.packageRoot, 'src/addons');
-        let customDir: string | undefined = undefined;
-
-        if (options.addons) {
-            const resolvedAddons = path.resolve(options.addons);
-            if (resolvedAddons !== builtInDir) {
-                customDir = resolvedAddons;
-            }
+        if (!fs.existsSync(this.artifactRoot)) {
+            fs.mkdirSync(this.artifactRoot, { recursive: true });
         }
 
-        const { discovery, files } = this.discoverAllContracts(builtInDir, customDir);
+        const isCoreBuild = path.resolve('.') === this.packageRoot;
+        const builtInDir = path.join(this.packageRoot, 'src/addons');
+        const customDir = options.addons ? path.resolve(options.addons) : undefined;
+        
+        // If we are building the core engine itself, scan builtInDir. 
+        // If we are in a consumer project, strictly scan only the provided addons directory to prevent cross-contamination.
+        const dirsToScan = isCoreBuild ? [builtInDir] : (customDir ? [customDir] : []);
+
+        const { discovery, files } = this.discoverAllContracts(dirsToScan);
 
         await this.generateApiInterface(discovery, files, builtInDir);
         await this.generateContextApi(discovery, files, builtInDir);
@@ -61,7 +63,7 @@ export class GenerateCommand extends BaseCommand {
 
         console.log('\n--- Bundling UI and Extensions ---');
         await this.bundleCore();
-        await this.bundleAllAddons(builtInDir, customDir);
+        await this.bundleAllAddons(dirsToScan);
 
         console.log('\n--- Generation Complete ---');
 
@@ -90,7 +92,7 @@ export class GenerateCommand extends BaseCommand {
         console.log('✔ Core UI bundled.');
     }
 
-    private async bundleAllAddons(builtInDir: string, customDir?: string): Promise<void> {
+    private async bundleAllAddons(dirsToScan: string[]): Promise<void> {
         console.log('Bundling Addons...');
         const outDir = path.join(this.bundleRoot, 'extensions');
         const manifestPath = path.join(outDir, 'manifest.json');
@@ -99,17 +101,12 @@ export class GenerateCommand extends BaseCommand {
             fs.mkdirSync(outDir, { recursive: true });
         }
 
-        const dirsToScan = [builtInDir];
-        if (customDir && fs.existsSync(customDir)) {
-            dirsToScan.push(customDir);
-        }
-
         let addonDirs: { name: string; path: string }[] = [];
 
         for (const dir of dirsToScan) {
             if (fs.existsSync(path.join(dir, 'addon.json'))) {
                 addonDirs.push({ name: path.basename(dir), path: dir });
-            } else {
+            } else if (fs.existsSync(dir)) {
                 const addonNames = fs.readdirSync(dir).filter(name => {
                     const fullPath = path.join(dir, name);
                     return fs.statSync(fullPath).isDirectory();
@@ -418,18 +415,15 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
         console.log('✔ CLI Tree generated.');
     }
 
-    private discoverAllContracts(builtInDir: string, customDir?: string): { discovery: ContractDiscovery[], files: Record<string, string[]> } {
+    private discoverAllContracts(dirsToScan: string[]): { discovery: ContractDiscovery[], files: Record<string, string[]> } {
         const allContracts: ContractDiscovery[] = [];
         const domainFiles: Record<string, string[]> = {};
 
-        const dirsToScan = [builtInDir];
-        if (customDir && fs.existsSync(customDir)) {
-            dirsToScan.push(customDir);
-        }
-
         const files: string[] = [];
         for (const dir of dirsToScan) {
-            files.push(...this.walkDir(dir).filter(f => f.endsWith('.contract.ts')));
+            if (fs.existsSync(dir)) {
+                files.push(...this.walkDir(dir).filter(f => f.endsWith('.contract.ts')));
+            }
         }
 
         for (const file of files) {
@@ -589,8 +583,10 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
     private getAliasMap(files: Record<string, string[]>, baseDir: string, builtInDir: string): Record<string, { alias: string, path: string }> {
         const allFiles = Array.from(new Set(Object.values(files).flat()));
         const map: Record<string, { alias: string, path: string }> = {};
+        const isCoreBuild = path.resolve('.') === this.packageRoot;
+
         allFiles.forEach((file, idx) => {
-            const isBuiltIn = file.startsWith(builtInDir);
+            const isBuiltIn = isCoreBuild && file.startsWith(builtInDir);
             let importPath = '';
             if (isBuiltIn) {
                 const relativeToAddons = path.relative(builtInDir, file).replace(/\\/g, '/');
