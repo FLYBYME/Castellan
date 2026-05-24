@@ -42,20 +42,26 @@ export class GenerateCommand extends BaseCommand {
         console.log('--- Generating Castellan Artifacts ---');
         const start = Date.now();
 
-        if (!options.addons) {
-            throw new Error('Addons directory not specified');
+        const builtInDir = path.join(this.packageRoot, 'src/addons');
+        let customDir: string | undefined = undefined;
+
+        if (options.addons) {
+            const resolvedAddons = path.resolve(options.addons);
+            if (resolvedAddons !== builtInDir) {
+                customDir = resolvedAddons;
+            }
         }
 
-        const { discovery, files } = this.discoverAllContracts(options.addons);
+        const { discovery, files } = this.discoverAllContracts(builtInDir, customDir);
 
-        await this.generateApiInterface(discovery, files, options.addons);
-        await this.generateContextApi(discovery, files, options.addons);
-        await this.generateSDK(discovery, files, options.addons);
-        await this.generateCLI(discovery, files, options.addons);
+        await this.generateApiInterface(discovery, files, builtInDir);
+        await this.generateContextApi(discovery, files, builtInDir);
+        await this.generateSDK(discovery, files, builtInDir);
+        await this.generateCLI(discovery, files, builtInDir);
 
         console.log('\n--- Bundling UI and Extensions ---');
         await this.bundleCore();
-        await this.bundleAllAddons(options.addons);
+        await this.bundleAllAddons(builtInDir, customDir);
 
         console.log('\n--- Generation Complete ---');
 
@@ -591,6 +597,9 @@ export function registerGeneratedCommands(program: Command, client: CastellanCli
                 importPath = `@flybyme/castellan/addons/${relativeToAddons}`.replace(/\.ts$/, '.js');
             } else {
                 importPath = path.relative(baseDir, file).replace(/\\/g, '/').replace(/\.ts$/, '.js');
+                if (!importPath.startsWith('.')) {
+                    importPath = './' + importPath;
+                }
             }
             map[file] = {
                 alias: `Contract_${idx}`,
