@@ -25,8 +25,8 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
         context: ISkillContext<TApi>
     ): Promise<T> {
         const startTime = Date.now();
-        console.log(`[ToolExecutor] [${domain}:${action}] [START] CorrelationId: ${context.correlationId}`);
-        console.log(`[ToolExecutor] [${domain}:${action}] Input:`, (JSON.stringify(input) ?? 'undefined').slice(0, 1000));
+        //console.log(`[ToolExecutor] [${domain}:${action}] [START] CorrelationId: ${context.correlationId}`);
+        //console.log(`[ToolExecutor] [${domain}:${action}] Input:`, (JSON.stringify(input) ?? 'undefined').slice(0, 1000));
 
         try {
             const skill = this.registry.getSkill(domain);
@@ -55,16 +55,16 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
             }
 
             const duration = Date.now() - startTime;
-            console.log(`[ToolExecutor] [${domain}:${action}] [SUCCESS] Duration: ${duration}ms`);
-            console.log(`[ToolExecutor] [${domain}:${action}] Output:`, (JSON.stringify(result) ?? 'undefined').slice(0, 1000));
+            //console.log(`[ToolExecutor] [${domain}:${action}] [SUCCESS] Duration: ${duration}ms`);
+            //console.log(`[ToolExecutor] [${domain}:${action}] Output:`, (JSON.stringify(result) ?? 'undefined').slice(0, 1000));
 
             return result as T;
         } catch (err) {
             const duration = Date.now() - startTime;
-            console.error(`[ToolExecutor] [${domain}:${action}] [ERROR] Duration: ${duration}ms. Message: ${err instanceof Error ? err.message : String(err)}`);
+            //console.error(`[ToolExecutor] [${domain}:${action}] [ERROR] Duration: ${duration}ms. Message: ${err instanceof Error ? err.message : String(err)}`);
             if (err && typeof err === 'object') {
-                if ((err as any).stdout) console.error(`[${domain}:${action}] [STDOUT]\n${(err as any).stdout}`);
-                if ((err as any).stderr) console.error(`[${domain}:${action}] [STDERR]\n${(err as any).stderr}`);
+                if ((err as any).stdout) //console.error(`[${domain}:${action}] [STDOUT]\n${(err as any).stdout}`);
+                    if ((err as any).stderr) //console.error(`[${domain}:${action}] [STDERR]\n${(err as any).stderr}`);
             }
             throw err;
         }
@@ -80,8 +80,8 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
         context: ISkillContext<TApi>
     ): AsyncIterable<T> {
         const startTime = Date.now();
-        console.log(`[ToolExecutor] [${domain}:${action}] [STREAM_START] CorrelationId: ${context.correlationId}`);
-        console.log(`[ToolExecutor] [${domain}:${action}] Input:`, (JSON.stringify(input) ?? 'undefined').slice(0, 1000));
+        //console.log(`[ToolExecutor] [${domain}:${action}] [STREAM_START] CorrelationId: ${context.correlationId}`);
+        //console.log(`[ToolExecutor] [${domain}:${action}] Input:`, (JSON.stringify(input) ?? 'undefined').slice(0, 1000));
 
         try {
             const skill = this.registry.getSkill(domain);
@@ -92,15 +92,15 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
             let chunkCount = 0;
             for await (const chunk of result) {
                 chunkCount++;
-                console.log(`[ToolExecutor] [${domain}:${action}] [CHUNK ${chunkCount}]`, (JSON.stringify(chunk) ?? 'undefined').slice(0, 200));
+                //console.log(`[ToolExecutor] [${domain}:${action}] [CHUNK ${chunkCount}]`, (JSON.stringify(chunk) ?? 'undefined').slice(0, 200));
                 yield chunk;
             }
 
             const duration = Date.now() - startTime;
-            console.log(`[ToolExecutor] [${domain}:${action}] [STREAM_SUCCESS] Duration: ${duration}ms. Total chunks: ${chunkCount}`);
+            //console.log(`[ToolExecutor] [${domain}:${action}] [STREAM_SUCCESS] Duration: ${duration}ms. Total chunks: ${chunkCount}`);
         } catch (err) {
             const duration = Date.now() - startTime;
-            console.error(`[ToolExecutor] [${domain}:${action}] [STREAM_ERROR] Duration: ${duration}ms. Message: ${err instanceof Error ? err.message : String(err)}`);
+            //console.error(`[ToolExecutor] [${domain}:${action}] [STREAM_ERROR] Duration: ${duration}ms. Message: ${err instanceof Error ? err.message : String(err)}`);
             throw err;
         }
     }
