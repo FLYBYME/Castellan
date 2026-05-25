@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import { CastellanEngine } from '../../engine/CastellanEngine.js';
 import { GatewayServer } from '../../server/GatewayServer.js';
 import path from 'path';
-import { ContextApi } from '../../generated/server/ContextApi.js';
+import { pathToFileURL } from 'url';
 
 interface StartOptions {
     port?: number;
@@ -50,12 +50,16 @@ export class StartCommand extends BaseCommand {
             }
 
             // 1. Instantiate the Headless Engine
-            const engine = new CastellanEngine<ContextApi>();
+            const engine = new CastellanEngine<any>();
 
             // 2. Boot the Engine
-            // Load built-in addons first
             const userSkillsDir = path.resolve(skillsPath);
 
+            // Dynamically load the project's locally generated ContextApi
+            const projectApiUrl = pathToFileURL(path.resolve(process.cwd(), 'src/generated/server/ContextApi.js')).href;
+            console.log(`${C.dim}Loading Context API from: ${projectApiUrl}${C.reset}`);
+            
+            const { ContextApi } = await import(projectApiUrl);
             const contextApi = new ContextApi(engine.executor, engine.createContext(undefined, 'boot'));
 
             await engine.boot(contextApi, userSkillsDir);
