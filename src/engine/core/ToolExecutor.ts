@@ -63,8 +63,12 @@ export class ToolExecutor<TApi extends ICastellanApi = ICastellanApi> {
             const duration = Date.now() - startTime;
             //console.error(`[ToolExecutor] [${domain}:${action}] [ERROR] Duration: ${duration}ms. Message: ${err instanceof Error ? err.message : String(err)}`);
             if (err && typeof err === 'object') {
-                if ((err as any).stdout) //console.error(`[${domain}:${action}] [STDOUT]\n${(err as any).stdout}`);
-                    if ((err as any).stderr) //console.error(`[${domain}:${action}] [STDERR]\n${(err as any).stderr}`);
+                if ((err as any).stdout) {
+                    //console.error(`[${domain}:${action}] [STDOUT]\n${(err as any).stdout}`);
+                }
+                if ((err as any).stderr) {
+                    //console.error(`[${domain}:${action}] [STDERR]\n${(err as any).stderr}`);
+                }
             }
             throw err;
         }
