@@ -20,7 +20,7 @@ export class EventBus implements IEventBus {
     ): Promise<void> {
         const subscribers = this.handlers[name] as Set<(p: EventRegistry[K], c: string) => void | Promise<void>> | undefined;
         if ((name as string) !== 'infer:thinking_chunk' && (name as string) !== 'infer:content_chunk') {
-            console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
+            //console.log(`[EventBus] Dispatching ${name} to ${subscribers?.size || 0} subscribers. CorrelationId: ${correlationId}`);
         }
 
         if (subscribers) {
@@ -28,7 +28,7 @@ export class EventBus implements IEventBus {
             let i = 0;
             for (const handler of subscribers) {
                 try {
-                    console.log(`[EventBus] Calling handler ${++i} (${handler.name || 'anonymous'}) for ${name}`);
+                    //console.log(`[EventBus] Calling handler ${++i} (${handler.name || 'anonymous'}) for ${name}`);
                     const r = handler(payload, correlationId);
                     if (r instanceof Promise) {
                         promises.push(r.catch(err => console.error(`[EventBus] Async handler error for ${name}:`, String(err))));
