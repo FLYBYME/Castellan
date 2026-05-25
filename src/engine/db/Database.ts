@@ -2,6 +2,8 @@ import { MongoClient, Db } from 'mongodb';
 import { z } from 'zod';
 import { DomainRepository } from './DomainRepository.js';
 import { IEventBus } from '../../core/events.js';
+//import URL from "node:url";
+
 
 /**
  * Database: The dynamic repository manager for the Castellan Engine.
@@ -16,6 +18,8 @@ export class Database {
         uri: string = process.env.MONGODB_URI || 'mongodb://localhost:27017',
         private dbName: string = 'ask-castellan'
     ) {
+        const url = new URL(uri);
+        this.dbName = url.pathname.substring(1) || dbName;
         this.client = new MongoClient(uri);
     }
 
@@ -42,7 +46,7 @@ export class Database {
 
         const collection = this.dbInstance.collection(domain);
         const repository = new DomainRepository<T>(collection, schema, domain, this.events);
-        
+
         this.repositories.set(domain, repository as unknown as DomainRepository<{ id: string }>);
         return repository;
     }
